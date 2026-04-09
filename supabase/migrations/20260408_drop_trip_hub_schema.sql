@@ -1,0 +1,13 @@
+drop table if exists public.dining cascade;
+drop table if exists public.transport cascade;
+drop table if exists public.payments cascade;
+drop table if exists public.stripe_products cascade;
+drop table if exists public.images cascade;
+drop table if exists public.comments cascade;
+drop table if exists public.activities cascade;
+drop table if exists public.hotels cascade;
+drop table if exists public.poll_votes cascade;
+drop table if exists public.poll_options cascade;
+drop table if exists public.polls cascade;
+drop table if exists public.options cascade;
+drop table if exists public.trips cascade;

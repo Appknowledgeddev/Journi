@@ -1,0 +1,364 @@
+.page {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(86, 141, 255, 0.3), transparent 28%),
+    radial-gradient(circle at 80% 10%, rgba(2, 209, 255, 0.22), transparent 22%),
+    linear-gradient(180deg, #f5f8ff 0%, #eef3ff 38%, #f7f9fc 100%);
+  color: #10203f;
+}
+
+.backgroundGlow {
+  position: absolute;
+  inset: -20rem auto auto -12rem;
+  width: 44rem;
+  height: 44rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(114, 76, 255, 0.18) 0%, rgba(114, 76, 255, 0) 70%);
+  pointer-events: none;
+  filter: blur(8px);
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(16, 32, 63, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 32, 63, 0.06) 1px, transparent 1px);
+  background-size: 96px 96px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.45), transparent 90%);
+  pointer-events: none;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 1.5rem;
+  align-items: center;
+  padding-top: 3.5rem;
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 46rem;
+}
+
+.eyebrow {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #5b6f99;
+}
+
+.heroCopy h1,
+.sectionHeading h2,
+.panelCard h2,
+.cta h2 {
+  letter-spacing: -0.06em;
+  text-wrap: balance;
+}
+
+.heroCopy h1 {
+  font-size: clamp(3.2rem, 7vw, 5.9rem);
+  line-height: 0.96;
+}
+
+.intro,
+.sectionHeading p,
+.panelCard p,
+.trackCard p,
+.layerCard p,
+.timelineCard p,
+.cta p {
+  color: rgba(16, 32, 63, 0.72);
+  line-height: 1.8;
+}
+
+.intro {
+  max-width: 42rem;
+  font-size: 1.12rem;
+}
+
+.heroActions,
+.cta {
+  display: flex;
+  gap: 1rem;
+}
+
+.primaryCta,
+.secondaryCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.4rem;
+  padding: 0 1.4rem;
+  border-radius: 999px;
+  font-size: 0.97rem;
+  font-weight: 600;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.primaryCta {
+  background: linear-gradient(135deg, #635bff 0%, #0a84ff 100%);
+  color: #fff;
+  box-shadow: 0 22px 48px rgba(57, 82, 180, 0.24);
+}
+
+.secondaryCta {
+  border: 1px solid rgba(16, 32, 63, 0.1);
+  background: rgba(255, 255, 255, 0.78);
+  color: #10203f;
+}
+
+.heroPanel,
+.trackCard,
+.layerCard,
+.timelineCard,
+.cta {
+  border: 1px solid rgba(121, 145, 204, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 30px 60px rgba(23, 43, 99, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.heroPanel {
+  border-radius: 2rem;
+  padding: 1.35rem;
+}
+
+.panelCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 100%;
+  padding: 1.2rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, rgba(245, 247, 255, 0.9) 0%, rgba(236, 241, 255, 0.9) 100%);
+}
+
+.panelLabel {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 1.9rem;
+  align-items: center;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  background: rgba(99, 91, 255, 0.12);
+  color: #4f46dd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panelCard h2,
+.sectionHeading h2,
+.cta h2 {
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  line-height: 1;
+}
+
+.metricStack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 0.4rem;
+}
+
+.metricStack div {
+  padding: 1rem;
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.metricStack strong {
+  display: block;
+  font-size: 1.8rem;
+  letter-spacing: -0.05em;
+}
+
+.metricStack span {
+  color: rgba(16, 32, 63, 0.68);
+}
+
+.section,
+.roadmapSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sectionHeading {
+  max-width: 50rem;
+}
+
+.sectionHeading h2 {
+  margin: 0.35rem 0 0.8rem;
+}
+
+.trackGrid,
+.layerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.trackCard,
+.layerCard {
+  min-height: 18rem;
+  padding: 1.5rem;
+  border-radius: 1.8rem;
+}
+
+.trackCard h3,
+.layerCard h3,
+.timelineCard h3 {
+  margin-bottom: 0.9rem;
+  font-size: 1.5rem;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.pointList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+  list-style: none;
+}
+
+.pointList li {
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(240, 244, 255, 0.95);
+  color: #41547d;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.layerCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.layerAccent {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #635bff 0%, #0a84ff 100%);
+}
+
+.timeline {
+  display: grid;
+  gap: 1rem;
+}
+
+.timelineCard {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.4rem;
+  border-radius: 1.5rem;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #635bff 0%, #0a84ff 100%);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.cta {
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem;
+  border-radius: 2rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primaryCta:hover,
+  .secondaryCta:hover {
+    transform: translateY(-1px);
+  }
+
+  .primaryCta:hover {
+    box-shadow: 0 28px 58px rgba(57, 82, 180, 0.32);
+  }
+
+  .secondaryCta:hover {
+    border-color: rgba(16, 32, 63, 0.22);
+    background: rgba(255, 255, 255, 0.92);
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero,
+  .trackGrid,
+  .layerGrid,
+  .cta {
+    grid-template-columns: 1fr;
+  }
+
+  .cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .main {
+    width: min(100% - 32px, 1180px);
+    gap: 3rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .hero {
+    padding-top: 1rem;
+  }
+
+  .heroActions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .metricStack,
+  .trackGrid,
+  .layerGrid,
+  .timelineCard {
+    grid-template-columns: 1fr;
+  }
+
+  .heroPanel,
+  .trackCard,
+  .layerCard,
+  .timelineCard,
+  .cta {
+    border-radius: 1.5rem;
+  }
+}
