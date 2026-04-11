@@ -90,6 +90,59 @@ export function AppShell({
           (hasStoredActiveSubscription(user) ? "active" : null),
       );
 
+      const userPlan = user.user_metadata?.plan === "pro_organiser" ? "pro_organiser" : "free";
+      const userSubscriptionStatus =
+        user.user_metadata?.subscription_status ??
+        (hasStoredActiveSubscription(user) ? "active" : null);
+
+      if (user.email && (userPlan !== "pro_organiser" || userSubscriptionStatus !== "active")) {
+        void fetch("/api/stripe/subscription-status", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email,
+          }),
+        })
+          .then((response) => response.json())
+          .then(
+            async (result: {
+              isPro?: boolean;
+              status?: string;
+              customerId?: string;
+              subscriptionId?: string;
+            }) => {
+              if (!mounted || !result.isPro) {
+                return;
+              }
+
+              const { data } = await supabase.auth.updateUser({
+                data: {
+                  ...user.user_metadata,
+                  plan: "pro_organiser",
+                  subscription_status: "active",
+                  stripe_customer_id: result.customerId,
+                  stripe_subscription_id: result.subscriptionId,
+                  stripe_subscription_status: result.status,
+                },
+              });
+
+              const updatedUser = data.user;
+
+              if (!mounted || !updatedUser) {
+                return;
+              }
+
+              setPlan("pro_organiser");
+              setSubscriptionStatus("active");
+            },
+          )
+          .catch((error) => {
+            console.warn("[Journi Billing] Unable to sync subscription status", error);
+          });
+      }
+
       void fetch("/api/travellers/claim", {
         method: "POST",
         headers: {

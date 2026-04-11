@@ -15,7 +15,7 @@ const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : 
 export function ProOrganiserClient({
   initialBilling,
   compact = false,
-  returnPath = "/dashboard?checkout=complete",
+  returnPath = "/dashboard?checkout=complete&product=pro_organiser",
 }: {
   initialBilling: "monthly" | "yearly";
   compact?: boolean;
@@ -96,7 +96,16 @@ export function ProOrganiserClient({
       return;
     }
 
-    window.location.href = `/signup/pro-organiser/payment?billing=${nextBilling}`;
+    const params = new URLSearchParams({
+      billing: nextBilling,
+      returnPath,
+    });
+
+    if (compact) {
+      params.set("compact", "1");
+    }
+
+    window.location.href = `/signup/pro-organiser/payment?${params.toString()}`;
   }
 
   return (

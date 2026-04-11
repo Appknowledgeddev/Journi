@@ -108,9 +108,9 @@ export default function SignInPage() {
               <input type="checkbox" defaultChecked />
               <span>Remember me</span>
             </label>
-            <a href="#forgot" className={styles.link}>
+            <Link href="/forgot-password" className={styles.link}>
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           {error ? <p className={styles.error}>{error}</p> : null}

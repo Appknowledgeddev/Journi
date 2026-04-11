@@ -15,6 +15,7 @@ export default function FreePlanPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailSentTo, setEmailSentTo] = useState("");
+  const [existingAccountEmail, setExistingAccountEmail] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -42,7 +43,35 @@ export default function FreePlanPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setExistingAccountEmail("");
     setIsSubmitting(true);
+
+    const accountCheckResponse = await fetch("/api/auth/check-account", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+      }),
+    });
+
+    const accountCheck = (await accountCheckResponse.json()) as {
+      exists?: boolean;
+      error?: string;
+    };
+
+    if (!accountCheckResponse.ok) {
+      setError(accountCheck.error || "Unable to check whether this account exists.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (accountCheck.exists) {
+      setExistingAccountEmail(email);
+      setIsSubmitting(false);
+      return;
+    }
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -71,6 +100,7 @@ export default function FreePlanPage() {
   }
 
   const showConfirmation = Boolean(emailSentTo);
+  const showExistingAccount = Boolean(existingAccountEmail);
 
   return (
     <main className={styles.page}>
@@ -88,14 +118,35 @@ export default function FreePlanPage() {
 
       <section className={styles.card}>
         <p className={styles.kicker}>Free plan</p>
-        <h1>{showConfirmation ? "Check your inbox." : "Create your free account."}</h1>
+        <h1>
+          {showConfirmation
+            ? "Check your inbox."
+            : showExistingAccount
+              ? "Account already exists."
+              : "Create your free account."}
+        </h1>
         <p className={styles.lead}>
           {showConfirmation
             ? `We've emailed ${emailSentTo} so you can approve your account. Once you've confirmed it, log back in and we'll take you to your dashboard.`
+            : showExistingAccount
+              ? `${existingAccountEmail} is already registered with Journi. Sign in instead of creating a new account.`
             : "Start with 1 active trip, up to 5 participants, basic voting, 10 itinerary items, and shared notes."}
         </p>
 
-        {showConfirmation ? (
+        {showExistingAccount ? (
+          <div className={styles.confirmationPanel}>
+            <p>
+              This email already has a Journi account. Use the sign-in page to continue,
+              or reset the password if you can&apos;t get in.
+            </p>
+            <Link href="/signin" className={styles.primaryButton}>
+              Go to sign in
+            </Link>
+            <Link href="/forgot-password" className={styles.link}>
+              Forgot password?
+            </Link>
+          </div>
+        ) : showConfirmation ? (
           <div className={styles.confirmationPanel}>
             <p>
               Your free account is waiting for approval. After you confirm your email,

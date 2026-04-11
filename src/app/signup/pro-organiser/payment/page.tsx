@@ -12,7 +12,7 @@ export default async function ProOrganiserPaymentPage({
   const returnPath =
     typeof resolvedSearchParams.returnPath === "string"
       ? resolvedSearchParams.returnPath
-      : "/dashboard?checkout=complete";
+      : "/dashboard?checkout=complete&product=pro_organiser";
 
   return (
     <ProOrganiserClient

@@ -35,7 +35,7 @@ export function DashboardClient() {
         return;
       }
 
-      if (checkoutProduct === "pro_organiser") {
+      if (checkoutProduct === "pro_organiser" || !checkoutProduct) {
         const { data, error } = await supabase.auth.updateUser({
           data: {
             ...user.user_metadata,

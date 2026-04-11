@@ -13,11 +13,17 @@ export function UpgradePlanModal({
   onClose: () => void;
 }) {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
-  const iframeSrc = useMemo(
-    () =>
-      `/signup/pro-organiser/payment?billing=${billing}&compact=1&modal=1&email=${encodeURIComponent(email)}`,
-    [billing, email],
-  );
+  const iframeSrc = useMemo(() => {
+    const params = new URLSearchParams({
+      billing,
+      compact: "1",
+      modal: "1",
+      email,
+      returnPath: "/dashboard?checkout=complete&product=pro_organiser",
+    });
+
+    return `/signup/pro-organiser/payment?${params.toString()}`;
+  }, [billing, email]);
 
   useEffect(() => {
     if (!open) {
