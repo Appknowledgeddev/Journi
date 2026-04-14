@@ -57,6 +57,8 @@ type ExpenseItem = {
   meta: string | null;
 };
 
+type ExpenseRoleView = ExpenseItem["roleView"];
+
 function formatKind(kind: string) {
   switch (kind) {
     case "hotel":
@@ -239,7 +241,7 @@ function MyExpensesManager({
   const expenseItems = useMemo<ExpenseItem[]>(() => {
     const paymentItems = payments.map((payment) => {
       const trip = payment.trip_id ? tripById.get(payment.trip_id) : null;
-      const roleView = trip?.owner_id === userId ? "organiser" : "participant";
+      const roleView: ExpenseRoleView = trip?.owner_id === userId ? "organiser" : "participant";
       const paymentLabel =
         typeof payment.metadata?.label === "string"
           ? payment.metadata.label
@@ -264,7 +266,7 @@ function MyExpensesManager({
 
     const selectionItems = (selectionExpenses ?? []).map((selection) => {
       const trip = tripById.get(selection.trip_id);
-      const roleView = trip?.owner_id === userId ? "organiser" : "participant";
+      const roleView: ExpenseRoleView = trip?.owner_id === userId ? "organiser" : "participant";
 
       return {
         id: `selection-${selection.category}-${selection.id}`,
