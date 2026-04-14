@@ -1,6 +1,13 @@
+@import "react-day-picker/style.css";
+@import "intro.js/introjs.css";
+
 :root {
   --background: #f7f9fc;
   --foreground: #10203f;
+  --brand-accent: #2c94f5;
+  --brand-accent-strong: #1d7fe0;
+  --brand-accent-soft: rgba(44, 148, 245, 0.12);
+  --brand-accent-tint: rgba(44, 148, 245, 0.2);
 }
 
 html {
@@ -33,4 +40,126 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+.journiIntroTooltip {
+  min-width: min(92vw, 360px) !important;
+  border: 1px solid rgba(44, 148, 245, 0.14) !important;
+  border-radius: 24px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 24px 80px rgba(16, 32, 63, 0.18) !important;
+  backdrop-filter: blur(18px) !important;
+  color: #10203f !important;
+  font-family: var(--font-geist-sans), sans-serif !important;
+}
+
+.journiIntroTooltip .introjs-tooltip-header {
+  padding: 18px 20px 0 !important;
+}
+
+.journiIntroTooltip .introjs-tooltip-title {
+  color: #10203f !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.journiIntroTooltip .introjs-tooltiptext {
+  padding: 12px 20px 8px !important;
+  color: rgba(16, 32, 63, 0.76) !important;
+  font-size: 0.96rem !important;
+  line-height: 1.65 !important;
+}
+
+.journiIntroTooltip .introjs-tooltipbuttons {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 16px 20px 20px !important;
+  border-top: 1px solid rgba(16, 32, 63, 0.08) !important;
+}
+
+.journiIntroTooltip .introjs-button,
+.journiIntroTooltip .introjs-skipbutton {
+  min-height: 42px !important;
+  padding: 0 16px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: rgba(44, 148, 245, 0.1) !important;
+  box-shadow: none !important;
+  color: #10203f !important;
+  font-size: 0.92rem !important;
+  font-weight: 800 !important;
+  line-height: 42px !important;
+  text-shadow: none !important;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease !important;
+}
+
+.journiIntroTooltip .introjs-button:hover,
+.journiIntroTooltip .introjs-button:focus,
+.journiIntroTooltip .introjs-skipbutton:hover,
+.journiIntroTooltip .introjs-skipbutton:focus {
+  background: rgba(44, 148, 245, 0.16) !important;
+  color: #0f4e8a !important;
+  transform: translateY(-1px);
+}
+
+.journiIntroTooltip .introjs-nextbutton {
+  background: linear-gradient(135deg, #2c94f5 0%, #1d7fe0 100%) !important;
+  color: #ffffff !important;
+}
+
+.journiIntroTooltip .introjs-nextbutton:hover,
+.journiIntroTooltip .introjs-nextbutton:focus {
+  background: linear-gradient(135deg, #258aed 0%, #1773cf 100%) !important;
+  color: #ffffff !important;
+}
+
+.journiIntroTooltip .introjs-prevbutton {
+  margin-right: auto !important;
+}
+
+.journiIntroTooltip .introjs-disabled,
+.journiIntroTooltip .introjs-disabled:hover,
+.journiIntroTooltip .introjs-disabled:focus {
+  opacity: 0.45 !important;
+  background: rgba(16, 32, 63, 0.06) !important;
+  color: rgba(16, 32, 63, 0.48) !important;
+  transform: none !important;
+}
+
+.journiIntroTooltip .introjs-progress {
+  margin: 0 20px 16px !important;
+  height: 8px !important;
+  border-radius: 999px !important;
+  background: rgba(44, 148, 245, 0.12) !important;
+}
+
+.journiIntroTooltip .introjs-progressbar {
+  border-radius: inherit !important;
+  background: linear-gradient(90deg, #2c94f5 0%, #56b0ff 100%) !important;
+}
+
+.journiIntroTooltip .introjs-tooltipReferenceLayer {
+  border-radius: 20px !important;
+}
+
+.journiIntroTooltip .introjs-arrow {
+  border-top-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+.journiIntroHighlight {
+  border-radius: 20px !important;
+  box-shadow:
+    0 0 0 4px rgba(44, 148, 245, 0.2),
+    0 18px 40px rgba(44, 148, 245, 0.18) !important;
+}
+
+.introjs-overlay {
+  background: rgba(12, 23, 43, 0.52) !important;
+  backdrop-filter: blur(4px) !important;
 }

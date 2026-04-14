@@ -15,6 +15,8 @@ type TripCard = {
   starts_at: string | null;
   ends_at: string | null;
   cover_image_url: string | null;
+  owner_id?: string | null;
+  roleView?: "organiser" | "participant";
 };
 
 const tripCategoryBreakdown = [
@@ -70,6 +72,7 @@ export default function TripsPage() {
   const [loadingTrips, setLoadingTrips] = useState(true);
   const [tripError, setTripError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [tripFilter, setTripFilter] = useState<"all" | "organiser" | "participant">("all");
   const [isCreating, setIsCreating] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
@@ -102,26 +105,44 @@ export default function TripsPage() {
 
       setUserId(user.id);
 
-      const { data, error } = await supabase
-        .from("trips")
-        .select(
-          "id, title, destination, description, status, starts_at, ends_at, cover_image_url",
-        )
-        .eq("owner_id", user.id)
-        .order("created_at", { ascending: false });
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!mounted) {
         return;
       }
 
-      if (error) {
-        setTripError(error.message);
+      if (!session?.access_token) {
+        setTripError("You need to be signed in before viewing trips.");
         setTrips([]);
         setLoadingTrips(false);
         return;
       }
 
-      setTrips((data ?? []) as TripCard[]);
+      const response = await fetch("/api/my-trips", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = (await response.json()) as {
+        trips?: TripCard[];
+        error?: string;
+      };
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!response.ok) {
+        setTripError(result.error || "Unable to load trips.");
+        setTrips([]);
+        setLoadingTrips(false);
+        return;
+      }
+
+      setTrips(result.trips ?? []);
       setLoadingTrips(false);
     }
 
@@ -173,7 +194,7 @@ export default function TripsPage() {
       return;
     }
 
-    setTrips((current) => [data as TripCard, ...current]);
+    setTrips((current) => [{ ...(data as TripCard), roleView: "organiser" }, ...current]);
     setTripForm(initialTripForm);
     setShowCreateForm(false);
     setIsCreating(false);
@@ -239,35 +260,76 @@ export default function TripsPage() {
     await uploadTripImage(file);
   }
 
+  const filteredTrips = trips.filter((trip) => {
+    if (tripFilter === "all") {
+      return true;
+    }
+
+    return trip.roleView === tripFilter;
+  });
+
   return (
     <AppShell
       kicker="Trips"
       title="Your trips."
-      intro="All of the trips you’ve created."
+      intro="Switch between trips you organise and trips you’ve joined as a participant."
       headerAction={
-        <button
-          type="button"
-          className={styles.primaryAction}
-          onClick={() => setShowCreateForm(true)}
+        <Link
+          href="/trip-organiser"
+          className={styles.primaryActionLink}
         >
           Add trip
-        </button>
+        </Link>
       }
     >
       {() => (
         <div className={styles.stack}>
           <section className={styles.tripListSection}>
+            <div className={styles.tripFilter}>
+              <button
+                type="button"
+                className={
+                  tripFilter === "all" ? styles.tripFilterButtonActive : styles.tripFilterButton
+                }
+                onClick={() => setTripFilter("all")}
+              >
+                All trips
+              </button>
+              <button
+                type="button"
+                className={
+                  tripFilter === "organiser"
+                    ? styles.tripFilterButtonActive
+                    : styles.tripFilterButton
+                }
+                onClick={() => setTripFilter("organiser")}
+              >
+                Organised by me
+              </button>
+              <button
+                type="button"
+                className={
+                  tripFilter === "participant"
+                    ? styles.tripFilterButtonActive
+                    : styles.tripFilterButton
+                }
+                onClick={() => setTripFilter("participant")}
+              >
+                I’m a participant
+              </button>
+            </div>
+
             {tripError ? null : null}
 
-            {!loadingTrips && !tripError && trips.length === 0 ? (
+            {!loadingTrips && !tripError && filteredTrips.length === 0 ? (
               <div className={styles.emptyState}>
-                <p>No trips yet.</p>
+                <p>No trips in this view yet.</p>
               </div>
             ) : null}
 
             {!tripError ? (
               <div className={styles.tripList}>
-                {trips.map((trip) => (
+                {filteredTrips.map((trip) => (
                   <Link
                     key={trip.id}
                     href={`/trips/${trip.id}`}
@@ -287,7 +349,9 @@ export default function TripsPage() {
                     <div className={styles.tripListBody}>
                       <div className={styles.rowTop}>
                         <span className={styles.rowTitle}>{trip.title}</span>
-                        <span className={styles.badge}>{trip.status}</span>
+                        <span className={styles.badge}>
+                          {trip.roleView === "participant" ? "participant" : trip.status}
+                        </span>
                       </div>
                         <div className={styles.tripMetaRow}>
                           <span>{trip.destination || "Destination to be confirmed"}</span>

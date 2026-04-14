@@ -9,28 +9,30 @@ export function TripUpgradeModal({
   open,
   email,
   tripId,
+  returnPath,
   onClose,
 }: {
   open: boolean;
   email: string;
   tripId: string;
+  returnPath?: string;
   onClose: () => void;
 }) {
   const [mode, setMode] = useState<UpgradeMode>("trip_pass");
 
   const iframeSrc = useMemo(() => {
-    const returnPath = encodeURIComponent(`/trips/${tripId}`);
+    const checkoutReturnPath = encodeURIComponent(returnPath || `/trips/${tripId}`);
 
     if (mode === "trip_pass") {
-      return `/signup/trip-pass/payment?compact=1&returnPath=${returnPath}&email=${encodeURIComponent(
+      return `/signup/trip-pass/payment?compact=1&returnPath=${checkoutReturnPath}&email=${encodeURIComponent(
         email,
       )}`;
     }
 
-    return `/signup/pro-organiser/payment?compact=1&billing=monthly&returnPath=${returnPath}&email=${encodeURIComponent(
+    return `/signup/pro-organiser/payment?compact=1&billing=monthly&returnPath=${checkoutReturnPath}&email=${encodeURIComponent(
       email,
     )}`;
-  }, [email, mode, tripId]);
+  }, [email, mode, returnPath, tripId]);
 
   if (!open) {
     return null;

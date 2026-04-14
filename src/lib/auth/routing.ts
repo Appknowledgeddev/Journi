@@ -34,5 +34,14 @@ export function hasStoredActiveSubscription(user: AuthUserLike) {
 }
 
 export function getAuthenticatedRoute(user: AuthUserLike) {
+  const plan = user?.user_metadata?.plan ?? null;
+  const subscriptionStatus =
+    user?.user_metadata?.subscription_status ??
+    (hasStoredActiveSubscription(user) ? "active" : null);
+
+  if (plan === "pro_organiser" && subscriptionStatus !== "active") {
+    return "/signup/pro-organiser/payment";
+  }
+
   return "/dashboard";
 }

@@ -60,6 +60,7 @@ function SubscriptionManager({
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
   const [loadingSubscription, setLoadingSubscription] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
@@ -153,6 +154,39 @@ function SubscriptionManager({
     setActionLoading(false);
   }
 
+  async function handleOpenBillingPortal() {
+    if (!email) {
+      setSubscriptionError("No account email is available for billing management.");
+      return;
+    }
+
+    setPortalLoading(true);
+    setActionMessage(null);
+    setSubscriptionError(null);
+
+    const response = await fetch("/api/stripe/billing-portal-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        origin: window.location.origin,
+        returnPath: "/subscription",
+      }),
+    });
+
+    const data = (await response.json()) as { url?: string; error?: string };
+
+    if (!response.ok || !data.url) {
+      setSubscriptionError(data.error || "Unable to open Stripe billing settings.");
+      setPortalLoading(false);
+      return;
+    }
+
+    window.location.href = data.url;
+  }
+
   const isCancelling = Boolean(subscription?.cancelAtPeriodEnd);
 
   return (
@@ -227,6 +261,17 @@ function SubscriptionManager({
               disabled={actionLoading}
             >
               {actionLoading ? "Updating..." : "Cancel at period end"}
+            </button>
+          ) : null}
+
+          {isPro && subscription?.subscriptionId ? (
+            <button
+              type="button"
+              className={sectionStyles.secondaryAction}
+              onClick={handleOpenBillingPortal}
+              disabled={portalLoading}
+            >
+              {portalLoading ? "Opening billing..." : "Payment methods and invoices"}
             </button>
           ) : null}
 

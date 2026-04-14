@@ -30,6 +30,53 @@ type TripParticipant = {
   status: string;
 };
 
+type TripAccessRole = "organiser" | "participant";
+
+type HotelSelection = {
+  id: string;
+  name: string;
+  location: string | null;
+  notes: string | null;
+  source_photo_url: string | null;
+};
+
+type ActivitySelection = {
+  id: string;
+  title: string;
+  location: string | null;
+  notes: string | null;
+  source_photo_url: string | null;
+};
+
+type TransportSelection = {
+  id: string;
+  mode: string;
+  departure_location: string | null;
+  arrival_location: string | null;
+  notes: string | null;
+  source_photo_url: string | null;
+};
+
+type DiningSelection = {
+  id: string;
+  name: string;
+  location: string | null;
+  notes: string | null;
+  source_photo_url: string | null;
+};
+
+type CategoryKey = "hotels" | "activities" | "transport" | "dining";
+
+type VoteCategoryState = {
+  title: string;
+  voterCount: number;
+  eligibleVoterCount: number;
+  progress: number;
+  itemVotes: Record<string, { votes: number; voterIds: string[] }>;
+};
+
+type VotingState = Record<CategoryKey, VoteCategoryState>;
+
 const planningCategories = [
   { key: "hotels", label: "Hotels", emoji: "🏨", progress: 80, colorClass: "progressFillBlue" },
   {
@@ -77,7 +124,9 @@ export default function TripDetailPage() {
   const [trip, setTrip] = useState<TripDetail | null>(null);
   const [loadingTrip, setLoadingTrip] = useState(true);
   const [tripError, setTripError] = useState<string | null>(null);
+  const [votingError, setVotingError] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [plan, setPlan] = useState<Plan>("free");
@@ -89,6 +138,13 @@ export default function TripDetailPage() {
   const [isInviting, setIsInviting] = useState(false);
   const [participantGateMessage, setParticipantGateMessage] = useState<string | null>(null);
   const [showParticipantUpgradeModal, setShowParticipantUpgradeModal] = useState(false);
+  const [accessRole, setAccessRole] = useState<TripAccessRole>("organiser");
+  const [hotels, setHotels] = useState<HotelSelection[]>([]);
+  const [activities, setActivities] = useState<ActivitySelection[]>([]);
+  const [transport, setTransport] = useState<TransportSelection[]>([]);
+  const [dining, setDining] = useState<DiningSelection[]>([]);
+  const [voting, setVoting] = useState<VotingState | null>(null);
+  const [submittingVoteKey, setSubmittingVoteKey] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -113,45 +169,90 @@ export default function TripDetailPage() {
 
       setPlan(user?.user_metadata?.plan === "pro_organiser" ? "pro_organiser" : "free");
       setCurrentUserEmail(user?.email ?? "");
+      setCurrentUserId(user?.id ?? null);
 
-      const { data: participantRows, error: participantsFetchError } = await supabase
-        .from("trip_participants")
-        .select("id, email, full_name, role, status")
-        .eq("trip_id", tripId)
-        .order("created_at", { ascending: true });
-
-      if (!mounted) {
-        return;
-      }
-
-      if (participantsFetchError) {
-        setParticipants([]);
-        setParticipantsError(participantsFetchError.message);
-      } else {
-        setParticipants((participantRows ?? []) as TripParticipant[]);
-        setParticipantsError(null);
-      }
-
-      const { data, error } = await supabase
-        .from("trips")
-        .select(
-          "id, title, destination, description, status, starts_at, ends_at, cover_image_url, created_at",
-        )
-        .eq("id", tripId)
-        .single();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!mounted) {
         return;
       }
 
-      if (error) {
-        setTripError(error.message);
+      if (!session?.access_token) {
+        setTripError("You need to be signed in before viewing this trip.");
         setTrip(null);
         setLoadingTrip(false);
         return;
       }
 
-      setTrip(data as TripDetail);
+      const response = await fetch(`/api/trips/${tripId}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = (await response.json()) as {
+        trip?: TripDetail;
+        participants?: TripParticipant[];
+        hotels?: HotelSelection[];
+        activities?: ActivitySelection[];
+        transport?: TransportSelection[];
+        dining?: DiningSelection[];
+        accessRole?: TripAccessRole;
+        error?: string;
+      };
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!response.ok || !result.trip) {
+        setTripError(result.error || "Unable to load this trip.");
+        setTrip(null);
+        setParticipants([]);
+        setHotels([]);
+        setActivities([]);
+        setTransport([]);
+        setDining([]);
+        setParticipantsError(null);
+        setLoadingTrip(false);
+        return;
+      }
+
+      setTrip(result.trip);
+      setParticipants(result.participants ?? []);
+      setHotels(result.hotels ?? []);
+      setActivities(result.activities ?? []);
+      setTransport(result.transport ?? []);
+      setDining(result.dining ?? []);
+      setParticipantsError(null);
+      setAccessRole(result.accessRole ?? "participant");
+
+      const votingResponse = await fetch(`/api/trips/${tripId}/voting`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const votingResult = (await votingResponse.json()) as {
+        categories?: VotingState;
+        error?: string;
+      };
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!votingResponse.ok) {
+        setVoting(null);
+        setVotingError(votingResult.error || "Unable to load voting.");
+        setLoadingTrip(false);
+        return;
+      }
+
+      setVoting(votingResult.categories ?? null);
+      setVotingError(null);
       setLoadingTrip(false);
     }
 
@@ -163,7 +264,149 @@ export default function TripDetailPage() {
   }, [tripId]);
 
   const tripTitle = loadingTrip ? "Loading trip..." : trip?.title || "Trip";
-  const overallProgress = 60;
+  const completedSections = [hotels.length, activities.length, transport.length, dining.length].filter(
+    (count) => count > 0,
+  ).length;
+  const overallProgress = voting
+    ? Math.round(
+        planningCategories.reduce((sum, category) => sum + (voting[category.key as CategoryKey]?.progress ?? 0), 0) /
+          planningCategories.length,
+      )
+    : Math.round((completedSections / planningCategories.length) * 100);
+
+  async function handleVote(category: CategoryKey, entityId: string) {
+    if (!tripId) {
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      setVotingError("You need to be signed in before voting.");
+      return;
+    }
+
+    const voteKey = `${category}-${entityId}`;
+    setSubmittingVoteKey(voteKey);
+    setVotingError(null);
+
+    const response = await fetch(`/api/trips/${tripId}/voting`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ category, entityId }),
+    });
+
+    const result = (await response.json()) as {
+      categories?: VotingState;
+      error?: string;
+    };
+
+    if (!response.ok) {
+      setVotingError(result.error || "Unable to save your vote.");
+      setSubmittingVoteKey(null);
+      return;
+    }
+
+    setVoting(result.categories ?? null);
+    setSubmittingVoteKey(null);
+  }
+
+  function renderSelectionSection(
+    category: CategoryKey,
+    title: string,
+    items: Array<{
+      id: string;
+      title: string;
+      meta: string;
+      note: string;
+      image?: string | null;
+    }>,
+    emptyMessage: string,
+  ) {
+    const votingState = voting?.[category];
+
+    return (
+      <section className={styles.panel}>
+        <div className={styles.sectionTop}>
+          <div>
+            <p className={styles.eyebrow}>Trip plan</p>
+            <h2>{title}</h2>
+          </div>
+          <div className={styles.headerActions}>
+            {votingState ? (
+              <span className={styles.badgeSoft}>
+                {votingState.voterCount}/{votingState.eligibleVoterCount} voted
+              </span>
+            ) : null}
+            <span className={styles.badgeSoft}>{items.length} selected</span>
+          </div>
+        </div>
+
+        {votingState ? (
+          <div className={styles.voteSectionHeader}>
+            <div className={styles.progressBar}>
+              <span
+                className={`${styles.progressFill} ${styles.progressFillBlue}`}
+                style={{ width: `${votingState.progress}%` }}
+              >
+                {votingState.progress}%
+              </span>
+            </div>
+            <p className={styles.progressMeta}>
+              {votingState.voterCount} of {votingState.eligibleVoterCount} participants have voted on {title.toLowerCase()}.
+            </p>
+          </div>
+        ) : null}
+
+        {items.length ? (
+          <div className={styles.selectionSummaryGrid}>
+            {items.map((item) => (
+              <article key={item.id} className={styles.selectionSummaryCard}>
+                {item.image ? (
+                  <img src={item.image} alt={item.title} className={styles.selectionSummaryImage} />
+                ) : (
+                  <div className={styles.selectionSummaryImageFallback} />
+                )}
+                <div className={styles.selectionSummaryBody}>
+                  <strong>{item.title}</strong>
+                  <small>{item.meta}</small>
+                  <p>{item.note}</p>
+                  <div className={styles.voteCardFooter}>
+                    <span className={styles.voteCount}>
+                      {votingState?.itemVotes[item.id]?.votes ?? 0} vote
+                      {(votingState?.itemVotes[item.id]?.votes ?? 0) === 1 ? "" : "s"}
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.secondaryAction}
+                      onClick={() => void handleVote(category, item.id)}
+                      disabled={submittingVoteKey === `${category}-${item.id}`}
+                    >
+                      {submittingVoteKey === `${category}-${item.id}`
+                        ? "Saving..."
+                        : currentUserId &&
+                            (votingState?.itemVotes[item.id]?.voterIds ?? []).includes(currentUserId)
+                          ? "Remove vote"
+                          : "Vote"}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <p>{emptyMessage}</p>
+          </div>
+        )}
+      </section>
+    );
+  }
 
   async function handleDeleteTrip() {
     if (!trip || trip.status !== "draft") {
@@ -341,7 +584,7 @@ export default function TripDetailPage() {
       intro="This is the trip view. It gives you the cover image, key trip details, and a starting point for the rest of the organiser workflow."
       headerAction={
         <div className={styles.headerActions}>
-          {trip?.status === "draft" ? (
+          {accessRole === "organiser" && trip?.status === "draft" ? (
             <button
               type="button"
               className={styles.primaryAction}
@@ -351,7 +594,7 @@ export default function TripDetailPage() {
               {isPublishing ? "Publishing..." : "Publish trip"}
             </button>
           ) : null}
-          {trip?.status === "draft" ? (
+          {accessRole === "organiser" && trip?.status === "draft" ? (
             <button
               type="button"
               className={styles.dangerAction}
@@ -440,11 +683,13 @@ export default function TripDetailPage() {
                     </div>
                   )}
 
-                  <div className={styles.tripDetailBody}>
-                    <div className={styles.rowTop}>
-                      <span className={styles.rowTitle}>{trip.title}</span>
-                      <span className={styles.badge}>{trip.status}</span>
-                    </div>
+                    <div className={styles.tripDetailBody}>
+                      <div className={styles.rowTop}>
+                        <span className={styles.rowTitle}>{trip.title}</span>
+                        <span className={styles.badge}>
+                          {accessRole === "participant" ? "participant" : trip.status}
+                        </span>
+                      </div>
                     <div className={styles.tripMetaRow}>
                       <span>{trip.destination || "Destination to be confirmed"}</span>
                       <span>{formatTripDateRange(trip.starts_at, trip.ends_at)}</span>
@@ -474,6 +719,7 @@ export default function TripDetailPage() {
                 </div>
               </section>
 
+              {accessRole === "organiser" ? (
               <section className={styles.panel}>
                 <div className={styles.sectionTop}>
                   <div>
@@ -551,10 +797,11 @@ export default function TripDetailPage() {
                   )}
                 </div>
               </section>
+              ) : null}
 
-              <section className={styles.progressPanel}>
-                <div className={styles.progressSection}>
-                  <h2>Overall Planning Progress</h2>
+	              <section className={styles.progressPanel}>
+	                <div className={styles.progressSection}>
+	                  <h2>Overall Planning Progress</h2>
                   <div className={styles.progressBar}>
                     <span
                       className={`${styles.progressFill} ${styles.progressFillGreen}`}
@@ -563,8 +810,11 @@ export default function TripDetailPage() {
                       {overallProgress}%
                     </span>
                   </div>
-                  <p className={styles.progressMeta}>3 of 5 travel decisions completed</p>
-                </div>
+	                  <p className={styles.progressMeta}>{completedSections} of 4 planning sections have selections</p>
+	                  <p className={styles.progressMeta}>
+	                    Voting progress updates as participants vote on the options below.
+	                  </p>
+	                </div>
 
                 <div className={styles.progressSection}>
                   <h2>Planning Categories</h2>
@@ -576,29 +826,88 @@ export default function TripDetailPage() {
                           <span>{category.emoji}</span>
                           <span>{category.label}</span>
                         </div>
-                        <div className={styles.progressBar}>
-                          <span
-                            className={`${styles.progressFill} ${
-                              styles[category.colorClass as keyof typeof styles]
-                            }`}
-                            style={{ width: `${category.progress}%` }}
-                          />
-                        </div>
-                        <p className={styles.progressMeta}>{category.progress}% decided</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+	                        <div className={styles.progressBar}>
+	                          <span
+	                            className={`${styles.progressFill} ${
+	                              styles[category.colorClass as keyof typeof styles]
+	                            }`}
+	                            style={{ width: `${voting?.[category.key as CategoryKey]?.progress ?? 0}%` }}
+	                          />
+	                        </div>
+		                        <p className={styles.progressMeta}>
+		                          {voting?.[category.key as CategoryKey]
+		                            ? `${voting[category.key as CategoryKey].voterCount}/${voting[category.key as CategoryKey].eligibleVoterCount} participants voted`
+		                            : "Voting not loaded yet"}
+		                        </p>
+	                      </div>
+	                    ))}
+	                  </div>
+	                </div>
 
-                <div className={styles.nextActionCard}>
-                  <p className={styles.eyebrow}>Next action</p>
-                  <p className={styles.nextActionText}>
-                    Ask the group to vote on activities to move this category forward.
-                  </p>
-                </div>
-              </section>
-            </>
-          ) : null}
+	                <div className={styles.nextActionCard}>
+	                  <p className={styles.eyebrow}>Next action</p>
+	                  <p className={styles.nextActionText}>
+	                    Ask the group to vote on hotels, activities, transport, and dining below.
+	                  </p>
+	                </div>
+                  {votingError ? <p className={styles.formError}>{votingError}</p> : null}
+	              </section>
+
+	                {renderSelectionSection(
+	                  "hotels",
+	                  "Hotels",
+                  hotels.map((hotel) => ({
+                    id: hotel.id,
+                    title: hotel.name,
+                    meta: hotel.location || "Location to be confirmed",
+                    note: hotel.notes || "Selected hotel option",
+                    image: hotel.source_photo_url,
+                  })),
+                  "No hotels have been added to this trip yet.",
+                )}
+
+	                {renderSelectionSection(
+	                  "activities",
+	                  "Activities",
+                  activities.map((activity) => ({
+                    id: activity.id,
+                    title: activity.title,
+                    meta: activity.location || "Location to be confirmed",
+                    note: activity.notes || "Selected activity option",
+                    image: activity.source_photo_url,
+                  })),
+                  "No activities have been added to this trip yet.",
+                )}
+
+	                {renderSelectionSection(
+	                  "transport",
+	                  "Transport",
+                  transport.map((item) => ({
+                    id: item.id,
+                    title: item.mode,
+                    meta:
+                      [item.departure_location, item.arrival_location].filter(Boolean).join(" to ") ||
+                      "Route to be confirmed",
+                    note: item.notes || "Selected transport option",
+                    image: item.source_photo_url,
+                  })),
+                  "No transport has been added to this trip yet.",
+                )}
+
+	                {renderSelectionSection(
+	                  "dining",
+	                  "Dining",
+                  dining.map((item) => ({
+                    id: item.id,
+                    title: item.name,
+                    meta: item.location || "Location to be confirmed",
+                    note: item.notes || "Selected dining option",
+                    image: item.source_photo_url,
+                  })),
+                  "No dining spots have been added to this trip yet.",
+                )}
+	            </>
+	          ) : null}
 
           {loadingTrip ? (
             <section className={styles.panel}>

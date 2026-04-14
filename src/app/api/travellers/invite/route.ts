@@ -1,6 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, supabaseServerPublic } from "@/lib/supabase/server";
 
+const MAKE_INVITE_WEBHOOK_URL =
+  process.env.MAKE_TRAVELLER_INVITE_WEBHOOK_URL ||
+  "https://hook.eu1.make.com/gc44j6vr15obp4so9fxc6evunczovjjb";
+
+async function notifyInviteWebhook(payload: {
+  email: string;
+  fullName: string;
+  tripTitle: string;
+  tripId: string;
+  origin: string;
+  mode: "existing-user" | "new-user";
+  linkedUserId: string | null;
+}) {
+  try {
+    const response = await fetch(MAKE_INVITE_WEBHOOK_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: payload.email,
+        full_name: payload.fullName || null,
+        trip_title: payload.tripTitle,
+        trip_id: payload.tripId || null,
+        origin: payload.origin,
+        invite_mode: payload.mode,
+        linked_user_id: payload.linkedUserId,
+        sent_at: new Date().toISOString(),
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("[Journi Invite] Make webhook failed", {
+        status: response.status,
+        email: payload.email,
+        tripId: payload.tripId,
+      });
+    }
+  } catch (error) {
+    console.warn("[Journi Invite] Make webhook error", {
+      email: payload.email,
+      tripId: payload.tripId,
+      error: error instanceof Error ? error.message : "Unknown webhook error",
+    });
+  }
+}
+
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
     email?: string;
@@ -60,6 +107,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
 
+      await notifyInviteWebhook({
+        email,
+        fullName,
+        tripTitle,
+        tripId,
+        origin,
+        mode: "existing-user",
+        linkedUserId: existingUser.id,
+      });
+
       return NextResponse.json({ success: true, mode: "existing-user" });
     }
 
@@ -75,6 +132,16 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    await notifyInviteWebhook({
+      email,
+      fullName,
+      tripTitle,
+      tripId,
+      origin,
+      mode: "new-user",
+      linkedUserId: null,
+    });
 
     return NextResponse.json({ success: true, mode: "new-user" });
   } catch (error) {

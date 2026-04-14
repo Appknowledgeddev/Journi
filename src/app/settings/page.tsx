@@ -2,6 +2,7 @@
 
 import { AppShell } from "@/components/app-shell";
 import sectionStyles from "@/components/app-page.module.css";
+import { ProfileManager } from "@/app/profile/page";
 
 const notificationSettings = [
   {
@@ -28,8 +29,10 @@ export default function SettingsPage() {
       title="Workspace settings"
       intro="Simple workspace defaults and notifications."
     >
-      {({ loading, plan, isPro }) => (
+      {({ loading, plan, isPro, ...state }) => (
         <div className={sectionStyles.stack}>
+          <ProfileManager {...state} loading={loading} plan={plan} isPro={isPro} />
+
           <section className={sectionStyles.panel}>
             <div className={sectionStyles.sectionTop}>
               <div>
