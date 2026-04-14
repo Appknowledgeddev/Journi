@@ -330,6 +330,8 @@ export async function POST(
     return NextResponse.json({ error: schemaError(entityError?.message || "Option not found.") }, { status: 404 });
   }
 
+  const entityRecord = entityRow as unknown as Record<string, unknown>;
+
   let { data: poll, error: pollError } = await supabaseAdmin
     .from("polls")
     .select("id, title")
@@ -380,8 +382,8 @@ export async function POST(
         trip_id: tripId,
         created_by: auth.user.id,
         category,
-        title: config.label(entityRow as Record<string, unknown>),
-        description: config.description(entityRow as Record<string, unknown>),
+        title: config.label(entityRecord),
+        description: config.description(entityRecord),
         metadata: { entityId, sourceTable: category },
       })
       .select("id")
