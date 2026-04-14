@@ -413,7 +413,7 @@ export async function POST(
       .insert({
         poll_id: poll.id,
         option_id: option.id,
-        label: config.label(entityRow as Record<string, unknown>),
+        label: config.label(entityRecord),
       })
       .select("id")
       .single();
