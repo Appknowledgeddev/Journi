@@ -239,7 +239,7 @@ function MyExpensesManager({
   const tripById = useMemo(() => new Map(trips.map((trip) => [trip.id, trip])), [trips]);
 
   const expenseItems = useMemo<ExpenseItem[]>(() => {
-    const paymentItems = payments.map((payment) => {
+    const paymentItems: ExpenseItem[] = payments.map((payment) => {
       const trip = payment.trip_id ? tripById.get(payment.trip_id) : null;
       const roleView: ExpenseRoleView = trip?.owner_id === userId ? "organiser" : "participant";
       const paymentLabel =
@@ -264,7 +264,7 @@ function MyExpensesManager({
       };
     });
 
-    const selectionItems = (selectionExpenses ?? []).map((selection) => {
+    const selectionItems: ExpenseItem[] = (selectionExpenses ?? []).map((selection) => {
       const trip = tripById.get(selection.trip_id);
       const roleView: ExpenseRoleView = trip?.owner_id === userId ? "organiser" : "participant";
 
