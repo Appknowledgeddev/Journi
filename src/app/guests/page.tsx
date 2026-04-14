@@ -3,6 +3,8 @@
 import { AppShell } from "@/components/app-shell";
 import styles from "@/components/app-page.module.css";
 
+export const dynamic = "force-dynamic";
+
 export default function GuestsPage() {
   return (
     <AppShell
