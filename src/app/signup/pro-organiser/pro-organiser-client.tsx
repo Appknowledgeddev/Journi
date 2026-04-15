@@ -12,6 +12,24 @@ import { supabase } from "@/lib/supabase/client";
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
+function summariseStripeKey(key: string | undefined) {
+  if (!key) {
+    return "missing";
+  }
+
+  const mode = key.startsWith("pk_live_")
+    ? "live"
+    : key.startsWith("pk_test_")
+      ? "test"
+      : "unknown";
+
+  if (key.length <= 18) {
+    return `${key} (${mode})`;
+  }
+
+  return `${key.slice(0, 12)}...${key.slice(-6)} (${mode})`;
+}
+
 export function ProOrganiserClient({
   initialBilling,
   compact = false,
@@ -25,6 +43,7 @@ export function ProOrganiserClient({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   const [accountEmail, setAccountEmail] = useState("");
+  const stripeKeySummary = summariseStripeKey(stripePublishableKey);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +158,7 @@ export function ProOrganiserClient({
               <div className={styles.checkoutMessage}>
                 <strong>Stripe checkout could not load</strong>
                 <p>{checkoutError}</p>
+                <p>Frontend Stripe key: {stripeKeySummary}</p>
               </div>
             ) : (
               <div className={styles.checkoutPlaceholder} aria-hidden="true" />
@@ -223,6 +243,7 @@ export function ProOrganiserClient({
                 <div className={styles.checkoutMessage}>
                   <strong>Stripe checkout could not load</strong>
                   <p>{checkoutError}</p>
+                  <p>Frontend Stripe key: {stripeKeySummary}</p>
                 </div>
               ) : (
                 <div className={styles.checkoutPlaceholder} aria-hidden="true" />
