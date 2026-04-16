@@ -82,6 +82,10 @@ a {
 
 .journiIntroTooltip .introjs-button,
 .journiIntroTooltip .introjs-skipbutton {
+  position: static !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   min-height: 42px !important;
   padding: 0 16px !important;
   border: 0 !important;
@@ -96,7 +100,14 @@ a {
   transition:
     transform 160ms ease,
     background-color 160ms ease,
-    color 160ms ease !important;
+    color 160ms ease,
+    opacity 160ms ease !important;
+}
+
+.journiIntroTooltip .introjs-skipbutton {
+  margin-left: auto !important;
+  background: rgba(16, 32, 63, 0.06) !important;
+  color: rgba(16, 32, 63, 0.72) !important;
 }
 
 .journiIntroTooltip .introjs-button:hover,
@@ -160,6 +171,6 @@ a {
 }
 
 .introjs-overlay {
-  background: rgba(12, 23, 43, 0.52) !important;
-  backdrop-filter: blur(4px) !important;
+  background: rgba(12, 23, 43, 0.64) !important;
+  backdrop-filter: blur(10px) saturate(0.85) !important;
 }
