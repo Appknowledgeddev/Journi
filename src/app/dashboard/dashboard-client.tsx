@@ -21,6 +21,7 @@ export function DashboardClient() {
   const checkoutComplete = searchParams.get("checkout") === "complete";
   const checkoutProduct = searchParams.get("product");
   const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationClosing, setCelebrationClosing] = useState(false);
   const [celebrationProduct, setCelebrationProduct] = useState<string | null>(null);
 
   useEffect(() => {
@@ -103,6 +104,7 @@ export function DashboardClient() {
       window.localStorage.setItem(storageKey, "true");
       window.sessionStorage.setItem(celebrationKey, "true");
       window.sessionStorage.setItem(celebrationProductKey, "welcome");
+      setCelebrationClosing(false);
       setCelebrationProduct("welcome");
       setShowCelebration(true);
     }
@@ -125,6 +127,7 @@ export function DashboardClient() {
     window.sessionStorage.removeItem(celebrationKey);
     const product = window.sessionStorage.getItem(celebrationProductKey) ?? checkoutProduct;
     window.sessionStorage.removeItem(celebrationProductKey);
+    setCelebrationClosing(false);
     setCelebrationProduct(product);
     setShowCelebration(true);
   }, [checkoutComplete, checkoutProduct]);
@@ -134,12 +137,20 @@ export function DashboardClient() {
       return;
     }
 
+    const closingTimeoutId = window.setTimeout(() => {
+      setCelebrationClosing(true);
+    }, 3600);
+
     const timeoutId = window.setTimeout(() => {
       setShowCelebration(false);
+      setCelebrationClosing(false);
       setCelebrationProduct(null);
     }, 4000);
 
-    return () => window.clearTimeout(timeoutId);
+    return () => {
+      window.clearTimeout(closingTimeoutId);
+      window.clearTimeout(timeoutId);
+    };
   }, [showCelebration]);
 
   useEffect(() => {
@@ -177,9 +188,10 @@ export function DashboardClient() {
 
     const current = debugWindow.__JOURNI_DEV__ ?? {};
 
-    debugWindow.__JOURNI_DEV__ = {
+      debugWindow.__JOURNI_DEV__ = {
       ...current,
       showWelcomeMessage: () => {
+        setCelebrationClosing(false);
         setCelebrationProduct("welcome");
         setShowCelebration(true);
       },
@@ -246,8 +258,16 @@ export function DashboardClient() {
           ) : null}
 
           {showCelebration && celebrationProduct === "welcome" ? (
-            <div className={sectionStyles.celebrationModalOverlay}>
-              <section className={`${sectionStyles.celebrationModal} ${sectionStyles.welcomeCelebrationModal}`}>
+            <div
+              className={`${sectionStyles.celebrationModalOverlay} ${
+                celebrationClosing ? sectionStyles.celebrationModalOverlayClosing : ""
+              }`}
+            >
+              <section
+                className={`${sectionStyles.celebrationModal} ${sectionStyles.welcomeCelebrationModal} ${
+                  celebrationClosing ? sectionStyles.welcomeCelebrationModalClosing : ""
+                }`}
+              >
                 <p className={sectionStyles.eyebrow}>Welcome to Journi</p>
                 <h2>Your trip workspace is ready.</h2>
                 <p className={sectionStyles.celebrationCopy}>

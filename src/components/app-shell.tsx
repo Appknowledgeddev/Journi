@@ -136,6 +136,7 @@ export function AppShell({
   const [profilePromptError, setProfilePromptError] = useState<string | null>(null);
   const [profilePromptDismissed, setProfilePromptDismissed] = useState(false);
   const [profilePromptOpen, setProfilePromptOpen] = useState(false);
+  const [profilePromptClosing, setProfilePromptClosing] = useState(false);
   const [celebrationActive, setCelebrationActive] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const backgroundInputRef = useRef<HTMLInputElement | null>(null);
@@ -371,6 +372,7 @@ export function AppShell({
   useEffect(() => {
     function handleOpenProfileCard() {
       setProfilePromptError(null);
+      setProfilePromptClosing(false);
       setProfilePromptOpen(true);
       setProfileOpen(false);
       setNotificationsOpen(false);
@@ -426,6 +428,15 @@ export function AppShell({
 
   function getIntroTourStorageKey(nextUserId: string) {
     return `journi-intro-tour-complete:${nextUserId}`;
+  }
+
+  function closeProfilePromptWithFade(onClosed?: () => void) {
+    setProfilePromptClosing(true);
+
+    window.setTimeout(() => {
+      onClosed?.();
+      setProfilePromptClosing(false);
+    }, 320);
   }
 
   async function startIntroTour(force = false) {
@@ -507,6 +518,7 @@ export function AppShell({
       !profileComplete ||
       pathname === "/profile" ||
       profilePromptOpen ||
+      profilePromptClosing ||
       celebrationActive
     ) {
       return;
@@ -517,7 +529,7 @@ export function AppShell({
     }, 350);
 
     return () => window.clearTimeout(timeoutId);
-  }, [celebrationActive, loading, pathname, profileComplete, profilePromptOpen, userId]);
+  }, [celebrationActive, loading, pathname, profileComplete, profilePromptClosing, profilePromptOpen, userId]);
 
   useEffect(() => {
     function handleProfileSaved(event: Event) {
@@ -790,19 +802,21 @@ export function AppShell({
     setAvatarPositionY(profilePromptAvatarPositionY);
     setBackgroundPositionX(profilePromptBackgroundPositionX);
     setBackgroundPositionY(profilePromptBackgroundPositionY);
-    setProfilePromptDismissed(!profilePromptFullyComplete);
-    setProfilePromptOpen(false);
-    setProfilePromptSaving(false);
+    closeProfilePromptWithFade(() => {
+      setProfilePromptDismissed(!profilePromptFullyComplete);
+      setProfilePromptOpen(false);
+      setProfilePromptSaving(false);
 
-    if (profilePromptFullyComplete) {
-      window.setTimeout(() => {
-        if (celebrationActive) {
-          return;
-        }
+      if (profilePromptFullyComplete) {
+        window.setTimeout(() => {
+          if (celebrationActive) {
+            return;
+          }
 
-        void startIntroTour(true);
-      }, 350);
-    }
+          void startIntroTour(true);
+        }, 150);
+      }
+    });
   }
 
   function updatePositionFromPointer(
@@ -840,6 +854,7 @@ export function AppShell({
     pathname !== "/profile" &&
     !celebrationActive &&
     (profilePromptOpen || (!profileComplete && !profilePromptDismissed));
+  const renderProfilePrompt = showProfilePrompt || profilePromptClosing;
   const isManualProfilePrompt = profilePromptOpen;
 
   if (!loading && !userId) {
@@ -1162,14 +1177,26 @@ export function AppShell({
               ) : null}
             </header>
 
-            {showProfilePrompt ? (
-              <div className={styles.profilePromptOverlay}>
-                <section className={styles.profilePrompt}>
+            {renderProfilePrompt ? (
+              <div
+                className={`${styles.profilePromptOverlay} ${
+                  profilePromptClosing ? styles.profilePromptOverlayClosing : ""
+                }`}
+              >
+                <section
+                  className={`${styles.profilePrompt} ${
+                    profilePromptClosing ? styles.profilePromptClosing : ""
+                  }`}
+                >
                   {isManualProfilePrompt ? (
                     <button
                       type="button"
                       className={styles.profilePromptClose}
-                      onClick={() => setProfilePromptOpen(false)}
+                      onClick={() =>
+                        closeProfilePromptWithFade(() => {
+                          setProfilePromptOpen(false);
+                        })
+                      }
                       aria-label="Close profile card"
                     >
                       <FiX />

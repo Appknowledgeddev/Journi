@@ -752,6 +752,11 @@
   padding: 24px;
   background: rgba(17, 38, 64, 0.24);
   backdrop-filter: blur(10px);
+  animation: profilePromptFadeIn 260ms ease both;
+}
+
+.profilePromptOverlayClosing {
+  animation: profilePromptFadeOut 320ms ease both;
 }
 
 .profilePrompt {
@@ -764,6 +769,11 @@
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(249, 251, 255, 0.98), rgba(255, 255, 255, 0.98));
   box-shadow: 0 28px 70px rgba(17, 38, 64, 0.22);
+  animation: profilePromptCardIn 280ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.profilePromptClosing {
+  animation: profilePromptCardOut 320ms ease both;
 }
 
 .profilePromptClose {
@@ -1080,6 +1090,54 @@
 
 .profilePromptSecondary:hover {
   background: var(--brand-accent-soft);
+}
+
+@keyframes profilePromptFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes profilePromptFadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes profilePromptCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes profilePromptCardOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    filter: blur(6px);
+  }
 }
 
 @media (max-width: 700px) {
