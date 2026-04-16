@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { BuildMarker } from "@/components/build-marker";
 import { JourniYbugProvider } from "@/components/ybug-provider";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
-        <JourniYbugProvider>{children}</JourniYbugProvider>
+        <JourniYbugProvider>
+          <BuildMarker />
+          {children}
+        </JourniYbugProvider>
       </body>
     </html>
   );
