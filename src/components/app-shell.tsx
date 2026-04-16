@@ -136,6 +136,7 @@ export function AppShell({
   const [profilePromptError, setProfilePromptError] = useState<string | null>(null);
   const [profilePromptDismissed, setProfilePromptDismissed] = useState(false);
   const [profilePromptOpen, setProfilePromptOpen] = useState(false);
+  const [celebrationActive, setCelebrationActive] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const backgroundInputRef = useRef<HTMLInputElement | null>(null);
   const profilePromptAvatarStageRef = useRef<HTMLDivElement | null>(null);
@@ -379,6 +380,19 @@ export function AppShell({
     return () => window.removeEventListener("journi:open-profile-card", handleOpenProfileCard);
   }, []);
 
+  useEffect(() => {
+    function handleCelebrationVisibility(event: Event) {
+      const detail =
+        event instanceof CustomEvent ? (event.detail as { active?: boolean } | undefined) : undefined;
+
+      setCelebrationActive(Boolean(detail?.active));
+    }
+
+    window.addEventListener("journi:celebration-visibility", handleCelebrationVisibility);
+    return () =>
+      window.removeEventListener("journi:celebration-visibility", handleCelebrationVisibility);
+  }, []);
+
   function getIntroTourStorageKey(nextUserId: string) {
     return `journi-intro-tour-complete:${nextUserId}`;
   }
@@ -456,7 +470,14 @@ export function AppShell({
   }
 
   useEffect(() => {
-    if (loading || !userId || !profileComplete || pathname === "/profile" || profilePromptOpen) {
+    if (
+      loading ||
+      !userId ||
+      !profileComplete ||
+      pathname === "/profile" ||
+      profilePromptOpen ||
+      celebrationActive
+    ) {
       return;
     }
 
@@ -465,7 +486,7 @@ export function AppShell({
     }, 350);
 
     return () => window.clearTimeout(timeoutId);
-  }, [loading, pathname, profileComplete, profilePromptOpen, userId]);
+  }, [celebrationActive, loading, pathname, profileComplete, profilePromptOpen, userId]);
 
   useEffect(() => {
     function handleProfileSaved(event: Event) {
@@ -477,13 +498,17 @@ export function AppShell({
       }
 
       window.setTimeout(() => {
+        if (celebrationActive) {
+          return;
+        }
+
         void startIntroTour(true);
       }, 350);
     }
 
     window.addEventListener("journi:profile-saved", handleProfileSaved);
     return () => window.removeEventListener("journi:profile-saved", handleProfileSaved);
-  }, [userId]);
+  }, [celebrationActive, userId]);
 
   useEffect(() => {
     if (loading) {
@@ -778,6 +803,7 @@ export function AppShell({
     !loading &&
     userId &&
     pathname !== "/profile" &&
+    !celebrationActive &&
     (profilePromptOpen || (!profileComplete && !profilePromptDismissed));
   const isManualProfilePrompt = profilePromptOpen;
 

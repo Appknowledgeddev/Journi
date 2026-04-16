@@ -97,6 +97,26 @@ export function DashboardClient() {
     return () => window.clearTimeout(timeoutId);
   }, [checkoutComplete, checkoutProduct]);
 
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("journi:celebration-visibility", {
+        detail: {
+          active: showCelebration,
+        },
+      }),
+    );
+
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("journi:celebration-visibility", {
+          detail: {
+            active: false,
+          },
+        }),
+      );
+    };
+  }, [showCelebration]);
+
   const intro = useMemo(() => "A quick view of your trip workspace.", []);
 
   return (
