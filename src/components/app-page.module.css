@@ -2318,6 +2318,29 @@
   z-index: 71;
 }
 
+.celebrationModalOverlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(12, 23, 43, 0.36);
+  backdrop-filter: blur(12px) saturate(0.9);
+  z-index: 121;
+}
+
+.celebrationModal {
+  width: min(100%, 560px);
+  overflow: hidden;
+  padding: 26px 28px;
+  border: 1px solid rgba(80, 176, 101, 0.18);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(103, 171, 221, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(240, 255, 246, 0.98), rgba(255, 255, 255, 0.99));
+  box-shadow: 0 28px 90px rgba(17, 38, 64, 0.22);
+}
+
 .celebrationCard h2 {
   margin: 8px 0 0;
   color: #112640;
@@ -2409,6 +2432,11 @@
 
 
 @media (max-width: 1080px) {
+  .celebrationModal {
+    padding: 22px 20px;
+    border-radius: 24px;
+  }
+
   .stepperDockLayout {
     padding-right: 0;
   }

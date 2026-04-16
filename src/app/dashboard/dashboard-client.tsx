@@ -131,7 +131,7 @@ export function DashboardClient() {
     const timeoutId = window.setTimeout(() => {
       setShowCelebration(false);
       setCelebrationProduct(null);
-    }, 4200);
+    }, 4000);
 
     return () => window.clearTimeout(timeoutId);
   }, [checkoutComplete, checkoutProduct]);
@@ -240,32 +240,16 @@ export function DashboardClient() {
           ) : null}
 
           {showCelebration && celebrationProduct === "welcome" ? (
-            <section className={sectionStyles.celebrationCard}>
-              <p className={sectionStyles.eyebrow}>Welcome to Journi</p>
-              <h2>Your trip workspace is ready.</h2>
-              <p className={sectionStyles.celebrationCopy}>
-                We’ll help you set up your profile card next, then give you a quick tour so you
-                know where everything lives.
-              </p>
-              <div className={sectionStyles.celebrationFeatureGrid}>
-                <article className={sectionStyles.celebrationFeature}>
-                  <strong>Step 1</strong>
-                  <span>See this welcome message and confetti first.</span>
-                </article>
-                <article className={sectionStyles.celebrationFeature}>
-                  <strong>Step 2</strong>
-                  <span>Build your profile card once the welcome message closes.</span>
-                </article>
-                <article className={sectionStyles.celebrationFeature}>
-                  <strong>Step 3</strong>
-                  <span>Take the intro tour after saving your profile.</span>
-                </article>
-                <article className={sectionStyles.celebrationFeature}>
-                  <strong>Test it again</strong>
-                  <span>Use the console helper instead of creating another new account.</span>
-                </article>
-              </div>
-            </section>
+            <div className={sectionStyles.celebrationModalOverlay}>
+              <section className={sectionStyles.celebrationModal}>
+                <p className={sectionStyles.eyebrow}>Welcome to Journi</p>
+                <h2>Your trip workspace is ready.</h2>
+                <p className={sectionStyles.celebrationCopy}>
+                  We’ll help you set up your profile card next, then give you a quick tour so you
+                  know where everything lives.
+                </p>
+              </section>
+            </div>
           ) : null}
 
           {checkoutComplete && checkoutProduct === "pro_organiser" ? (
