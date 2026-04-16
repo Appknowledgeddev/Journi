@@ -11,6 +11,10 @@ import { supabase } from "@/lib/supabase/client";
 const celebrationKey = "journi-upgrade-celebration";
 const celebrationProductKey = "journi-upgrade-product";
 
+function getFirstLoginCelebrationKey(userId: string) {
+  return `journi-first-login-celebration:${userId}`;
+}
+
 export function DashboardClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -76,6 +80,41 @@ export function DashboardClient() {
   }, [checkoutComplete, checkoutProduct, router]);
 
   useEffect(() => {
+    let mounted = true;
+
+    async function queueFirstLoginCelebration() {
+      if (checkoutComplete) {
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!mounted || !user) {
+        return;
+      }
+
+      const storageKey = getFirstLoginCelebrationKey(user.id);
+      if (window.localStorage.getItem(storageKey) === "true") {
+        return;
+      }
+
+      window.localStorage.setItem(storageKey, "true");
+      window.sessionStorage.setItem(celebrationKey, "true");
+      window.sessionStorage.setItem(celebrationProductKey, "welcome");
+      setCelebrationProduct("welcome");
+      setShowCelebration(true);
+    }
+
+    void queueFirstLoginCelebration();
+
+    return () => {
+      mounted = false;
+    };
+  }, [checkoutComplete]);
+
+  useEffect(() => {
     const shouldCelebrate =
       checkoutComplete || window.sessionStorage.getItem(celebrationKey) === "true";
 
@@ -116,6 +155,30 @@ export function DashboardClient() {
       );
     };
   }, [showCelebration]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const debugWindow = window as typeof window & {
+      __JOURNI_DEV__?: {
+        openProfileCard?: () => void;
+        startTour?: () => void;
+        showWelcomeMessage?: () => void;
+      };
+    };
+
+    const current = debugWindow.__JOURNI_DEV__ ?? {};
+
+    debugWindow.__JOURNI_DEV__ = {
+      ...current,
+      showWelcomeMessage: () => {
+        setCelebrationProduct("welcome");
+        setShowCelebration(true);
+      },
+    };
+  }, []);
 
   const intro = useMemo(() => "A quick view of your trip workspace.", []);
 
@@ -171,6 +234,35 @@ export function DashboardClient() {
                 <article className={sectionStyles.celebrationFeature}>
                   <strong>Manage subscription</strong>
                   <span>Billing controls are now available from the account menu.</span>
+                </article>
+              </div>
+            </section>
+          ) : null}
+
+          {showCelebration && celebrationProduct === "welcome" ? (
+            <section className={sectionStyles.celebrationCard}>
+              <p className={sectionStyles.eyebrow}>Welcome to Journi</p>
+              <h2>Your trip workspace is ready.</h2>
+              <p className={sectionStyles.celebrationCopy}>
+                We’ll help you set up your profile card next, then give you a quick tour so you
+                know where everything lives.
+              </p>
+              <div className={sectionStyles.celebrationFeatureGrid}>
+                <article className={sectionStyles.celebrationFeature}>
+                  <strong>Step 1</strong>
+                  <span>See this welcome message and confetti first.</span>
+                </article>
+                <article className={sectionStyles.celebrationFeature}>
+                  <strong>Step 2</strong>
+                  <span>Build your profile card once the welcome message closes.</span>
+                </article>
+                <article className={sectionStyles.celebrationFeature}>
+                  <strong>Step 3</strong>
+                  <span>Take the intro tour after saving your profile.</span>
+                </article>
+                <article className={sectionStyles.celebrationFeature}>
+                  <strong>Test it again</strong>
+                  <span>Use the console helper instead of creating another new account.</span>
                 </article>
               </div>
             </section>

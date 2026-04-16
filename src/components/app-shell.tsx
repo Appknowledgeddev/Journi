@@ -381,6 +381,37 @@ export function AppShell({
   }, []);
 
   useEffect(() => {
+    function handleDebugStartTour() {
+      void startIntroTour(true);
+    }
+
+    window.addEventListener("journi:debug-start-tour", handleDebugStartTour);
+    return () => window.removeEventListener("journi:debug-start-tour", handleDebugStartTour);
+  }, [userId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const debugWindow = window as typeof window & {
+      __JOURNI_DEV__?: {
+        openProfileCard: () => void;
+        startTour: () => void;
+      };
+    };
+
+    debugWindow.__JOURNI_DEV__ = {
+      openProfileCard: () => {
+        window.dispatchEvent(new CustomEvent("journi:open-profile-card"));
+      },
+      startTour: () => {
+        window.dispatchEvent(new CustomEvent("journi:debug-start-tour"));
+      },
+    };
+  }, []);
+
+  useEffect(() => {
     function handleCelebrationVisibility(event: Event) {
       const detail =
         event instanceof CustomEvent ? (event.detail as { active?: boolean } | undefined) : undefined;
@@ -765,6 +796,10 @@ export function AppShell({
 
     if (profilePromptFullyComplete) {
       window.setTimeout(() => {
+        if (celebrationActive) {
+          return;
+        }
+
         void startIntroTour(true);
       }, 350);
     }
