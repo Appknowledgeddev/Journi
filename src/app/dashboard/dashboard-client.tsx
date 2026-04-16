@@ -241,7 +241,7 @@ export function DashboardClient() {
 
           {showCelebration && celebrationProduct === "welcome" ? (
             <div className={sectionStyles.celebrationModalOverlay}>
-              <section className={sectionStyles.celebrationModal}>
+              <section className={`${sectionStyles.celebrationModal} ${sectionStyles.welcomeCelebrationModal}`}>
                 <p className={sectionStyles.eyebrow}>Welcome to Journi</p>
                 <h2>Your trip workspace is ready.</h2>
                 <p className={sectionStyles.celebrationCopy}>
