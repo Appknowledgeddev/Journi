@@ -17,6 +17,24 @@ const pricing: Record<Interval, { amount: number; interval: "month" | "year"; la
   },
 };
 
+function getStripeSecretMode() {
+  const key = process.env.STRIPE_SECRET_KEY;
+
+  if (!key) {
+    return "missing";
+  }
+
+  if (key.startsWith("sk_live_")) {
+    return "live";
+  }
+
+  if (key.startsWith("sk_test_")) {
+    return "test";
+  }
+
+  return "unknown";
+}
+
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
     product?: Product;
@@ -87,6 +105,14 @@ export async function POST(request: NextRequest) {
     const message =
       error instanceof Error ? error.message : "Unable to create embedded Stripe checkout.";
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: message,
+        debug: {
+          serverStripeMode: getStripeSecretMode(),
+        },
+      },
+      { status: 500 },
+    );
   }
 }

@@ -41,6 +41,7 @@ export function TripPassClient({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   const [accountEmail, setAccountEmail] = useState("");
+  const [serverStripeMode, setServerStripeMode] = useState<string>("");
   const stripeKeySummary = summariseStripeKey(stripePublishableKey);
 
   useEffect(() => {
@@ -80,7 +81,13 @@ export function TripPassClient({
         }),
       });
 
-      const data = (await response.json()) as { clientSecret?: string; error?: string };
+      const data = (await response.json()) as {
+        clientSecret?: string;
+        error?: string;
+        debug?: {
+          serverStripeMode?: string;
+        };
+      };
 
       if (cancelled) {
         return;
@@ -88,6 +95,7 @@ export function TripPassClient({
 
       if (!response.ok || !data.clientSecret) {
         setCheckoutError(data.error || "Unable to load Stripe checkout.");
+        setServerStripeMode(data.debug?.serverStripeMode || "");
         return;
       }
 
@@ -135,6 +143,7 @@ export function TripPassClient({
                 <strong>Stripe checkout could not load</strong>
                 <p>{checkoutError}</p>
                 <p>Frontend Stripe key: {stripeKeySummary}</p>
+                {serverStripeMode ? <p>Server Stripe mode: {serverStripeMode}</p> : null}
               </div>
             ) : (
               <div className={styles.checkoutPlaceholder} aria-hidden="true" />
@@ -186,6 +195,7 @@ export function TripPassClient({
                   <strong>Stripe checkout could not load</strong>
                   <p>{checkoutError}</p>
                   <p>Frontend Stripe key: {stripeKeySummary}</p>
+                  {serverStripeMode ? <p>Server Stripe mode: {serverStripeMode}</p> : null}
                 </div>
               ) : (
                 <div className={styles.checkoutPlaceholder} aria-hidden="true" />
