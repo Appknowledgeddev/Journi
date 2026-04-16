@@ -127,6 +127,12 @@ export function DashboardClient() {
     window.sessionStorage.removeItem(celebrationProductKey);
     setCelebrationProduct(product);
     setShowCelebration(true);
+  }, [checkoutComplete, checkoutProduct]);
+
+  useEffect(() => {
+    if (!showCelebration) {
+      return;
+    }
 
     const timeoutId = window.setTimeout(() => {
       setShowCelebration(false);
@@ -134,7 +140,7 @@ export function DashboardClient() {
     }, 4000);
 
     return () => window.clearTimeout(timeoutId);
-  }, [checkoutComplete, checkoutProduct]);
+  }, [showCelebration]);
 
   useEffect(() => {
     window.dispatchEvent(

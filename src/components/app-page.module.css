@@ -2302,7 +2302,7 @@
   position: fixed;
   inset: 0;
   overflow: hidden;
-  z-index: 120;
+  z-index: 260;
 }
 
 .celebrationCard {
@@ -2326,7 +2326,7 @@
   padding: 24px;
   background: rgba(12, 23, 43, 0.22);
   backdrop-filter: blur(18px) saturate(0.82);
-  z-index: 121;
+  z-index: 240;
 }
 
 .celebrationModal {
@@ -2341,6 +2341,8 @@
     linear-gradient(180deg, rgba(233, 247, 244, 0.42), rgba(255, 255, 255, 0.14));
   box-shadow: 0 28px 90px rgba(17, 38, 64, 0.18);
   backdrop-filter: blur(24px) saturate(1.08);
+  position: relative;
+  z-index: 241;
 }
 
 .welcomeCelebrationModal {
