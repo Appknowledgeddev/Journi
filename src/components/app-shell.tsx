@@ -434,8 +434,8 @@ export function AppShell({
     setProfilePromptClosing(true);
 
     window.setTimeout(() => {
-      onClosed?.();
       setProfilePromptClosing(false);
+      onClosed?.();
     }, 320);
   }
 
@@ -814,7 +814,7 @@ export function AppShell({
           }
 
           void startIntroTour(true);
-        }, 150);
+        }, 80);
       }
     });
   }
@@ -856,6 +856,13 @@ export function AppShell({
     (profilePromptOpen || (!profileComplete && !profilePromptDismissed));
   const renderProfilePrompt = showProfilePrompt || profilePromptClosing;
   const isManualProfilePrompt = profilePromptOpen;
+  const hasPageHeader = Boolean(
+    (kicker ?? "").trim() ||
+      (title ?? "").trim() ||
+      (intro ?? "").trim() ||
+      headerAction ||
+      headerBadge,
+  );
 
   if (!loading && !userId) {
     return null;
@@ -1160,22 +1167,24 @@ export function AppShell({
           </header>
 
             <div className={styles.contentScroll}>
-            <header className={styles.pageHeader}>
-              <div className={styles.pageHeaderLeft}>
-                <p className={styles.kicker} suppressHydrationWarning>
-                  {kicker ?? ""}
-                </p>
-                <h1>{loading ? "Loading your workspace..." : title}</h1>
-                <p className={styles.intro} suppressHydrationWarning>
-                  {intro ?? ""}
-                </p>
-              </div>
+            {hasPageHeader ? (
+              <header className={styles.pageHeader}>
+                <div className={styles.pageHeaderLeft}>
+                  <p className={styles.kicker} suppressHydrationWarning>
+                    {kicker ?? ""}
+                  </p>
+                  <h1>{loading ? "Loading your workspace..." : title}</h1>
+                  <p className={styles.intro} suppressHydrationWarning>
+                    {intro ?? ""}
+                  </p>
+                </div>
 
-              {headerAction ? headerAction : null}
-              {!headerAction && headerBadge ? (
-                <span className={styles.headerBadge}>{headerBadge}</span>
-              ) : null}
-            </header>
+                {headerAction ? headerAction : null}
+                {!headerAction && headerBadge ? (
+                  <span className={styles.headerBadge}>{headerBadge}</span>
+                ) : null}
+              </header>
+            ) : null}
 
             {renderProfilePrompt ? (
               <div
