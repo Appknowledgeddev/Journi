@@ -524,6 +524,504 @@
   align-items: start;
 }
 
+.tripWorkspaceDetailLayout {
+  display: grid;
+  width: min(100%, 1480px);
+  margin: 0 auto 28px;
+  grid-template-columns: 270px minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
+}
+
+.tripWorkspaceSideMenu {
+  min-width: 0;
+  padding: 0 0 24px;
+  border-right: 1px solid rgba(24, 49, 83, 0.08);
+}
+
+.tripWorkspaceMainColumn {
+  display: grid;
+  min-width: 0;
+}
+
+.tripWorkspaceStickyBar {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  display: grid;
+  gap: 14px;
+  padding: 18px 18px 16px;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(248, 250, 252, 0.92) 74%, rgba(248, 250, 252, 0));
+  backdrop-filter: blur(12px);
+}
+
+.tripWorkspaceStickyTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.tripWorkspaceStickyTitleBlock {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tripWorkspaceStickyBackLink {
+  color: #cf6d2e;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.tripWorkspaceStickyBackLink:hover,
+.tripWorkspaceStickyBackLink:focus-visible {
+  text-decoration: underline;
+}
+
+.tripWorkspaceStickyKicker {
+  margin: 0;
+  color: #cf6d2e;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.tripWorkspaceStickyTitle {
+  margin: 0;
+  color: #112640;
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.tripWorkspaceStickyControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tripPublishToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 12px;
+  border: 1px solid rgba(24, 49, 83, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #183153;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.tripPublishToggle:hover,
+.tripPublishToggle:focus-visible {
+  border-color: rgba(44, 148, 245, 0.22);
+  box-shadow: 0 10px 24px rgba(17, 38, 64, 0.08);
+  transform: translateY(-1px);
+}
+
+.tripPublishToggle:disabled {
+  cursor: wait;
+  opacity: 0.75;
+  transform: none;
+}
+
+.tripPublishToggleLabel {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.tripPublishToggleTrack,
+.tripPublishToggleTrackActive {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 38px;
+  height: 22px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(17, 38, 64, 0.16);
+  transition: background-color 180ms ease;
+}
+
+.tripPublishToggleTrackActive {
+  background: rgba(44, 148, 245, 0.88);
+}
+
+.tripPublishToggleThumb,
+.tripPublishToggleThumbActive {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(17, 38, 64, 0.18);
+  transition: transform 180ms ease;
+}
+
+.tripPublishToggleThumbActive {
+  transform: translateX(16px);
+}
+
+.tripHeaderNav {
+  display: grid;
+  gap: 8px;
+}
+
+.tripHeaderNavLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(24, 49, 83, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.82);
+  color: #183153;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.tripHeaderNavLink:hover,
+.tripHeaderNavLink:focus-visible {
+  border-color: rgba(44, 148, 245, 0.18);
+  background: rgba(44, 148, 245, 0.12);
+  color: #0e2e57;
+  transform: translateX(1px);
+}
+
+.tripHeaderNavLinkActive {
+  border-color: rgba(44, 148, 245, 0.22);
+  background: rgba(44, 148, 245, 0.14);
+  color: #0e2e57;
+}
+
+.tripHeaderNavIndex {
+  color: rgba(24, 49, 83, 0.56);
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tripWorkspaceContent {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding-bottom: 28px;
+}
+
+.tripWorkspaceShellCard {
+  width: 100%;
+  margin: 0;
+  border: 1px solid rgba(24, 49, 83, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 18px 42px rgba(17, 38, 64, 0.06);
+  overflow: hidden;
+}
+
+.tripWorkspaceHeroControls {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tripWorkspaceHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tripOverviewPanel {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.tripWorkspaceSectionCard {
+  display: grid;
+  gap: 18px;
+  padding: 28px 24px 24px;
+  border-top: 1px solid rgba(24, 49, 83, 0.08);
+}
+
+.tripSectionPage {
+  display: grid;
+  width: min(100%, 1200px);
+  margin: 0 auto 32px;
+  gap: 18px;
+}
+
+.tripSectionPageHeader {
+  padding: 0 6px;
+}
+
+.tripSectionPageContent {
+  display: grid;
+  gap: 26px;
+}
+
+.tripOverviewBodyStrong {
+  font-weight: 700;
+}
+
+.tripOverviewSupportText {
+  font-weight: 700;
+}
+
+.tripWorkspaceSectionCompact {
+  padding-top: 22px;
+}
+
+.tripWorkspaceSectionTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.tripWorkspaceSectionTop h2 {
+  margin: 4px 0 0;
+}
+
+.tripSectionToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: #2c94f5;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tripSectionToggle:hover,
+.tripSectionToggle:focus-visible {
+  color: #0f4e8a;
+}
+
+.tripMetricRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tripMetricPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(44, 148, 245, 0.1);
+  color: #0f4e8a;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.tripMiniProgress {
+  width: 100%;
+  height: 8px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(24, 49, 83, 0.08);
+}
+
+.tripMiniProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2c94f5, #7dc5ff);
+}
+
+.tripWorkspaceCardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tripVotePieCard {
+  display: grid;
+  gap: 14px;
+  min-height: 100%;
+  padding: 14px;
+  border: 1px solid rgba(24, 49, 83, 0.08);
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.88);
+  animation: tripVotePieFloatIn 380ms ease both;
+}
+
+.tripVotePieHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.tripVotePieLayout {
+  display: grid;
+  grid-template-columns: minmax(135px, 170px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.tripVotePieCanvas {
+  position: relative;
+  min-height: 150px;
+  transform-origin: center;
+  animation: tripVotePieScaleIn 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.tripVotePieEmpty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.95) 0 34%, transparent 35%),
+    conic-gradient(from 0deg, rgba(24, 49, 83, 0.08) 0deg 360deg);
+  color: rgba(24, 49, 83, 0.68);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.tripVotePieLegend {
+  display: grid;
+  gap: 8px;
+}
+
+.tripVotePieLegendItem {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(24, 49, 83, 0.04);
+}
+
+.tripVotePieLegendSwatch {
+  display: inline-flex;
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  border-radius: 999px;
+}
+
+.tripVotePieLegendCopy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tripVotePieLegendCopy strong {
+  color: #112640;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.tripVotePieLegendCopy span {
+  color: rgba(24, 49, 83, 0.72);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.tripVotePieTooltip {
+  display: grid;
+  gap: 2px;
+}
+
+.tripVotePieTooltip strong,
+.tripVotePieTooltip span {
+  color: inherit;
+}
+
+@keyframes tripVotePieFloatIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tripVotePieScaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tripInfoGridCompact {
+  gap: 10px;
+}
+
+.tripWorkspaceAnchorGroup {
+  display: grid;
+  gap: 18px;
+}
+
+.tripWorkspaceContent section[id],
+.tripWorkspaceContent div[id] {
+  scroll-margin-top: 118px;
+}
+
+.tripOverviewBodyStrong .muted {
+  color: rgba(24, 49, 83, 0.82);
+}
+
+.tripOverviewBodyStrong .infoCard strong {
+  font-weight: 800;
+}
+
+.tripOverviewBodyStrong .infoCard p {
+  font-weight: 700;
+}
+
 .tripDetailMedia {
   display: grid;
   gap: 14px;
@@ -564,6 +1062,10 @@
   background: rgba(248, 250, 252, 0.88);
 }
 
+.infoCardCompact {
+  padding: 12px 14px;
+}
+
 .tripFactLabel {
   display: block;
   margin-bottom: 6px;
@@ -578,6 +1080,18 @@
 .infoCard strong {
   color: #112640;
   font-size: 0.98rem;
+}
+
+.infoCardCompact strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.infoCardCompact :global(p),
+.infoCardCompact .muted {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .tripInfoGrid {
@@ -2237,6 +2751,158 @@
   font-weight: 700;
 }
 
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.discussionComposer,
+.discussionReplyComposer {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(24, 49, 83, 0.08);
+  border-radius: 22px;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.discussionTextarea {
+  min-height: 112px;
+  width: 100%;
+  resize: vertical;
+  padding: 14px 16px;
+  border: 1px solid rgba(24, 49, 83, 0.12);
+  border-radius: 18px;
+  background: #ffffff;
+  color: #183153;
+  font: inherit;
+  line-height: 1.55;
+}
+
+.discussionTextarea:focus {
+  outline: none;
+  border-color: rgba(44, 148, 245, 0.34);
+  box-shadow: 0 0 0 4px rgba(44, 148, 245, 0.1);
+}
+
+.discussionThread {
+  display: grid;
+  gap: 12px;
+  padding: 18px 0;
+  border-top: 1px solid rgba(24, 49, 83, 0.08);
+}
+
+.discussionThread:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.discussionReplyGroup {
+  display: grid;
+  gap: 10px;
+  padding-left: 22px;
+  border-left: 2px solid rgba(44, 148, 245, 0.12);
+}
+
+.discussionReplyCard {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(248, 250, 252, 0.88);
+  border: 1px solid rgba(24, 49, 83, 0.06);
+}
+
+.discussionChatShell {
+  display: grid;
+  gap: 16px;
+}
+
+.discussionChatList {
+  display: grid;
+  gap: 14px;
+}
+
+.discussionChatMessage {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.discussionChatMessageOwn {
+  justify-content: flex-end;
+}
+
+.discussionChatBubble {
+  display: grid;
+  gap: 10px;
+  width: min(100%, 720px);
+  padding: 16px 18px;
+  border-radius: 22px 22px 22px 8px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(24, 49, 83, 0.08);
+  box-shadow: 0 12px 28px rgba(17, 38, 64, 0.05);
+}
+
+.discussionChatBubbleOwn {
+  border-radius: 22px 22px 8px 22px;
+  background: rgba(44, 148, 245, 0.12);
+  border-color: rgba(44, 148, 245, 0.18);
+}
+
+.discussionChatMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.discussionChatBody {
+  margin: 0;
+  color: #183153;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.discussionChatActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.discussionReplyPreview,
+.discussionReplyBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(17, 38, 64, 0.05);
+  color: rgba(24, 49, 83, 0.76);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.discussionChatComposer {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(24, 49, 83, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 -16px 36px rgba(17, 38, 64, 0.06);
+  backdrop-filter: blur(16px);
+}
+
 .rowMeta {
   color: rgba(24, 49, 83, 0.64);
   font-size: 0.84rem;
@@ -2506,6 +3172,30 @@
     grid-template-columns: 1fr;
   }
 
+  .tripHeaderNav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tripWorkspaceDetailLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .tripWorkspaceSideMenu {
+    border-right: 0;
+    border-bottom: 1px solid rgba(24, 49, 83, 0.08);
+    padding-bottom: 0;
+  }
+
+  .tripWorkspaceStickyTitleRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tripWorkspaceStickyBar {
+    padding: 18px 18px 14px;
+  }
+
   .inviteTripSummaryCard {
     grid-template-columns: 1fr;
   }
@@ -2521,6 +3211,22 @@
 
   .tripCardMiniGrid {
     grid-template-columns: 1fr;
+  }
+
+  .tripWorkspaceCardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tripVotePieLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .tripVotePieCanvas {
+    min-height: 180px;
+  }
+
+  .tripWorkspaceSectionCard {
+    padding: 24px 18px 20px;
   }
 
   .stepper {

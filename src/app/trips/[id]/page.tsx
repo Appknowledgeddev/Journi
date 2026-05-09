@@ -2,120 +2,30 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { TripUpgradeModal } from "@/components/trip-upgrade-modal";
+import { TripVotePie } from "@/components/trip-vote-pie";
 import { supabase } from "@/lib/supabase/client";
 import styles from "@/components/app-page.module.css";
-
-type TripDetail = {
-  id: string;
-  title: string;
-  destination: string | null;
-  description: string | null;
-  status: string;
-  starts_at: string | null;
-  ends_at: string | null;
-  cover_image_url: string | null;
-  created_at?: string | null;
-};
+import {
+  type ActivitySelection,
+  buildVoteChartData,
+  type CategoryKey,
+  type DiningSelection,
+  formatTripDateRange,
+  getVoteSummary,
+  type HotelSelection,
+  planningCategories,
+  type TripAccessRole,
+  type TripDetail,
+  type TripParticipant,
+  tripWorkspaceNav,
+  type TransportSelection,
+  type VotingState,
+} from "./trip-workspace-shared";
 
 type Plan = "free" | "pro_organiser";
-
-type TripParticipant = {
-  id: string;
-  email: string;
-  full_name: string | null;
-  role: string;
-  status: string;
-};
-
-type TripAccessRole = "organiser" | "participant";
-
-type HotelSelection = {
-  id: string;
-  name: string;
-  location: string | null;
-  notes: string | null;
-  source_photo_url: string | null;
-};
-
-type ActivitySelection = {
-  id: string;
-  title: string;
-  location: string | null;
-  notes: string | null;
-  source_photo_url: string | null;
-};
-
-type TransportSelection = {
-  id: string;
-  mode: string;
-  departure_location: string | null;
-  arrival_location: string | null;
-  notes: string | null;
-  source_photo_url: string | null;
-};
-
-type DiningSelection = {
-  id: string;
-  name: string;
-  location: string | null;
-  notes: string | null;
-  source_photo_url: string | null;
-};
-
-type CategoryKey = "hotels" | "activities" | "transport" | "dining";
-
-type VoteCategoryState = {
-  title: string;
-  voterCount: number;
-  eligibleVoterCount: number;
-  progress: number;
-  itemVotes: Record<string, { votes: number; voterIds: string[] }>;
-};
-
-type VotingState = Record<CategoryKey, VoteCategoryState>;
-
-const planningCategories = [
-  { key: "hotels", label: "Hotels", emoji: "🏨", progress: 80, colorClass: "progressFillBlue" },
-  {
-    key: "activities",
-    label: "Activities",
-    emoji: "🎟️",
-    progress: 40,
-    colorClass: "progressFillOrange",
-  },
-  {
-    key: "transport",
-    label: "Transport",
-    emoji: "✈️",
-    progress: 70,
-    colorClass: "progressFillPurple",
-  },
-  { key: "dining", label: "Dining", emoji: "🍽️", progress: 50, colorClass: "progressFillGreen" },
-];
-
-function formatTripDateRange(startsAt: string | null, endsAt: string | null) {
-  if (!startsAt && !endsAt) {
-    return "Dates to be confirmed";
-  }
-
-  const formatter = new Intl.DateTimeFormat("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-
-  const startLabel = startsAt ? formatter.format(new Date(startsAt)) : null;
-  const endLabel = endsAt ? formatter.format(new Date(endsAt)) : null;
-
-  if (startLabel && endLabel) {
-    return `${startLabel} to ${endLabel}`;
-  }
-
-  return startLabel ?? endLabel ?? "Dates to be confirmed";
-}
 
 export default function TripDetailPage() {
   const params = useParams<{ id: string }>();
@@ -126,7 +36,6 @@ export default function TripDetailPage() {
   const [tripError, setTripError] = useState<string | null>(null);
   const [votingError, setVotingError] = useState<string | null>(null);
   const [currentUserEmail, setCurrentUserEmail] = useState("");
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [plan, setPlan] = useState<Plan>("free");
@@ -144,7 +53,6 @@ export default function TripDetailPage() {
   const [transport, setTransport] = useState<TransportSelection[]>([]);
   const [dining, setDining] = useState<DiningSelection[]>([]);
   const [voting, setVoting] = useState<VotingState | null>(null);
-  const [submittingVoteKey, setSubmittingVoteKey] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -169,7 +77,6 @@ export default function TripDetailPage() {
 
       setPlan(user?.user_metadata?.plan === "pro_organiser" ? "pro_organiser" : "free");
       setCurrentUserEmail(user?.email ?? "");
-      setCurrentUserId(user?.id ?? null);
 
       const {
         data: { session },
@@ -273,140 +180,40 @@ export default function TripDetailPage() {
           planningCategories.length,
       )
     : Math.round((completedSections / planningCategories.length) * 100);
-
-  async function handleVote(category: CategoryKey, entityId: string) {
-    if (!tripId) {
-      return;
-    }
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session?.access_token) {
-      setVotingError("You need to be signed in before voting.");
-      return;
-    }
-
-    const voteKey = `${category}-${entityId}`;
-    setSubmittingVoteKey(voteKey);
-    setVotingError(null);
-
-    const response = await fetch(`/api/trips/${tripId}/voting`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ category, entityId }),
-    });
-
-    const result = (await response.json()) as {
-      categories?: VotingState;
-      error?: string;
-    };
-
-    if (!response.ok) {
-      setVotingError(result.error || "Unable to save your vote.");
-      setSubmittingVoteKey(null);
-      return;
-    }
-
-    setVoting(result.categories ?? null);
-    setSubmittingVoteKey(null);
-  }
-
-  function renderSelectionSection(
-    category: CategoryKey,
-    title: string,
-    items: Array<{
-      id: string;
-      title: string;
-      meta: string;
-      note: string;
-      image?: string | null;
-    }>,
-    emptyMessage: string,
-  ) {
-    const votingState = voting?.[category];
-
-    return (
-      <section className={styles.panel}>
-        <div className={styles.sectionTop}>
-          <div>
-            <p className={styles.eyebrow}>Trip plan</p>
-            <h2>{title}</h2>
-          </div>
-          <div className={styles.headerActions}>
-            {votingState ? (
-              <span className={styles.badgeSoft}>
-                {votingState.voterCount}/{votingState.eligibleVoterCount} voted
-              </span>
-            ) : null}
-            <span className={styles.badgeSoft}>{items.length} selected</span>
-          </div>
-        </div>
-
-        {votingState ? (
-          <div className={styles.voteSectionHeader}>
-            <div className={styles.progressBar}>
-              <span
-                className={`${styles.progressFill} ${styles.progressFillBlue}`}
-                style={{ width: `${votingState.progress}%` }}
-              >
-                {votingState.progress}%
-              </span>
-            </div>
-            <p className={styles.progressMeta}>
-              {votingState.voterCount} of {votingState.eligibleVoterCount} participants have voted on {title.toLowerCase()}.
-            </p>
-          </div>
-        ) : null}
-
-        {items.length ? (
-          <div className={styles.selectionSummaryGrid}>
-            {items.map((item) => (
-              <article key={item.id} className={styles.selectionSummaryCard}>
-                {item.image ? (
-                  <img src={item.image} alt={item.title} className={styles.selectionSummaryImage} />
-                ) : (
-                  <div className={styles.selectionSummaryImageFallback} />
-                )}
-                <div className={styles.selectionSummaryBody}>
-                  <strong>{item.title}</strong>
-                  <small>{item.meta}</small>
-                  <p>{item.note}</p>
-                  <div className={styles.voteCardFooter}>
-                    <span className={styles.voteCount}>
-                      {votingState?.itemVotes[item.id]?.votes ?? 0} vote
-                      {(votingState?.itemVotes[item.id]?.votes ?? 0) === 1 ? "" : "s"}
-                    </span>
-                    <button
-                      type="button"
-                      className={styles.secondaryAction}
-                      onClick={() => void handleVote(category, item.id)}
-                      disabled={submittingVoteKey === `${category}-${item.id}`}
-                    >
-                      {submittingVoteKey === `${category}-${item.id}`
-                        ? "Saving..."
-                        : currentUserId &&
-                            (votingState?.itemVotes[item.id]?.voterIds ?? []).includes(currentUserId)
-                          ? "Remove vote"
-                          : "Vote"}
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className={styles.emptyState}>
-            <p>{emptyMessage}</p>
-          </div>
-        )}
-      </section>
-    );
-  }
+  const hotelVoteSummary = getVoteSummary(voting?.hotels);
+  const activityVoteSummary = getVoteSummary(voting?.activities);
+  const transportVoteSummary = getVoteSummary(voting?.transport);
+  const diningVoteSummary = getVoteSummary(voting?.dining);
+  const planningVoteMix = useMemo(
+    () => [
+      { id: "hotels", label: "Hotels", value: hotelVoteSummary.votes },
+      { id: "activities", label: "Activities", value: activityVoteSummary.votes },
+      { id: "transport", label: "Transport", value: transportVoteSummary.votes },
+      { id: "dining", label: "Dining", value: diningVoteSummary.votes },
+    ],
+    [activityVoteSummary.votes, diningVoteSummary.votes, hotelVoteSummary.votes, transportVoteSummary.votes],
+  );
+  const hotelVoteChart = useMemo(
+    () => buildVoteChartData(hotels, voting?.hotels?.itemVotes, (hotel) => hotel.name),
+    [hotels, voting?.hotels?.itemVotes],
+  );
+  const activityVoteChart = useMemo(
+    () => buildVoteChartData(activities, voting?.activities?.itemVotes, (activity) => activity.title),
+    [activities, voting?.activities?.itemVotes],
+  );
+  const transportVoteChart = useMemo(
+    () => buildVoteChartData(
+      transport,
+      voting?.transport?.itemVotes,
+      (option) => option.mode,
+    ),
+    [transport, voting?.transport?.itemVotes],
+  );
+  const diningVoteChart = useMemo(
+    () => buildVoteChartData(dining, voting?.dining?.itemVotes, (option) => option.name),
+    [dining, voting?.dining?.itemVotes],
+  );
+  const sectionHref = (section: string) => `/trips/${tripId}/${section}`;
 
   async function handleDeleteTrip() {
     if (!trip || trip.status !== "draft") {
@@ -491,6 +298,49 @@ export default function TripDetailPage() {
 
     setTrip(data as TripDetail);
     setIsPublishing(false);
+  }
+
+  async function handleUnpublishTrip() {
+    if (!trip || trip.status !== "active") {
+      return;
+    }
+
+    setIsPublishing(true);
+    setTripError(null);
+    setPublishGateMessage(null);
+
+    const { data, error } = await supabase
+      .from("trips")
+      .update({ status: "draft" })
+      .eq("id", trip.id)
+      .select(
+        "id, title, destination, description, status, starts_at, ends_at, cover_image_url, created_at",
+      )
+      .single();
+
+    if (error) {
+      setTripError(error.message);
+      setIsPublishing(false);
+      return;
+    }
+
+    setTrip(data as TripDetail);
+    setIsPublishing(false);
+  }
+
+  async function handleTogglePublish() {
+    if (!trip || accessRole !== "organiser") {
+      return;
+    }
+
+    if (trip.status === "draft") {
+      await handlePublishTrip();
+      return;
+    }
+
+    if (trip.status === "active") {
+      await handleUnpublishTrip();
+    }
   }
 
   async function handleInviteParticipant(event: React.FormEvent<HTMLFormElement>) {
@@ -579,36 +429,9 @@ export default function TripDetailPage() {
 
   return (
     <AppShell
-      kicker="Trip"
-      title={tripTitle}
-      intro="This is the trip view. It gives you the cover image, key trip details, and a starting point for the rest of the organiser workflow."
-      headerAction={
-        <div className={styles.headerActions}>
-          {accessRole === "organiser" && trip?.status === "draft" ? (
-            <button
-              type="button"
-              className={styles.primaryAction}
-              onClick={handlePublishTrip}
-              disabled={isPublishing}
-            >
-              {isPublishing ? "Publishing..." : "Publish trip"}
-            </button>
-          ) : null}
-          {accessRole === "organiser" && trip?.status === "draft" ? (
-            <button
-              type="button"
-              className={styles.dangerAction}
-              onClick={handleDeleteTrip}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete draft"}
-            </button>
-          ) : null}
-          <Link href="/trips" className={styles.secondaryActionLink}>
-            Back to trips
-          </Link>
-        </div>
-      }
+      kicker=""
+      title=""
+      intro=""
     >
       {() => (
         <div className={styles.stack}>
@@ -638,276 +461,440 @@ export default function TripDetailPage() {
           ) : null}
 
           {!tripError && trip ? (
-            <>
-              <section className={styles.panel}>
-                <div className={styles.tripDetailHero}>
-                  {trip.cover_image_url ? (
-                    <div className={styles.tripDetailMedia}>
-                      <img
-                        src={trip.cover_image_url}
-                        alt={trip.title}
-                        className={styles.tripDetailImage}
-                      />
-                      <div className={styles.tripImageFacts}>
-                        <div className={styles.tripFact}>
-                          <span className={styles.tripFactLabel}>Destination</span>
-                          <strong>{trip.destination || "To be confirmed"}</strong>
+            <div className={styles.tripWorkspaceDetailLayout}>
+              <aside className={styles.tripWorkspaceSideMenu}>
+                <section className={styles.tripWorkspaceStickyBar}>
+                  <nav aria-label="Trip sections" className={styles.tripHeaderNav}>
+                    {tripWorkspaceNav.map((item, index) => (
+                      <Link
+                        key={item.id}
+                        href={item.id === "overview" ? "#overview" : sectionHref(item.id)}
+                        className={styles.tripHeaderNavLink}
+                      >
+                        <span className={styles.tripHeaderNavIndex}>{index + 1}.</span>
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </nav>
+                </section>
+              </aside>
+
+              <div className={styles.tripWorkspaceShellCard}>
+                <div className={styles.tripWorkspaceContent}>
+                  <section id="overview" className={styles.tripOverviewPanel}>
+                    <div className={`${styles.tripBuilderCard} ${styles.tripBuilderCardNoFade}`}>
+                      <div className={styles.tripImagePreviewWrap}>
+                        {trip.cover_image_url ? (
+                          <img
+                            src={trip.cover_image_url}
+                            alt={trip.title}
+                            className={styles.imagePreview}
+                          />
+                        ) : (
+                          <div className={styles.tripDetailImageFallback} />
+                        )}
+                        <div className={styles.tripWorkspaceHeroControls}>
+                          {accessRole === "organiser" ? (
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={trip.status === "active"}
+                              aria-label={trip.status === "active" ? "Unpublish trip" : "Publish trip"}
+                              className={styles.tripPublishToggle}
+                              onClick={() => void handleTogglePublish()}
+                              disabled={isPublishing}
+                            >
+                              <span className={styles.tripPublishToggleLabel}>
+                                {isPublishing
+                                  ? "Saving..."
+                                  : trip.status === "active"
+                                    ? "Published"
+                                    : "Draft"}
+                              </span>
+                              <span
+                                className={`${styles.tripPublishToggleTrack} ${
+                                  trip.status === "active" ? styles.tripPublishToggleTrackActive : ""
+                                }`}
+                              >
+                                <span
+                                  className={`${styles.tripPublishToggleThumb} ${
+                                    trip.status === "active" ? styles.tripPublishToggleThumbActive : ""
+                                  }`}
+                                />
+                              </span>
+                            </button>
+                          ) : (
+                            <span className={styles.badge}>
+                              {accessRole === "participant" ? "participant" : trip.status}
+                            </span>
+                          )}
                         </div>
-                        <div className={styles.tripFact}>
-                          <span className={styles.tripFactLabel}>Dates</span>
-                          <strong>{formatTripDateRange(trip.starts_at, trip.ends_at)}</strong>
+                        <div className={styles.tripImageTextOverlay}>
+                          <p className={styles.tripImageMeta}>
+                            Destination
+                          </p>
+                          <h1 className={styles.tripImageTitle}>
+                            {trip.destination || "Your trip"}
+                          </h1>
+                          <p className={`${styles.tripImageSubtitle} ${styles.tripOverviewSupportText}`}>
+                            {trip.title || "Trip workspace"}
+                          </p>
                         </div>
-                        <div className={styles.tripFact}>
-                          <span className={styles.tripFactLabel}>Status</span>
-                          <strong>{trip.status}</strong>
+                      </div>
+
+                      <div className={`${styles.tripBuilderBody} ${styles.tripOverviewBodyStrong}`}>
+                        <div className={`${styles.tripMetaRow} ${styles.tripOverviewSupportText}`}>
+                          <span>{trip.destination || "Destination to be confirmed"}</span>
+                          <span>{formatTripDateRange(trip.starts_at, trip.ends_at)}</span>
                         </div>
+                        <p className={`${styles.muted} ${styles.tripOverviewSupportText}`}>
+                          {trip.description || "No trip summary added yet."}
+                        </p>
                       </div>
                     </div>
-                  ) : (
-                    <div className={styles.tripDetailMedia}>
-                      <div className={styles.tripDetailImageFallback} />
-                      <div className={styles.tripImageFacts}>
-                        <div className={styles.tripFact}>
-                          <span className={styles.tripFactLabel}>Destination</span>
-                          <strong>{trip.destination || "To be confirmed"}</strong>
-                        </div>
-                        <div className={styles.tripFact}>
-                          <span className={styles.tripFactLabel}>Dates</span>
-                          <strong>{formatTripDateRange(trip.starts_at, trip.ends_at)}</strong>
-                        </div>
-                        <div className={styles.tripFact}>
-                          <span className={styles.tripFactLabel}>Status</span>
-                          <strong>{trip.status}</strong>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  </section>
 
-                    <div className={styles.tripDetailBody}>
-                      <div className={styles.rowTop}>
-                        <span className={styles.rowTitle}>{trip.title}</span>
-                        <span className={styles.badge}>
-                          {accessRole === "participant" ? "participant" : trip.status}
-                        </span>
-                      </div>
-                    <div className={styles.tripMetaRow}>
-                      <span>{trip.destination || "Destination to be confirmed"}</span>
-                      <span>{formatTripDateRange(trip.starts_at, trip.ends_at)}</span>
-                    </div>
-                    <p className={styles.muted}>
-                      {trip.description || "No trip summary added yet."}
-                    </p>
-
-                    <div className={styles.tripInfoGrid}>
-                      <div className={styles.infoCard}>
-                        <span className={styles.tripFactLabel}>Group size</span>
-                        <strong>6 travellers</strong>
-                        <p className={styles.muted}>Current organiser placeholder until guests are connected.</p>
-                      </div>
-                      <div className={styles.infoCard}>
-                        <span className={styles.tripFactLabel}>Budget band</span>
-                        <strong>Mid-range</strong>
-                        <p className={styles.muted}>Use this later to filter hotels, dining, and activities.</p>
-                      </div>
-                      <div className={styles.infoCard}>
-                        <span className={styles.tripFactLabel}>Hub link</span>
-                        <strong>Shared planning hub</strong>
-                        <p className={styles.muted}>This is where guests will eventually enter to vote and comment.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {accessRole === "organiser" ? (
-              <section className={styles.panel}>
-                <div className={styles.sectionTop}>
-                  <div>
-                    <p className={styles.eyebrow}>Travellers</p>
-                    <h2>Invite participants</h2>
-                  </div>
-                  <div className={styles.headerActions}>
-                    {plan === "free" ? (
-                      <span className={styles.badge}>
-                        {participants.length}/5 participants
-                      </span>
-                    ) : null}
-                    <span className={styles.badgeSoft}>{participants.length} invited</span>
-                  </div>
-                </div>
-
-                <form className={styles.inviteForm} onSubmit={handleInviteParticipant}>
-                  <div className={styles.formGrid}>
-                    <label className={styles.field}>
-                      <span>Traveller name</span>
-                      <input
-                        value={participantName}
-                        onChange={(event) => setParticipantName(event.target.value)}
-                        placeholder="Sophie Hall"
-                      />
-                    </label>
-                    <label className={styles.field}>
-                      <span>Traveller email</span>
-                      <input
-                        type="email"
-                        value={participantEmail}
-                        onChange={(event) => setParticipantEmail(event.target.value)}
-                        placeholder="traveller@example.com"
-                      />
-                    </label>
-                  </div>
-
-                  {participantsError ? (
-                    <p className={styles.formError}>{participantsError}</p>
-                  ) : null}
-
-                  <div className={styles.formActions}>
-                    <button
-                      type="submit"
-                      className={styles.primaryAction}
-                      disabled={isInviting}
+                  <div className={styles.tripWorkspaceMainColumn}>
+                    <section
+                      id="destinations"
+                      className={`${styles.tripWorkspaceSectionCard} ${styles.tripWorkspaceSectionCompact}`}
                     >
-                      {isInviting ? "Sending invite..." : "Invite traveller"}
-                    </button>
-                  </div>
-                </form>
-
-                <div className={styles.participantsList}>
-                  {participants.length === 0 ? (
-                    <div className={styles.emptyState}>
-                      <p>No travellers invited yet.</p>
-                    </div>
-                  ) : (
-                    participants.map((participant) => (
-                      <article key={participant.id} className={styles.participantCard}>
-                        <div className={styles.rowTop}>
-                          <span className={styles.rowTitle}>
-                            {participant.full_name || participant.email}
-                          </span>
-                          <span className={styles.badge}>
-                            {participant.status}
-                          </span>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Destinations</p>
+                          <h2>Destinations</h2>
                         </div>
-                        <div className={styles.tripMetaRow}>
-                          <span>{participant.email}</span>
-                          <span>{participant.role}</span>
+                        <Link href={sectionHref("destinations")} className={styles.tripSectionToggle}>
+                          View destinations →
+                        </Link>
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Primary destination</span>
+                          <strong>{trip.destination || "Destination to be confirmed"}</strong>
+                          <p className={styles.muted}>
+                            The lead destination the rest of the planning is currently built around.
+                          </p>
+                          <div className={styles.tripMetricRow}>
+                            <span className={styles.tripMetricPill}>1 stop</span>
+                            <span className={styles.tripMetricPill}>
+                              {transport.length} route option{transport.length === 1 ? "" : "s"}
+                            </span>
+                          </div>
                         </div>
-                      </article>
-                    ))
-                  )}
-                </div>
-              </section>
-              ) : null}
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Travel flow</span>
+                          <strong>
+                            {transport.length
+                              ? "Transport has been planned"
+                              : "Transport still to be chosen"}
+                          </strong>
+                          <p className={styles.muted}>
+                            Arrival, departure, and internal movement can all be tracked from this section.
+                          </p>
+                          <div className={styles.tripMiniProgress}>
+                            <span
+                              className={styles.tripMiniProgressFill}
+                              style={{ width: `${transport.length ? 100 : 18}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </section>
 
-	              <section className={styles.progressPanel}>
-	                <div className={styles.progressSection}>
-	                  <h2>Overall Planning Progress</h2>
-                  <div className={styles.progressBar}>
-                    <span
-                      className={`${styles.progressFill} ${styles.progressFillGreen}`}
-                      style={{ width: `${overallProgress}%` }}
+                    <section
+                      id="dates"
+                      className={`${styles.tripWorkspaceSectionCard} ${styles.tripWorkspaceSectionCompact}`}
                     >
-                      {overallProgress}%
-                    </span>
-                  </div>
-	                  <p className={styles.progressMeta}>{completedSections} of 4 planning sections have selections</p>
-	                  <p className={styles.progressMeta}>
-	                    Voting progress updates as participants vote on the options below.
-	                  </p>
-	                </div>
-
-                <div className={styles.progressSection}>
-                  <h2>Planning Categories</h2>
-
-                  <div className={styles.progressCategoryList}>
-                    {planningCategories.map((category) => (
-                      <div key={category.key} className={styles.progressCategory}>
-                        <div className={styles.progressCategoryLabel}>
-                          <span>{category.emoji}</span>
-                          <span>{category.label}</span>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Dates</p>
+                          <h2>Dates</h2>
                         </div>
-	                        <div className={styles.progressBar}>
-	                          <span
-	                            className={`${styles.progressFill} ${
-	                              styles[category.colorClass as keyof typeof styles]
-	                            }`}
-	                            style={{ width: `${voting?.[category.key as CategoryKey]?.progress ?? 0}%` }}
-	                          />
-	                        </div>
-		                        <p className={styles.progressMeta}>
-		                          {voting?.[category.key as CategoryKey]
-		                            ? `${voting[category.key as CategoryKey].voterCount}/${voting[category.key as CategoryKey].eligibleVoterCount} participants voted`
-		                            : "Voting not loaded yet"}
-		                        </p>
-	                      </div>
-	                    ))}
-	                  </div>
-	                </div>
+                        <Link href={sectionHref("dates")} className={styles.tripSectionToggle}>
+                          View dates →
+                        </Link>
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Travel dates</span>
+                          <strong>{formatTripDateRange(trip.starts_at, trip.ends_at)}</strong>
+                          <p className={styles.muted}>
+                            The active travel window the rest of the plan is being coordinated against.
+                          </p>
+                          <div className={styles.tripMetricRow}>
+                            <span className={styles.tripMetricPill}>
+                              {trip.starts_at && trip.ends_at ? "Locked in" : "Pending"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Planning state</span>
+                          <strong>{completedSections} planning areas started</strong>
+                          <p className={styles.muted}>
+                            This gives the group a quick read on how complete the trip shape is so far.
+                          </p>
+                          <div className={styles.tripMiniProgress}>
+                            <span
+                              className={styles.tripMiniProgressFill}
+                              style={{ width: `${overallProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </section>
 
-	                <div className={styles.nextActionCard}>
-	                  <p className={styles.eyebrow}>Next action</p>
-	                  <p className={styles.nextActionText}>
-	                    Ask the group to vote on hotels, activities, transport, and dining below.
-	                  </p>
-	                </div>
-                  {votingError ? <p className={styles.formError}>{votingError}</p> : null}
-	              </section>
+                    <section id="budget" className={styles.tripWorkspaceSectionCard}>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Budget</p>
+                          <h2>Budget</h2>
+                        </div>
+                        <Link href={sectionHref("budget")} className={styles.tripSectionToggle}>
+                          View budget →
+                        </Link>
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Overall progress</span>
+                          <strong>{overallProgress}% planned</strong>
+                          <p className={styles.muted}>
+                            {completedSections} of 4 core planning areas already have live selections.
+                          </p>
+                          <div className={styles.tripMiniProgress}>
+                            <span
+                              className={styles.tripMiniProgressFill}
+                              style={{ width: `${overallProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                        <TripVotePie
+                          title="Voting mix"
+                          caption="Where the group is putting its votes across the planning categories."
+                          data={planningVoteMix}
+                          accent="blue"
+                          emptyLabel="No planning votes yet"
+                        />
+                      </div>
+                      {votingError ? <p className={styles.formError}>{votingError}</p> : null}
+                    </section>
 
-	                {renderSelectionSection(
-	                  "hotels",
-	                  "Hotels",
-                  hotels.map((hotel) => ({
-                    id: hotel.id,
-                    title: hotel.name,
-                    meta: hotel.location || "Location to be confirmed",
-                    note: hotel.notes || "Selected hotel option",
-                    image: hotel.source_photo_url,
-                  })),
-                  "No hotels have been added to this trip yet.",
-                )}
+                    <section id="accommodation" className={styles.tripWorkspaceSectionCard}>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Accommodation</p>
+                          <h2>Accommodation</h2>
+                        </div>
+                        <Link href={sectionHref("accommodation")} className={styles.tripSectionToggle}>
+                          View accommodation →
+                        </Link>
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Selected stays</span>
+                          <strong>{hotels.length}</strong>
+                          <p className={styles.muted}>
+                            {hotels[0]?.name || "No hotel added yet."} This section shows where the group is currently leaning on accommodation.
+                          </p>
+                          <div className={styles.tripMetricRow}>
+                            <span className={styles.tripMetricPill}>{hotelVoteSummary.votes} votes</span>
+                            <span className={styles.tripMetricPill}>
+                              {hotelVoteSummary.participants}/{hotelVoteSummary.eligible || 0} voters
+                            </span>
+                          </div>
+                        </div>
+                        <TripVotePie
+                          title="Accommodation vote split"
+                          caption={`${hotels.length} shortlisted option${hotels.length === 1 ? "" : "s"} with live traveller votes.`}
+                          data={hotelVoteChart}
+                          accent="purple"
+                          emptyLabel="No hotel votes yet"
+                        />
+                      </div>
+                    </section>
 
-	                {renderSelectionSection(
-	                  "activities",
-	                  "Activities",
-                  activities.map((activity) => ({
-                    id: activity.id,
-                    title: activity.title,
-                    meta: activity.location || "Location to be confirmed",
-                    note: activity.notes || "Selected activity option",
-                    image: activity.source_photo_url,
-                  })),
-                  "No activities have been added to this trip yet.",
-                )}
+                    <section id="activities" className={styles.tripWorkspaceSectionCard}>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Activities</p>
+                          <h2>Activities</h2>
+                        </div>
+                        <Link href={sectionHref("activities")} className={styles.tripSectionToggle}>
+                          View activities →
+                        </Link>
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Activities</span>
+                          <strong>{activities.length} selected</strong>
+                          <p className={styles.muted}>
+                            {activities[0]?.title || "No activities added yet."} This is the current lead experience for the trip.
+                          </p>
+                          <div className={styles.tripMetricRow}>
+                            <span className={styles.tripMetricPill}>{activityVoteSummary.votes} votes</span>
+                            <span className={styles.tripMetricPill}>
+                              {activityVoteSummary.participants}/{activityVoteSummary.eligible || 0} voters
+                            </span>
+                          </div>
+                        </div>
+                        <TripVotePie
+                          title="Activity vote split"
+                          caption="Quick read on which experiences are currently leading the shortlist."
+                          data={activityVoteChart}
+                          accent="orange"
+                          emptyLabel="No activity votes yet"
+                        />
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <TripVotePie
+                          title="Transport vote split"
+                          caption="See which movement option is drawing the most support."
+                          data={transportVoteChart}
+                          accent="blue"
+                          emptyLabel="No transport votes yet"
+                        />
+                        <TripVotePie
+                          title="Dining vote split"
+                          caption="A quick snapshot of how meal options are stacking up."
+                          data={diningVoteChart}
+                          accent="green"
+                          emptyLabel="No dining votes yet"
+                        />
+                      </div>
+                    </section>
 
-	                {renderSelectionSection(
-	                  "transport",
-	                  "Transport",
-                  transport.map((item) => ({
-                    id: item.id,
-                    title: item.mode,
-                    meta:
-                      [item.departure_location, item.arrival_location].filter(Boolean).join(" to ") ||
-                      "Route to be confirmed",
-                    note: item.notes || "Selected transport option",
-                    image: item.source_photo_url,
-                  })),
-                  "No transport has been added to this trip yet.",
-                )}
+                    <section id="discussion" className={styles.tripWorkspaceSectionCard}>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Discussion</p>
+                          <h2>Discussion</h2>
+                        </div>
+                        <Link href={sectionHref("discussion")} className={styles.tripSectionToggle}>
+                          View discussion →
+                        </Link>
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Connected people</span>
+                          <strong>{participants.length}</strong>
+                          <p className={styles.muted}>
+                            {plan === "free" && accessRole === "organiser"
+                              ? `${participants.length}/5 invited on free plan.`
+                              : "People connected to this workspace."} This is the live collaboration group for the trip.
+                          </p>
+                          <div className={styles.tripMetricRow}>
+                            <span className={styles.tripMetricPill}>
+                              {participants.filter((participant) => participant.status === "accepted").length} accepted
+                            </span>
+                            <span className={styles.tripMetricPill}>
+                              {participants.filter((participant) => participant.status === "invited").length} invited
+                            </span>
+                          </div>
+                        </div>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Invite status</span>
+                          <strong>
+                            {participants.some((participant) => participant.status === "accepted")
+                              ? "At least one traveller accepted"
+                              : "Waiting on traveller responses"}
+                          </strong>
+                          <p className={styles.muted}>
+                            {participants.filter((participant) => participant.status === "accepted").length} accepted so far, with the rest still pending or invited.
+                          </p>
+                          <div className={styles.tripMiniProgress}>
+                            <span
+                              className={styles.tripMiniProgressFill}
+                              style={{
+                                width: `${
+                                  participants.length
+                                    ? Math.round(
+                                        (participants.filter((participant) => participant.status === "accepted").length /
+                                          participants.length) *
+                                          100,
+                                      )
+                                    : 0
+                                }%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </section>
 
-	                {renderSelectionSection(
-	                  "dining",
-	                  "Dining",
-                  dining.map((item) => ({
-                    id: item.id,
-                    title: item.name,
-                    meta: item.location || "Location to be confirmed",
-                    note: item.notes || "Selected dining option",
-                    image: item.source_photo_url,
-                  })),
-                  "No dining spots have been added to this trip yet.",
-                )}
-	            </>
-	          ) : null}
+                    <section id="expenses" className={styles.tripWorkspaceSectionCard}>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Expenses</p>
+                          <h2>Expenses</h2>
+                        </div>
+                        <Link href={sectionHref("expenses")} className={styles.tripSectionToggle}>
+                          View expenses →
+                        </Link>
+                      </div>
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Expense tracking</span>
+                          <strong>Trip-level costs are supported</strong>
+                          <p className={styles.muted}>
+                            Review trip-linked payments, selected planning costs, and shared spend in one place.
+                          </p>
+                          <div className={styles.tripMetricRow}>
+                            <span className={styles.tripMetricPill}>
+                              {hotels.length + activities.length + transport.length + dining.length} planned items
+                            </span>
+                          </div>
+                        </div>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Open expenses</span>
+                          <strong>Review in My expenses</strong>
+                          <p className={styles.muted}>
+                            Use the wider expenses area when you need the full cost breakdown and payment context.
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section id="settings" className={styles.tripWorkspaceSectionCard}>
+                      <div className={styles.tripWorkspaceSectionTop}>
+                        <div>
+                          <p className={styles.eyebrow}>Settings</p>
+                          <h2>Settings</h2>
+                        </div>
+                        <Link href={sectionHref("settings")} className={styles.tripSectionToggle}>
+                          View settings →
+                        </Link>
+                      </div>
+
+                      <div className={styles.tripWorkspaceCardGrid}>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Access</span>
+                          <strong>
+                            {accessRole === "organiser"
+                              ? "You are managing this trip"
+                              : "You are viewing as a participant"}
+                          </strong>
+                          <p className={styles.muted}>
+                            Access level drives whether someone can manage, publish, invite, or simply review and vote.
+                          </p>
+                          <div className={styles.tripMetricRow}>
+                            <span className={styles.tripMetricPill}>{trip.status}</span>
+                            <span className={styles.tripMetricPill}>{accessRole}</span>
+                          </div>
+                        </div>
+                        <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                          <span className={styles.tripFactLabel}>Actions</span>
+                          <strong>Workspace controls</strong>
+                          <p className={styles.muted}>
+                            The key state controls for this trip live here, including publish status and return paths.
+                          </p>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {loadingTrip ? (
             <section className={styles.panel}>
