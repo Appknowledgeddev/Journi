@@ -17,6 +17,7 @@ import {
   getVoteSummary,
   type HotelSelection,
   planningCategories,
+  summariseTripWorkspace,
   type TripAccessRole,
   type TripDetail,
   type TripParticipant,
@@ -212,6 +213,28 @@ export default function TripDetailPage() {
   const diningVoteChart = useMemo(
     () => buildVoteChartData(dining, voting?.dining?.itemVotes, (option) => option.name),
     [dining, voting?.dining?.itemVotes],
+  );
+  const workspaceSummary = useMemo(
+    () =>
+      trip
+        ? summariseTripWorkspace({
+            trip,
+            participants,
+            planningCounts: {
+              hotels: hotels.length,
+              activities: activities.length,
+              transport: transport.length,
+              dining: dining.length,
+            },
+            planningProgress: overallProgress,
+            voting,
+            hotels,
+            activities,
+            transport,
+            dining,
+          })
+        : null,
+    [activities, dining, hotels, overallProgress, participants, transport, trip, voting],
   );
   const sectionHref = (section: string) => `/trips/${tripId}/${section}`;
 
@@ -550,6 +573,67 @@ export default function TripDetailPage() {
                         <p className={`${styles.muted} ${styles.tripOverviewSupportText}`}>
                           {trip.description || "No trip summary added yet."}
                         </p>
+                        {workspaceSummary ? (
+                          <>
+                            <div className={styles.tripQuestionGrid}>
+                              <div className={styles.tripQuestionCard}>
+                                <span className={styles.tripFactLabel}>Current phase</span>
+                                <strong>{workspaceSummary.phaseLabel}</strong>
+                                <p className={styles.muted}>{workspaceSummary.confidenceMessage}</p>
+                              </div>
+                              <div className={styles.tripQuestionCard}>
+                                <span className={styles.tripFactLabel}>Decision we’re making</span>
+                                <strong>{workspaceSummary.currentDecision}</strong>
+                                <p className={styles.muted}>Keep the group focused on the next call, not a long chat thread.</p>
+                              </div>
+                              <div className={styles.tripQuestionCard}>
+                                <span className={styles.tripFactLabel}>Leading option</span>
+                                <strong>{workspaceSummary.leadingOption}</strong>
+                                <p className={styles.muted}>This is the clearest front-runner Journi can see right now.</p>
+                              </div>
+                              <div className={styles.tripQuestionCard}>
+                                <span className={styles.tripFactLabel}>What happens next</span>
+                                <strong>{workspaceSummary.nextAction}</strong>
+                                <p className={styles.muted}>Journi should always surface the next best organiser action.</p>
+                              </div>
+                            </div>
+
+                            <div className={styles.tripMetricRow}>
+                              <span className={styles.tripMetricPill}>
+                                {workspaceSummary.participantSummary.invited} invited
+                              </span>
+                              <span className={styles.tripMetricPill}>
+                                {workspaceSummary.participantSummary.viewed} viewed
+                              </span>
+                              <span className={styles.tripMetricPill}>
+                                {workspaceSummary.participantSummary.responded} responded
+                              </span>
+                              <span className={styles.tripMetricPill}>
+                                {workspaceSummary.participantSummary.confirmed} confirmed
+                              </span>
+                              <span className={styles.tripMetricPill}>
+                                {workspaceSummary.participantSummary.outstanding} outstanding
+                              </span>
+                              {workspaceSummary.deadlineLabel ? (
+                                <span className={styles.tripMetricPill}>{workspaceSummary.deadlineLabel}</span>
+                              ) : null}
+                            </div>
+
+                            <div className={styles.tripConfidencePanel}>
+                              <div className={styles.rowTop}>
+                                <span className={styles.rowTitle}>Confidence score</span>
+                                <span className={styles.rowMeta}>{workspaceSummary.confidenceScore}%</span>
+                              </div>
+                              <div className={styles.tripMiniProgress}>
+                                <span
+                                  className={styles.tripMiniProgressFill}
+                                  style={{ width: `${workspaceSummary.confidenceScore}%` }}
+                                />
+                              </div>
+                              <p className={styles.muted}>{workspaceSummary.latestChange}</p>
+                            </div>
+                          </>
+                        ) : null}
                       </div>
                     </div>
                   </section>
@@ -775,41 +859,45 @@ export default function TripDetailPage() {
                       </div>
                       <div className={styles.tripWorkspaceCardGrid}>
                         <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
-                          <span className={styles.tripFactLabel}>Connected people</span>
-                          <strong>{participants.length}</strong>
+                          <span className={styles.tripFactLabel}>Outstanding people</span>
+                          <strong>{workspaceSummary?.participantSummary.outstanding ?? 0}</strong>
                           <p className={styles.muted}>
-                            {plan === "free" && accessRole === "organiser"
-                              ? `${participants.length}/5 invited on free plan.`
-                              : "People connected to this workspace."} This is the live collaboration group for the trip.
+                            {workspaceSummary?.participantSummary.outstanding
+                              ? `${
+                                  workspaceSummary.participantSummary.outstanding
+                                } traveller${
+                                  workspaceSummary.participantSummary.outstanding === 1 ? "" : "s"
+                                } still need to respond.`
+                              : "No one is outstanding right now."} Journi should do the chasing, not the organiser.
                           </p>
                           <div className={styles.tripMetricRow}>
                             <span className={styles.tripMetricPill}>
-                              {participants.filter((participant) => participant.status === "accepted").length} accepted
+                              {workspaceSummary?.participantSummary.invited ?? 0} invited
                             </span>
                             <span className={styles.tripMetricPill}>
-                              {participants.filter((participant) => participant.status === "invited").length} invited
+                              {workspaceSummary?.participantSummary.responded ?? 0} responded
                             </span>
                           </div>
                         </div>
                         <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
-                          <span className={styles.tripFactLabel}>Invite status</span>
+                          <span className={styles.tripFactLabel}>Latest important change</span>
                           <strong>
-                            {participants.some((participant) => participant.status === "accepted")
-                              ? "At least one traveller accepted"
-                              : "Waiting on traveller responses"}
+                            {workspaceSummary?.latestChange ?? "No trip changes yet"}
                           </strong>
                           <p className={styles.muted}>
-                            {participants.filter((participant) => participant.status === "accepted").length} accepted so far, with the rest still pending or invited.
+                            {workspaceSummary?.deadlineLabel
+                              ? `${workspaceSummary.deadlineLabel}.`
+                              : "Add a trip date to give the group a clearer deadline."} The discussion hub should always make the blocker obvious.
                           </p>
                           <div className={styles.tripMiniProgress}>
                             <span
                               className={styles.tripMiniProgressFill}
                               style={{
                                 width: `${
-                                  participants.length
+                                  workspaceSummary?.participantSummary.total
                                     ? Math.round(
-                                        (participants.filter((participant) => participant.status === "accepted").length /
-                                          participants.length) *
+                                        ((workspaceSummary?.participantSummary.responded ?? 0) /
+                                          (workspaceSummary?.participantSummary.total ?? 1)) *
                                           100,
                                       )
                                     : 0

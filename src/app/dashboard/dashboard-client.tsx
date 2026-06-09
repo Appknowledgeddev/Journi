@@ -11,6 +11,48 @@ import { supabase } from "@/lib/supabase/client";
 const celebrationKey = "journi-upgrade-celebration";
 const celebrationProductKey = "journi-upgrade-product";
 
+type DashboardTripSummary = {
+  trip: {
+    id: string;
+    title: string;
+    destination: string | null;
+    status: string;
+  };
+  summary: {
+    phaseLabel: string;
+    currentDecision: string;
+    leadingOption: string;
+    nextAction: string;
+    deadlineLabel: string | null;
+    latestChange: string;
+    confidenceScore: number;
+    confidenceMessage: string;
+    participantSummary: {
+      invited: number;
+      responded: number;
+      confirmed: number;
+      outstanding: number;
+    };
+  };
+  planningCounts: {
+    hotels: number;
+    activities: number;
+    transport: number;
+    dining: number;
+  };
+};
+
+type DashboardSummaryResponse = {
+  totals: {
+    trips: number;
+    outstandingResponses: number;
+    readyToDecide: number;
+    confirmedParticipants: number;
+  };
+  trips: DashboardTripSummary[];
+  error?: string;
+};
+
 function getFirstLoginCelebrationKey(userId: string) {
   return `journi-first-login-celebration:${userId}`;
 }
@@ -23,6 +65,9 @@ export function DashboardClient() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationClosing, setCelebrationClosing] = useState(false);
   const [celebrationProduct, setCelebrationProduct] = useState<string | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummaryResponse | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -198,6 +243,57 @@ export function DashboardClient() {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadDashboardSummary() {
+      setDashboardLoading(true);
+      setDashboardError(null);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!session?.access_token) {
+        setDashboardSummary(null);
+        setDashboardLoading(false);
+        return;
+      }
+
+      const response = await fetch("/api/dashboard/summary", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const result = (await response.json()) as DashboardSummaryResponse;
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!response.ok) {
+        setDashboardSummary(null);
+        setDashboardError(result.error || "Unable to load your organiser dashboard.");
+        setDashboardLoading(false);
+        return;
+      }
+
+      setDashboardSummary(result);
+      setDashboardLoading(false);
+    }
+
+    void loadDashboardSummary();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const intro = useMemo(() => "A quick view of your trip workspace.", []);
 
   return (
@@ -294,28 +390,42 @@ export function DashboardClient() {
             </div>
           ) : null}
 
+          {dashboardError ? (
+            <section className={sectionStyles.panel}>
+              <div className={sectionStyles.emptyState}>
+                <p>{dashboardError}</p>
+              </div>
+            </section>
+          ) : null}
+
           <section className={sectionStyles.grid4}>
             <article className={sectionStyles.metricCard}>
-              <p className={sectionStyles.eyebrow}>Trips</p>
-              <div className={sectionStyles.metricValue}>{isPro ? "6" : "1"}</div>
-              <p className={sectionStyles.metricMeta}>
-                {isPro ? "Live hubs across your organiser account" : "Active hub on the free plan"}
-              </p>
+              <p className={sectionStyles.eyebrow}>Trips in motion</p>
+              <div className={sectionStyles.metricValue}>
+                {dashboardLoading ? "…" : dashboardSummary?.totals.trips ?? 0}
+              </div>
+              <p className={sectionStyles.metricMeta}>Trips you’re actively steering right now</p>
             </article>
             <article className={sectionStyles.metricCard}>
-              <p className={sectionStyles.eyebrow}>Votes</p>
-              <div className={sectionStyles.metricValue}>{isPro ? "148" : "21"}</div>
-              <p className={sectionStyles.metricMeta}>Traveller decisions collected this month</p>
+              <p className={sectionStyles.eyebrow}>Outstanding replies</p>
+              <div className={sectionStyles.metricValue}>
+                {dashboardLoading ? "…" : dashboardSummary?.totals.outstandingResponses ?? 0}
+              </div>
+              <p className={sectionStyles.metricMeta}>People who still need a nudge or decision</p>
             </article>
             <article className={sectionStyles.metricCard}>
-              <p className={sectionStyles.eyebrow}>Guests</p>
-              <div className={sectionStyles.metricValue}>{isPro ? "42" : "5"}</div>
-              <p className={sectionStyles.metricMeta}>People currently invited into your hubs</p>
+              <p className={sectionStyles.eyebrow}>Ready to decide</p>
+              <div className={sectionStyles.metricValue}>
+                {dashboardLoading ? "…" : dashboardSummary?.totals.readyToDecide ?? 0}
+              </div>
+              <p className={sectionStyles.metricMeta}>Trips where enough responses exist to make the call</p>
             </article>
             <article className={sectionStyles.metricCard}>
-              <p className={sectionStyles.eyebrow}>Payments</p>
-              <div className={sectionStyles.metricValue}>{isPro ? "£3.8k" : "£420"}</div>
-              <p className={sectionStyles.metricMeta}>Tracked deposits and organiser charges</p>
+              <p className={sectionStyles.eyebrow}>Confirmed travellers</p>
+              <div className={sectionStyles.metricValue}>
+                {dashboardLoading ? "…" : dashboardSummary?.totals.confirmedParticipants ?? 0}
+              </div>
+              <p className={sectionStyles.metricMeta}>People currently marked as coming</p>
             </article>
           </section>
 
@@ -323,77 +433,118 @@ export function DashboardClient() {
             <article className={sectionStyles.panel}>
               <div className={sectionStyles.sectionTop}>
                 <div>
-                  <p className={sectionStyles.eyebrow}>Next steps</p>
-                  <h2>What to do next</h2>
+                  <p className={sectionStyles.eyebrow}>Organiser workflow</p>
+                  <h2>What Journi says to do next</h2>
                 </div>
                 <span className={isPro ? sectionStyles.badgeSuccess : sectionStyles.badge}>
                   {loading ? "Loading..." : isPro ? "Pro active" : "Free mode"}
                 </span>
               </div>
 
-              <div className={sectionStyles.timeline}>
-                <article className={sectionStyles.timelineCard}>
-                  <span className={sectionStyles.step}>1</span>
-                  <div>
-                    <h3>Open Trips</h3>
-                    <p>Create a new trip or reopen a draft.</p>
-                  </div>
-                </article>
-                <article className={sectionStyles.timelineCard}>
-                  <span className={sectionStyles.step}>2</span>
-                  <div>
-                    <h3>Invite travellers</h3>
-                    <p>Add people once the trip is ready to share.</p>
-                  </div>
-                </article>
-                <article className={sectionStyles.timelineCard}>
-                  <span className={sectionStyles.step}>3</span>
-                  <div>
-                    <h3>Publish when ready</h3>
-                    <p>Move a draft live when planning is in place.</p>
-                  </div>
-                </article>
-              </div>
+              {dashboardLoading ? (
+                <div className={sectionStyles.emptyState}>
+                  <p>Loading trip actions...</p>
+                </div>
+              ) : dashboardSummary?.trips.length ? (
+                <div className={sectionStyles.tripReadinessList}>
+                  {dashboardSummary.trips.slice(0, 3).map((item) => (
+                    <article key={item.trip.id} className={sectionStyles.tripReadinessCard}>
+                      <div className={sectionStyles.tripReadinessHeader}>
+                        <div>
+                          <p className={sectionStyles.eyebrow}>{item.summary.phaseLabel}</p>
+                          <h3>{item.trip.title}</h3>
+                        </div>
+                        <span className={sectionStyles.tripMetricPill}>
+                          {item.summary.confidenceScore}% confidence
+                        </span>
+                      </div>
+
+                      <div className={sectionStyles.tripQuestionGrid}>
+                        <div className={sectionStyles.tripQuestionCard}>
+                          <span className={sectionStyles.tripFactLabel}>Decision</span>
+                          <strong>{item.summary.currentDecision}</strong>
+                        </div>
+                        <div className={sectionStyles.tripQuestionCard}>
+                          <span className={sectionStyles.tripFactLabel}>Leading option</span>
+                          <strong>{item.summary.leadingOption}</strong>
+                        </div>
+                        <div className={sectionStyles.tripQuestionCard}>
+                          <span className={sectionStyles.tripFactLabel}>Outstanding</span>
+                          <strong>
+                            {item.summary.participantSummary.outstanding > 0
+                              ? `${item.summary.participantSummary.outstanding} still to respond`
+                              : "No one outstanding"}
+                          </strong>
+                        </div>
+                        <div className={sectionStyles.tripQuestionCard}>
+                          <span className={sectionStyles.tripFactLabel}>Next action</span>
+                          <strong>{item.summary.nextAction}</strong>
+                        </div>
+                      </div>
+
+                      <div className={sectionStyles.tripMetricRow}>
+                        <span className={sectionStyles.tripMetricPill}>
+                          {item.summary.participantSummary.invited} invited
+                        </span>
+                        <span className={sectionStyles.tripMetricPill}>
+                          {item.summary.participantSummary.responded} responded
+                        </span>
+                        <span className={sectionStyles.tripMetricPill}>
+                          {item.summary.participantSummary.confirmed} confirmed
+                        </span>
+                        {item.summary.deadlineLabel ? (
+                          <span className={sectionStyles.tripMetricPill}>{item.summary.deadlineLabel}</span>
+                        ) : null}
+                      </div>
+
+                      <p className={sectionStyles.metricMeta}>{item.summary.latestChange}</p>
+                      <p className={sectionStyles.metricMeta}>{item.summary.confidenceMessage}</p>
+                      <Link href={`/trips/${item.trip.id}`} className={sectionStyles.tripSectionToggle}>
+                        Open trip →
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className={sectionStyles.emptyState}>
+                  <p>No live trip hub yet. Create a trip and Journi will start tracking the next action for you.</p>
+                </div>
+              )}
             </article>
 
             <article className={sectionStyles.panel}>
               <div className={sectionStyles.sectionTop}>
                 <div>
-                  <p className={sectionStyles.eyebrow}>Live now</p>
-                  <h2>Hub pulse</h2>
+                  <p className={sectionStyles.eyebrow}>Readiness pulse</p>
+                  <h2>Trip confidence and blockers</h2>
                 </div>
                 <span className={sectionStyles.badgeSoft}>This week</span>
               </div>
 
-              <div className={sectionStyles.activityList}>
-                <div className={sectionStyles.activityRow}>
-                  <div className={sectionStyles.rowTop}>
-                    <span className={sectionStyles.rowTitle}>Lisbon birthday weekend</span>
-                    <span className={sectionStyles.rowMeta}>78%</span>
-                  </div>
-                  <div className={sectionStyles.progressTrack}>
-                    <span style={{ width: isPro ? "78%" : "34%" }} />
-                  </div>
+              {dashboardLoading ? (
+                <div className={sectionStyles.emptyState}>
+                  <p>Loading trip confidence…</p>
                 </div>
-                <div className={sectionStyles.activityRow}>
-                  <div className={sectionStyles.rowTop}>
-                    <span className={sectionStyles.rowTitle}>Mallorca villa shortlist</span>
-                    <span className={sectionStyles.rowMeta}>62%</span>
-                  </div>
-                  <div className={sectionStyles.progressTrack}>
-                    <span style={{ width: isPro ? "62%" : "24%" }} />
-                  </div>
+              ) : dashboardSummary?.trips.length ? (
+                <div className={sectionStyles.activityList}>
+                  {dashboardSummary.trips.slice(0, 4).map((item) => (
+                    <div key={item.trip.id} className={sectionStyles.activityRow}>
+                      <div className={sectionStyles.rowTop}>
+                        <span className={sectionStyles.rowTitle}>{item.trip.title}</span>
+                        <span className={sectionStyles.rowMeta}>{item.summary.confidenceScore}%</span>
+                      </div>
+                      <div className={sectionStyles.progressTrack}>
+                        <span style={{ width: `${item.summary.confidenceScore}%` }} />
+                      </div>
+                      <p className={sectionStyles.metricMeta}>{item.summary.confidenceMessage}</p>
+                    </div>
+                  ))}
                 </div>
-                <div className={sectionStyles.activityRow}>
-                  <div className={sectionStyles.rowTop}>
-                    <span className={sectionStyles.rowTitle}>Airport transfer plan</span>
-                    <span className={sectionStyles.rowMeta}>54%</span>
-                  </div>
-                  <div className={sectionStyles.progressTrack}>
-                    <span style={{ width: isPro ? "54%" : "18%" }} />
-                  </div>
+              ) : (
+                <div className={sectionStyles.emptyState}>
+                  <p>Your readiness pulse will appear here once you’ve created a trip and invited people.</p>
                 </div>
-              </div>
+              )}
             </article>
           </section>
         </div>

@@ -125,7 +125,7 @@ export async function GET(
 
   const { data: participantRows, error: participantsError } = await supabaseAdmin
     .from("trip_participants")
-    .select("id, email, full_name, role, status")
+    .select("id, email, full_name, role, status, invited_at, responded_at, created_at")
     .eq("trip_id", tripId)
     .order("created_at", { ascending: true });
 

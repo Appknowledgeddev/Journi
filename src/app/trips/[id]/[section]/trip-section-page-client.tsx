@@ -17,6 +17,7 @@ import {
   getVoteSummary,
   type HotelSelection,
   planningCategories,
+  summariseTripWorkspace,
   type TransportSelection,
   type TripAccessRole,
   type TripDetail,
@@ -331,15 +332,35 @@ export default function TripSectionPageClient() {
     () => buildVoteChartData(dining, voting?.dining?.itemVotes, (option) => option.name),
     [dining, voting?.dining?.itemVotes],
   );
+  const workspaceSummary = useMemo(
+    () =>
+      trip
+        ? summariseTripWorkspace({
+            trip,
+            participants,
+            planningCounts: {
+              hotels: hotels.length,
+              activities: activities.length,
+              transport: transport.length,
+              dining: dining.length,
+            },
+            planningProgress: overallProgress,
+            voting,
+            hotels,
+            activities,
+            transport,
+            dining,
+          })
+        : null,
+    [activities, dining, hotels, overallProgress, participants, transport, trip, voting],
+  );
 
   const activeSectionMeta = activeSection ? sectionMeta[activeSection] : null;
 
   const activitySupportCount = transport.length + dining.length;
-  const acceptedParticipants = participants.filter((participant) => participant.status === "accepted").length;
-  const invitedParticipants = participants.filter((participant) => participant.status === "invited").length;
-  const inactiveParticipantNames = participants
-    .filter((participant) => participant.status !== "accepted")
-    .map((participant) => participant.full_name || participant.email);
+  const acceptedParticipants = workspaceSummary?.participantSummary.confirmed ?? 0;
+  const invitedParticipants = workspaceSummary?.participantSummary.invited ?? 0;
+  const inactiveParticipantNames = workspaceSummary?.participantSummary.inactiveUsers ?? [];
 
   const sectionHref = (sectionId: string) => `/trips/${tripId}/${sectionId}`;
 
@@ -1465,6 +1486,53 @@ export default function TripSectionPageClient() {
                     )}
                   </div>
                 </div>
+                {workspaceSummary ? (
+                  <div className={styles.tripQuestionGrid}>
+                    <div className={styles.tripQuestionCard}>
+                      <span className={styles.tripFactLabel}>Current phase</span>
+                      <strong>{workspaceSummary.phaseLabel}</strong>
+                    </div>
+                    <div className={styles.tripQuestionCard}>
+                      <span className={styles.tripFactLabel}>Decision</span>
+                      <strong>{workspaceSummary.currentDecision}</strong>
+                    </div>
+                    <div className={styles.tripQuestionCard}>
+                      <span className={styles.tripFactLabel}>Leading option</span>
+                      <strong>{workspaceSummary.leadingOption}</strong>
+                    </div>
+                    <div className={styles.tripQuestionCard}>
+                      <span className={styles.tripFactLabel}>Next action</span>
+                      <strong>{workspaceSummary.nextAction}</strong>
+                    </div>
+                  </div>
+                ) : null}
+                {workspaceSummary ? (
+                  <div className={styles.tripMetricRow}>
+                    <span className={styles.tripMetricPill}>
+                      {workspaceSummary.participantSummary.invited} invited
+                    </span>
+                    <span className={styles.tripMetricPill}>
+                      {workspaceSummary.participantSummary.viewed} viewed
+                    </span>
+                    <span className={styles.tripMetricPill}>
+                      {workspaceSummary.participantSummary.responded} responded
+                    </span>
+                    <span className={styles.tripMetricPill}>
+                      {workspaceSummary.participantSummary.confirmed} confirmed
+                    </span>
+                    <span className={styles.tripMetricPill}>
+                      {workspaceSummary.participantSummary.outstanding} outstanding
+                    </span>
+                    {workspaceSummary.deadlineLabel ? (
+                      <span className={styles.tripMetricPill}>{workspaceSummary.deadlineLabel}</span>
+                    ) : null}
+                  </div>
+                ) : null}
+                {workspaceSummary ? (
+                  <p className={styles.metricMeta}>
+                    {workspaceSummary.confidenceScore}% confidence. {workspaceSummary.confidenceMessage} {workspaceSummary.latestChange}
+                  </p>
+                ) : null}
               </section>
 
               <div className={styles.tripSectionPageContent}>{renderSectionContent()}</div>
