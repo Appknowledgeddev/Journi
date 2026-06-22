@@ -7,8 +7,10 @@ type TripRow = {
   destination: string | null;
   description: string | null;
   status: string;
+  date_mode?: string | null;
   starts_at: string | null;
   ends_at: string | null;
+  voting_deadline?: string | null;
   cover_image_url: string | null;
   owner_id: string | null;
 };
@@ -44,7 +46,7 @@ export async function GET(request: NextRequest) {
     await Promise.all([
       supabaseAdmin
         .from("trips")
-        .select("id, title, destination, description, status, starts_at, ends_at, cover_image_url, owner_id")
+        .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url, owner_id")
         .eq("owner_id", user.id)
         .order("created_at", { ascending: false }),
       supabaseAdmin
@@ -74,7 +76,7 @@ export async function GET(request: NextRequest) {
   if (participantTripIds.length > 0) {
     const { data: invitedTripRows, error: invitedTripsError } = await supabaseAdmin
       .from("trips")
-      .select("id, title, destination, description, status, starts_at, ends_at, cover_image_url, owner_id")
+      .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url, owner_id")
       .in("id", participantTripIds)
       .order("created_at", { ascending: false });
 

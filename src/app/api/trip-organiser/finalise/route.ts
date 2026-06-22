@@ -8,8 +8,19 @@ type TripOrganiserFinalisePayload = {
       destination?: string;
       description?: string;
       status?: string;
+      tripType?: string;
+      audience?: string;
+      dateMode?: string;
       startsAt?: string;
       endsAt?: string;
+      votingDeadline?: string;
+      groupSize?: string;
+      budgetMode?: string;
+      budgetBand?: string;
+      totalBudget?: string;
+      budgetPerPersonMin?: number | null;
+      budgetPerPersonMax?: number | null;
+      aiDescriptionGenerated?: boolean;
       coverImageUrl?: string;
     };
     hotels?: Array<{
@@ -124,6 +135,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Trip name is required." }, { status: 400 });
   }
 
+  const parsedBudgetTotal =
+    typeof tripForm.totalBudget === "string" && tripForm.totalBudget.trim()
+      ? Number(tripForm.totalBudget)
+      : null;
+
   const { data: tripData, error: tripError } = await supabaseAdmin
     .from("trips")
     .insert({
@@ -132,8 +148,23 @@ export async function POST(request: NextRequest) {
       destination: tripForm.destination?.trim() || null,
       description: tripForm.description?.trim() || null,
       status: tripForm.status || "draft",
+      trip_type_label: tripForm.tripType?.trim() || null,
+      audience_filter: tripForm.audience?.trim() || null,
+      date_mode: tripForm.dateMode?.trim() || "set_dates",
       starts_at: tripForm.startsAt || null,
       ends_at: tripForm.endsAt || null,
+      voting_deadline: tripForm.votingDeadline || null,
+      group_size_band: tripForm.groupSize?.trim() || null,
+      group_size_min:
+        tripForm.groupSize === "10+" ? 10 : tripForm.groupSize === "6-10" ? 6 : tripForm.groupSize === "4-6" ? 4 : null,
+      budget_mode: tripForm.budgetMode?.trim() || "per_person",
+      budget_band: tripForm.budgetBand?.trim() || null,
+      budget_total: parsedBudgetTotal !== null && Number.isFinite(parsedBudgetTotal) ? parsedBudgetTotal : null,
+      budget_per_person_min:
+        typeof tripForm.budgetPerPersonMin === "number" ? tripForm.budgetPerPersonMin : null,
+      budget_per_person_max:
+        typeof tripForm.budgetPerPersonMax === "number" ? tripForm.budgetPerPersonMax : null,
+      ai_description_generated: tripForm.aiDescriptionGenerated === true,
       cover_image_url: tripForm.coverImageUrl?.trim() || null,
     })
     .select("id")

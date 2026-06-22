@@ -59,12 +59,24 @@ export async function POST(request: NextRequest) {
 
   const { data: trip, error: tripError } = await supabaseAdmin
     .from("trips")
-    .select("id, title, destination, owner_id")
+    .select("id, title, destination, owner_id, voting_deadline")
     .eq("id", invite.trip_id)
     .single();
 
   if (tripError || !trip) {
     return NextResponse.json({ error: "Trip not found for this invite." }, { status: 404 });
+  }
+
+  if (
+    trip.voting_deadline &&
+    new Date(trip.voting_deadline).getTime() < Date.now() &&
+    invite.status !== "accepted" &&
+    invite.status !== "declined"
+  ) {
+    return NextResponse.json(
+      { error: "The response deadline for this trip has passed." },
+      { status: 410 },
+    );
   }
 
   let updatedInvite = {

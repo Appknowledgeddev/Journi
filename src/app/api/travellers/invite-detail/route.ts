@@ -7,8 +7,10 @@ type TripDetail = {
   destination: string | null;
   description: string | null;
   status: string;
+  date_mode?: string | null;
   starts_at: string | null;
   ends_at: string | null;
+  voting_deadline?: string | null;
   cover_image_url: string | null;
 };
 
@@ -58,12 +60,24 @@ export async function GET(request: NextRequest) {
 
   const { data: trip, error: tripError } = await supabaseAdmin
     .from("trips")
-    .select("id, title, destination, description, status, starts_at, ends_at, cover_image_url")
+    .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url")
     .eq("id", invite.trip_id)
     .single();
 
   if (tripError || !trip) {
     return NextResponse.json({ error: "Trip not found for this invite." }, { status: 404 });
+  }
+
+  if (
+    trip.voting_deadline &&
+    new Date(trip.voting_deadline).getTime() < Date.now() &&
+    invite.status !== "accepted" &&
+    invite.status !== "declined"
+  ) {
+    return NextResponse.json(
+      { error: "This invite is no longer publicly available because the response deadline has passed." },
+      { status: 410 },
+    );
   }
 
   const [

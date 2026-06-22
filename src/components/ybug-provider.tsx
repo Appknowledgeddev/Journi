@@ -99,6 +99,10 @@ function YbugIdentitySync() {
 }
 
 export function JourniYbugProvider({ children }: { children: React.ReactNode }) {
+  if (process.env.NODE_ENV === "development") {
+    return <>{children}</>;
+  }
+
   return (
     <YbugProvider
       ybugId={YBUG_ID}

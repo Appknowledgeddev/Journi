@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { supabase } from "@/lib/supabase/client";
+import { readTripOrganiserDraft } from "@/lib/trip-organiser/draft";
 import styles from "@/components/app-page.module.css";
 
 type TripCard = {
@@ -12,8 +13,10 @@ type TripCard = {
   destination: string | null;
   description: string | null;
   status: string;
+  date_mode?: string | null;
   starts_at: string | null;
   ends_at: string | null;
+  voting_deadline?: string | null;
   cover_image_url: string | null;
   owner_id?: string | null;
   roleView?: "organiser" | "participant";
@@ -67,8 +70,17 @@ function formatTripDateRange(startsAt: string | null, endsAt: string | null) {
   return startLabel ?? endLabel ?? "Dates to be confirmed";
 }
 
+function formatTripDatePlanning(trip: TripCard) {
+  if (trip.date_mode === "flexible" && !trip.starts_at && !trip.ends_at) {
+    return "Flexible / open dates";
+  }
+
+  return formatTripDateRange(trip.starts_at, trip.ends_at);
+}
+
 export default function TripsPage() {
   const [trips, setTrips] = useState<TripCard[]>([]);
+  const [draftResume, setDraftResume] = useState<ReturnType<typeof readTripOrganiserDraft>>(null);
   const [loadingTrips, setLoadingTrips] = useState(true);
   const [tripError, setTripError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -80,6 +92,10 @@ export default function TripsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [tripForm, setTripForm] = useState<TripFormState>(initialTripForm);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    setDraftResume(readTripOrganiserDraft());
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -285,6 +301,35 @@ export default function TripsPage() {
       {() => (
         <div className={styles.stack}>
           <section className={styles.tripListSection}>
+            {draftResume ? (
+              <div className={styles.optionFormCard}>
+                <div className={styles.rowTop}>
+                  <div>
+                    <p className={styles.eyebrow}>Saved draft</p>
+                    <h3 className={styles.sectionHeading}>
+                      {draftResume.tripForm.title.trim() || draftResume.tripForm.destination || "Untitled trip"}
+                    </h3>
+                    <p className={styles.muted}>
+                      Resume the organiser where you left off. Last saved{" "}
+                      {new Intl.DateTimeFormat("en-GB", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      }).format(new Date(draftResume.savedAt))}
+                      .
+                    </p>
+                  </div>
+                  <Link
+                    href={`/trip-organiser?resume=1${draftResume.activeStepKey ? `&step=${draftResume.activeStepKey}` : ""}`}
+                    className={styles.primaryActionLink}
+                  >
+                    Continue planning
+                  </Link>
+                </div>
+              </div>
+            ) : null}
+
             <div className={styles.tripFilter}>
               <button
                 type="button"
@@ -355,7 +400,7 @@ export default function TripsPage() {
                       </div>
                         <div className={styles.tripMetaRow}>
                           <span>{trip.destination || "Destination to be confirmed"}</span>
-                          <span>{formatTripDateRange(trip.starts_at, trip.ends_at)}</span>
+                          <span>{formatTripDatePlanning(trip)}</span>
                         </div>
                       <p className={styles.muted}>
                         {trip.description || "No trip summary added yet."}

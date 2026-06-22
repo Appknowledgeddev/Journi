@@ -7,8 +7,10 @@ type TripRow = {
   destination: string | null;
   description?: string | null;
   status: string;
+  date_mode?: string | null;
   starts_at?: string | null;
   ends_at?: string | null;
+  voting_deadline?: string | null;
   cover_image_url?: string | null;
 };
 
@@ -87,7 +89,7 @@ export async function GET(request: NextRequest) {
 
   const { data: ownedTrips, error: ownedTripsError } = await supabaseAdmin
     .from("trips")
-    .select("id, title, destination, description, status, starts_at, ends_at, cover_image_url")
+    .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -146,7 +148,7 @@ export async function GET(request: NextRequest) {
     receivedInvitesById.set(invite.id, invite);
   }
 
-  const receivedInvites = Array.from(receivedInvitesById.values()).sort((first, second) => {
+  let receivedInvites = Array.from(receivedInvitesById.values()).sort((first, second) => {
     const firstTime = first.invited_at ? new Date(first.invited_at).getTime() : 0;
     const secondTime = second.invited_at ? new Date(second.invited_at).getTime() : 0;
 
@@ -160,7 +162,7 @@ export async function GET(request: NextRequest) {
   if (receivedTripIds.length > 0) {
     const { data: receivedTripRows, error: receivedTripsError } = await supabaseAdmin
       .from("trips")
-      .select("id, title, destination, description, status, starts_at, ends_at, cover_image_url, owner_id")
+      .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url, owner_id")
       .in("id", receivedTripIds);
 
     if (receivedTripsError) {
@@ -171,6 +173,20 @@ export async function GET(request: NextRequest) {
     }
 
     receivedTrips = (receivedTripRows ?? []) as TripRow[];
+    const tripById = new Map(receivedTrips.map((trip) => [trip.id, trip]));
+    receivedInvites = receivedInvites.filter((invite) => {
+      const trip = tripById.get(invite.trip_id);
+
+      if (!trip?.voting_deadline) {
+        return true;
+      }
+
+      if (invite.status === "accepted" || invite.status === "declined") {
+        return true;
+      }
+
+      return new Date(trip.voting_deadline).getTime() >= Date.now();
+    });
 
     const ownerIds = Array.from(
       new Set(

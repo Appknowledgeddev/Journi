@@ -4,8 +4,19 @@ export type TripDetail = {
   destination: string | null;
   description: string | null;
   status: string;
+  trip_type_label?: string | null;
+  audience_filter?: string | null;
+  date_mode?: string | null;
   starts_at: string | null;
   ends_at: string | null;
+  voting_deadline?: string | null;
+  group_size_band?: string | null;
+  group_size_min?: number | null;
+  budget_mode?: string | null;
+  budget_band?: string | null;
+  budget_total?: number | null;
+  budget_per_person_min?: number | null;
+  budget_per_person_max?: number | null;
   cover_image_url: string | null;
   created_at?: string | null;
 };
@@ -184,6 +195,14 @@ export function formatTripDateRange(startsAt: string | null, endsAt: string | nu
   }
 
   return startLabel ?? endLabel ?? "Dates to be confirmed";
+}
+
+export function formatTripDatePlanning(trip: TripDetail) {
+  if (trip.date_mode === "flexible" && !trip.starts_at && !trip.ends_at) {
+    return "Flexible / open dates";
+  }
+
+  return formatTripDateRange(trip.starts_at, trip.ends_at);
 }
 
 export function getVoteSummary(category?: VoteCategoryState) {
@@ -376,19 +395,27 @@ export function summariseTripWorkspace(args: {
     overdue: args.paymentSummary?.overdue ?? 0,
   };
   const hasDates = Boolean(args.trip.starts_at && args.trip.ends_at);
+  const hasFlexibleDates = args.trip.date_mode === "flexible" && !hasDates;
   const hasCoreDecision = Boolean(args.trip.destination && hasDates);
   const now = new Date();
   const startDate = args.trip.starts_at ? new Date(args.trip.starts_at) : null;
   const endDate = args.trip.ends_at ? new Date(args.trip.ends_at) : null;
+  const votingDeadline = args.trip.voting_deadline ? new Date(args.trip.voting_deadline) : null;
   const daysUntilStart =
     startDate ? Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
-  const deadlineLabel = startDate
-    ? `Travel starts ${new Intl.DateTimeFormat("en-GB", {
+  const deadlineLabel = votingDeadline
+    ? `Voting deadline ${new Intl.DateTimeFormat("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }).format(votingDeadline)}`
+    : startDate
+      ? `Travel starts ${new Intl.DateTimeFormat("en-GB", {
         day: "numeric",
         month: "short",
         year: "numeric",
       }).format(startDate)}`
-    : null;
+      : null;
 
   let phase: TripPhaseKey = "draft";
 
@@ -412,7 +439,9 @@ export function summariseTripWorkspace(args: {
 
   const currentDecision = !args.trip.destination
     ? "Pick the destination"
-    : !hasDates
+    : hasFlexibleDates
+      ? "Confirm the final date window"
+      : !hasDates
       ? "Confirm the trip dates"
       : planningCounts.hotels === 0
         ? "Choose the accommodation"
@@ -435,6 +464,8 @@ export function summariseTripWorkspace(args: {
 
   if (!args.trip.destination) {
     nextAction = "Add destination ideas so the group has something concrete to react to.";
+  } else if (hasFlexibleDates) {
+    nextAction = "You can keep planning with open dates, but Journi should keep reminding the organiser to finalise them.";
   } else if (!hasDates) {
     nextAction = "Add candidate dates to start narrowing down availability.";
   } else if (participantSummary.total === 0) {
@@ -463,7 +494,7 @@ export function summariseTripWorkspace(args: {
       100,
       Math.round(
         (args.trip.destination ? 25 : 0) +
-          (hasDates ? 25 : 0) +
+          ((hasDates || hasFlexibleDates) ? 25 : 0) +
           (participantSummary.total
             ? (participantSummary.responded / participantSummary.total) * 25
             : 0) +
@@ -474,7 +505,9 @@ export function summariseTripWorkspace(args: {
 
   let confidenceMessage = "No data yet — start by adding destinations.";
 
-  if (args.trip.destination && !hasDates) {
+  if (args.trip.destination && hasFlexibleDates) {
+    confidenceMessage = "Destination is set and dates are still open. Keep planning, but make sure the organiser comes back to lock the final window.";
+  } else if (args.trip.destination && !hasDates) {
     confidenceMessage = "Destination aligned. Add dates so the group can move forward.";
   } else if (hasDates && participantSummary.outstanding > 0) {
     confidenceMessage = `Dates are in place. Waiting for ${participantSummary.outstanding} participant${

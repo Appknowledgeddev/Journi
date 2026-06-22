@@ -13,6 +13,7 @@ import {
   buildVoteChartData,
   type CategoryKey,
   type DiningSelection,
+  formatTripDatePlanning,
   formatTripDateRange,
   getVoteSummary,
   type HotelSelection,
@@ -25,6 +26,7 @@ import {
   type TransportSelection,
   type VotingState,
 } from "./trip-workspace-shared";
+import { getAudienceLabel, getBudgetBandLabel, getGroupSizeLabel } from "@/lib/trip-organiser/config";
 
 type Plan = "free" | "pro_organiser";
 
@@ -568,7 +570,7 @@ export default function TripDetailPage() {
                       <div className={`${styles.tripBuilderBody} ${styles.tripOverviewBodyStrong}`}>
                         <div className={`${styles.tripMetaRow} ${styles.tripOverviewSupportText}`}>
                           <span>{trip.destination || "Destination to be confirmed"}</span>
-                          <span>{formatTripDateRange(trip.starts_at, trip.ends_at)}</span>
+                          <span>{formatTripDatePlanning(trip)}</span>
                         </div>
                         <p className={`${styles.muted} ${styles.tripOverviewSupportText}`}>
                           {trip.description || "No trip summary added yet."}
@@ -595,6 +597,28 @@ export default function TripDetailPage() {
                                 <span className={styles.tripFactLabel}>What happens next</span>
                                 <strong>{workspaceSummary.nextAction}</strong>
                                 <p className={styles.muted}>Journi should always surface the next best organiser action.</p>
+                              </div>
+                              <div className={styles.tripQuestionCard}>
+                                <span className={styles.tripFactLabel}>Audience and size</span>
+                                <strong>{getAudienceLabel(trip.audience_filter)}</strong>
+                                <p className={styles.muted}>
+                                  {getGroupSizeLabel(trip.group_size_band)} for a {trip.trip_type_label || "group trip"}.
+                                </p>
+                              </div>
+                              <div className={styles.tripQuestionCard}>
+                                <span className={styles.tripFactLabel}>Budget guide</span>
+                                <strong>
+                                  {trip.budget_mode === "overall" && trip.budget_total
+                                    ? `£${trip.budget_total} overall`
+                                    : getBudgetBandLabel(trip.budget_band)}
+                                </strong>
+                                <p className={styles.muted}>
+                                  {trip.budget_per_person_min
+                                    ? `Approx. £${trip.budget_per_person_min}${
+                                        trip.budget_per_person_max ? `-£${trip.budget_per_person_max}` : "+"
+                                      } per person`
+                                    : "Budget still being defined."}
+                                </p>
                               </div>
                             </div>
 
@@ -702,13 +726,19 @@ export default function TripDetailPage() {
                       <div className={styles.tripWorkspaceCardGrid}>
                         <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
                           <span className={styles.tripFactLabel}>Travel dates</span>
-                          <strong>{formatTripDateRange(trip.starts_at, trip.ends_at)}</strong>
+                          <strong>{formatTripDatePlanning(trip)}</strong>
                           <p className={styles.muted}>
-                            The active travel window the rest of the plan is being coordinated against.
+                            {trip.date_mode === "flexible"
+                              ? "The organiser is still collecting the right window before locking final dates."
+                              : "The active travel window the rest of the plan is being coordinated against."}
                           </p>
                           <div className={styles.tripMetricRow}>
                             <span className={styles.tripMetricPill}>
-                              {trip.starts_at && trip.ends_at ? "Locked in" : "Pending"}
+                              {trip.date_mode === "flexible"
+                                ? "Flexible"
+                                : trip.starts_at && trip.ends_at
+                                  ? "Locked in"
+                                  : "Pending"}
                             </span>
                           </div>
                         </div>
@@ -740,10 +770,18 @@ export default function TripDetailPage() {
                       </div>
                       <div className={styles.tripWorkspaceCardGrid}>
                         <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
-                          <span className={styles.tripFactLabel}>Overall progress</span>
-                          <strong>{overallProgress}% planned</strong>
+                          <span className={styles.tripFactLabel}>Budget guide</span>
+                          <strong>
+                            {trip.budget_mode === "overall" && trip.budget_total
+                              ? `£${trip.budget_total} overall`
+                              : getBudgetBandLabel(trip.budget_band)}
+                          </strong>
                           <p className={styles.muted}>
-                            {completedSections} of 4 core planning areas already have live selections.
+                            {trip.budget_per_person_min
+                              ? `Approx. £${trip.budget_per_person_min}${
+                                  trip.budget_per_person_max ? `-£${trip.budget_per_person_max}` : "+"
+                                } per person, based on the current group size.`
+                              : `${completedSections} of 4 core planning areas already have live selections.`}
                           </p>
                           <div className={styles.tripMiniProgress}>
                             <span
