@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
   const { data: trips, error: tripsError } = await supabaseAdmin
     .from("trips")
-    .select("id, title, destination, description, status, trip_type_label, audience_filter, date_mode, starts_at, ends_at, voting_deadline, group_size_band, group_size_min, budget_mode, budget_band, budget_total, budget_per_person_min, budget_per_person_max, cover_image_url, created_at, owner_id")
+    .select("id, title, destination, description, status, starts_at, ends_at, cover_image_url, created_at, owner_id")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
