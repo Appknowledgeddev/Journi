@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin, supabaseServerPublic } from "@/lib/supabase/server";
+import {
+  databaseSetupError,
+  friendlyDatabaseError,
+  isDatabaseSchemaError,
+} from "@/lib/api/errors";
+import {
+  missingSupabaseServerVariables,
+  supabaseAdmin,
+  supabaseServerPublic,
+} from "@/lib/supabase/server";
 
 type TripOrganiserFinalisePayload = {
   draft?: {
@@ -104,6 +113,16 @@ function hasDiningValue(option: { name?: string }) {
 }
 
 export async function POST(request: NextRequest) {
+  if (missingSupabaseServerVariables.length > 0) {
+    return NextResponse.json(
+      {
+        error: databaseSetupError(missingSupabaseServerVariables),
+        missingVariables: missingSupabaseServerVariables,
+      },
+      { status: 503 },
+    );
+  }
+
   const token = getBearerToken(request);
 
   if (!token) {
@@ -140,38 +159,58 @@ export async function POST(request: NextRequest) {
       ? Number(tripForm.totalBudget)
       : null;
 
-  const { data: tripData, error: tripError } = await supabaseAdmin
+  const baseTripInsert = {
+    owner_id: user.id,
+    title: tripForm.title.trim(),
+    destination: tripForm.destination?.trim() || null,
+    description: tripForm.description?.trim() || null,
+    status: tripForm.status || "draft",
+    starts_at: tripForm.startsAt || null,
+    ends_at: tripForm.endsAt || null,
+    cover_image_url: tripForm.coverImageUrl?.trim() || null,
+  };
+
+  const tripInsertWithMetadata = {
+    ...baseTripInsert,
+    trip_type_label: tripForm.tripType?.trim() || null,
+    audience_filter: tripForm.audience?.trim() || null,
+    date_mode: tripForm.dateMode?.trim() || "set_dates",
+    voting_deadline: tripForm.votingDeadline || null,
+    group_size_band: tripForm.groupSize?.trim() || null,
+    group_size_min:
+      tripForm.groupSize === "10+" ? 10 : tripForm.groupSize === "6-10" ? 6 : tripForm.groupSize === "4-6" ? 4 : null,
+    budget_mode: tripForm.budgetMode?.trim() || "per_person",
+    budget_band: tripForm.budgetBand?.trim() || null,
+    budget_total: parsedBudgetTotal !== null && Number.isFinite(parsedBudgetTotal) ? parsedBudgetTotal : null,
+    budget_per_person_min:
+      typeof tripForm.budgetPerPersonMin === "number" ? tripForm.budgetPerPersonMin : null,
+    budget_per_person_max:
+      typeof tripForm.budgetPerPersonMax === "number" ? tripForm.budgetPerPersonMax : null,
+    ai_description_generated: tripForm.aiDescriptionGenerated === true,
+  };
+
+  let { data: tripData, error: tripError } = await supabaseAdmin
     .from("trips")
-    .insert({
-      owner_id: user.id,
-      title: tripForm.title.trim(),
-      destination: tripForm.destination?.trim() || null,
-      description: tripForm.description?.trim() || null,
-      status: tripForm.status || "draft",
-      trip_type_label: tripForm.tripType?.trim() || null,
-      audience_filter: tripForm.audience?.trim() || null,
-      date_mode: tripForm.dateMode?.trim() || "set_dates",
-      starts_at: tripForm.startsAt || null,
-      ends_at: tripForm.endsAt || null,
-      voting_deadline: tripForm.votingDeadline || null,
-      group_size_band: tripForm.groupSize?.trim() || null,
-      group_size_min:
-        tripForm.groupSize === "10+" ? 10 : tripForm.groupSize === "6-10" ? 6 : tripForm.groupSize === "4-6" ? 4 : null,
-      budget_mode: tripForm.budgetMode?.trim() || "per_person",
-      budget_band: tripForm.budgetBand?.trim() || null,
-      budget_total: parsedBudgetTotal !== null && Number.isFinite(parsedBudgetTotal) ? parsedBudgetTotal : null,
-      budget_per_person_min:
-        typeof tripForm.budgetPerPersonMin === "number" ? tripForm.budgetPerPersonMin : null,
-      budget_per_person_max:
-        typeof tripForm.budgetPerPersonMax === "number" ? tripForm.budgetPerPersonMax : null,
-      ai_description_generated: tripForm.aiDescriptionGenerated === true,
-      cover_image_url: tripForm.coverImageUrl?.trim() || null,
-    })
+    .insert(tripInsertWithMetadata)
     .select("id")
     .single();
 
+  if (tripError && isDatabaseSchemaError(tripError.message)) {
+    const fallbackResult = await supabaseAdmin
+      .from("trips")
+      .insert(baseTripInsert)
+      .select("id")
+      .single();
+
+    tripData = fallbackResult.data;
+    tripError = fallbackResult.error;
+  }
+
   if (tripError || !tripData?.id) {
-    return NextResponse.json({ error: tripError?.message || "Unable to create trip." }, { status: 400 });
+    return NextResponse.json(
+      { error: friendlyDatabaseError(tripError?.message || "Unable to create trip.", "save this trip") },
+      { status: 400 },
+    );
   }
 
   const tripId = tripData.id as string;
@@ -194,7 +233,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: `Trip created, but hotels could not be saved: ${error.message}` },
+        { error: friendlyDatabaseError(error.message, "save the selected hotels") },
         { status: 400 },
       );
     }
@@ -218,7 +257,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: `Trip created, but activities could not be saved: ${error.message}` },
+        { error: friendlyDatabaseError(error.message, "save the selected activities") },
         { status: 400 },
       );
     }
@@ -243,7 +282,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: `Trip created, but transport could not be saved: ${error.message}` },
+        { error: friendlyDatabaseError(error.message, "save the selected transport") },
         { status: 400 },
       );
     }
@@ -268,7 +307,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: `Trip created, but dining could not be saved: ${error.message}` },
+        { error: friendlyDatabaseError(error.message, "save the selected dining") },
         { status: 400 },
       );
     }
@@ -290,7 +329,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json(
-        { error: `Trip created, but traveller invites could not be saved: ${error.message}` },
+        { error: friendlyDatabaseError(error.message, "save the traveller invites") },
         { status: 400 },
       );
     }

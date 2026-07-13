@@ -30,6 +30,7 @@ import {
   type DateMode,
 } from "@/lib/trip-organiser/config";
 import {
+  clearAllTripOrganiserDrafts,
   clearTripOrganiserDraft,
   type ParticipantInviteDraft,
   readTripOrganiserDraft,
@@ -463,6 +464,8 @@ export default function TripOrganiserPage() {
   const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [hasHydrated, setHasHydrated] = useState(false);
+  const [draftOwnerId, setDraftOwnerId] = useState<string | null>(null);
+  const [hasResolvedDraftOwner, setHasResolvedDraftOwner] = useState(false);
   const [pendingTripRange, setPendingTripRange] = useState<DateRange | undefined>(undefined);
   const [isEditingDates, setIsEditingDates] = useState(true);
   const [pendingDescription, setPendingDescription] = useState("");
@@ -533,15 +536,18 @@ export default function TripOrganiserPage() {
   }
 
   function persistCurrentDraft(nextStepKey?: StepKey) {
-    saveTripOrganiserDraft(buildCurrentDraft(nextStepKey));
+    saveTripOrganiserDraft(buildCurrentDraft(nextStepKey), draftOwnerId);
   }
 
-  function goToStep(stepKey: StepKey) {
+  function goToStep(stepKey: StepKey, options?: { scrollToTop?: boolean }) {
     const nextStepIndex = steps.findIndex((step) => step.key === stepKey);
 
     if (nextStepIndex >= 0) {
       setActiveStepIndex(nextStepIndex);
-      scrollToTripBuilderTop();
+
+      if (options?.scrollToTop) {
+        scrollToTripBuilderTop();
+      }
     }
   }
 
@@ -631,7 +637,7 @@ export default function TripOrganiserPage() {
     setAiDescriptionError(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:3003/api/trip-organiser/generate-description", {
+      const response = await fetch("/api/trip-organiser/generate-description", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -650,18 +656,18 @@ export default function TripOrganiserPage() {
         }),
       });
 
-      const data = (await response.json()) as {
+      const data = (await response.json().catch(() => null)) as {
         title?: string;
         description?: string;
         error?: string;
-      };
+      } | null;
 
       if (!response.ok) {
-        setAiDescriptionError(data.error || "Unable to generate a trip description right now.");
+        setAiDescriptionError(data?.error || "Unable to generate a trip description right now.");
         return;
       }
 
-      if (!data.description?.trim()) {
+      if (!data?.description?.trim()) {
         setAiDescriptionError("No description came back. Please try again.");
         return;
       }
@@ -1346,11 +1352,59 @@ export default function TripOrganiserPage() {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+
+    async function resolveDraftOwner() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!mounted) {
+        return;
+      }
+
+      setDraftOwnerId(user?.id ?? null);
+      setHasResolvedDraftOwner(true);
+    }
+
+    void resolveDraftOwner();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (hasRestoredDraftRef.current) {
       return;
     }
 
-    const storedDraft = readTripOrganiserDraft();
+    if (!hasResolvedDraftOwner) {
+      return;
+    }
+
+    const shouldRestoreDraft =
+      searchParams.get("resume") === "1" || searchParams.get("checkout") === "complete";
+
+    if (!shouldRestoreDraft) {
+      clearAllTripOrganiserDrafts();
+      setTripForm(initialTripForm);
+      setHotels([]);
+      setActivities([{ ...emptyActivity }]);
+      setTransport([{ ...emptyTransport }]);
+      setDining([{ ...emptyDining }]);
+      setInvites([]);
+      setDestinationCommitted(false);
+      setPendingTripRange(undefined);
+      setIsEditingDates(true);
+      setPendingDescription("");
+      setIsEditingDescription(true);
+      setActiveStepIndex(0);
+      hasRestoredDraftRef.current = true;
+      return;
+    }
+
+    const storedDraft = readTripOrganiserDraft(draftOwnerId);
 
     if (!storedDraft) {
       hasRestoredDraftRef.current = true;
@@ -1395,7 +1449,7 @@ export default function TripOrganiserPage() {
     if (nextStepIndex >= 0) {
       setActiveStepIndex(nextStepIndex);
     }
-  }, [searchParams]);
+  }, [draftOwnerId, hasResolvedDraftOwner, searchParams]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -1409,7 +1463,7 @@ export default function TripOrganiserPage() {
     if (checkoutComplete && checkoutProduct === "trip_pass") {
       window.sessionStorage.setItem("journi-trip-pass-unlock", "true");
       setTripPassUnlocked(true);
-      goToStep("finalise");
+      goToStep("finalise", { scrollToTop: true });
       return;
     }
 
@@ -1417,7 +1471,7 @@ export default function TripOrganiserPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!hasHydrated || !hasRestoredDraftRef.current) {
+    if (!hasHydrated || !hasResolvedDraftOwner || !hasRestoredDraftRef.current) {
       return;
     }
 
@@ -1438,7 +1492,17 @@ export default function TripOrganiserPage() {
     }
 
     persistCurrentDraft();
-  }, [activeStep.key, activities, dining, hasHydrated, hotels, invites, transport, tripForm]);
+  }, [
+    activeStep.key,
+    activities,
+    dining,
+    hasHydrated,
+    hasResolvedDraftOwner,
+    hotels,
+    invites,
+    transport,
+    tripForm,
+  ]);
 
   useEffect(() => {
     setIsEditingDates(!(tripForm.startsAt && tripForm.endsAt));
@@ -2110,7 +2174,7 @@ export default function TripOrganiserPage() {
             className={styles.inlineEditLink}
             onClick={() => {
               setCreateError(null);
-              goToStep("dining");
+              goToStep("dining", { scrollToTop: true });
             }}
           >
             Edit dining
@@ -2521,7 +2585,8 @@ export default function TripOrganiserPage() {
       title="Create your trip"
     >
       {({ userId, loading, email, isPro }) => {
-        const canInviteTravellers = isPro || tripPassUnlocked;
+        const freeInviteLimit = 5;
+        const canInviteTravellers = isPro || tripPassUnlocked || invites.length < freeInviteLimit;
 
         function handleGoToFinalise() {
           if (!userId) {
@@ -2533,31 +2598,31 @@ export default function TripOrganiserPage() {
             setCreateError(
               "Finish destination, cover image, trip name, and your date plan before moving to finalise.",
             );
-            goToStep("details");
+            goToStep("details", { scrollToTop: true });
             return;
           }
 
           if (!hasSelectedHotels) {
             setCreateError("Select at least one hotel before finalising the trip.");
-            goToStep("hotels");
+            goToStep("hotels", { scrollToTop: true });
             return;
           }
 
           if (!hasSelectedActivities) {
             setCreateError("Select at least one activity before finalising the trip.");
-            goToStep("activities");
+            goToStep("activities", { scrollToTop: true });
             return;
           }
 
           if (!hasSelectedTransport) {
             setCreateError("Select at least one transport option before finalising the trip.");
-            goToStep("transport");
+            goToStep("transport", { scrollToTop: true });
             return;
           }
 
           if (!hasSelectedDining) {
             setCreateError("Select at least one dining option before finalising the trip.");
-            goToStep("dining");
+            goToStep("dining", { scrollToTop: true });
             return;
           }
 
@@ -2574,9 +2639,9 @@ export default function TripOrganiserPage() {
         function handleAddInvite(event: React.FormEvent<HTMLFormElement>) {
           event.preventDefault();
 
-          if (!canInviteTravellers) {
+          if (!isPro && !tripPassUnlocked && invites.length >= freeInviteLimit) {
             setParticipantError(
-              "Traveller invites are locked on free until you use the Trip Pass or upgrade to Pro organiser.",
+              "Free plan organisers can invite up to 5 travellers per trip. Upgrade to Pro organiser or use a Trip Pass to invite more.",
             );
             setShowUpgradeModal(true);
             return;
@@ -2610,7 +2675,7 @@ export default function TripOrganiserPage() {
           saveTripOrganiserDraft({
             ...buildCurrentDraft("finalise"),
             invites: nextInvites,
-          });
+          }, draftOwnerId);
         }
 
         function handleRemoveInvite(emailToRemove: string) {
@@ -2619,7 +2684,7 @@ export default function TripOrganiserPage() {
           saveTripOrganiserDraft({
             ...buildCurrentDraft("finalise"),
             invites: nextInvites,
-          });
+          }, draftOwnerId);
         }
 
         async function handleSaveTrip() {
@@ -2669,7 +2734,7 @@ export default function TripOrganiserPage() {
             return;
           }
 
-          clearTripOrganiserDraft();
+          clearTripOrganiserDraft(draftOwnerId);
           if (typeof window !== "undefined") {
             window.sessionStorage.removeItem("journi-trip-pass-unlock");
           }
@@ -2767,7 +2832,7 @@ export default function TripOrganiserPage() {
                   ) : tripPassUnlocked ? (
                     <span className={styles.badgeSoft}>Trip Pass unlocked</span>
                   ) : (
-                    <span className={styles.badgeLocked}>Trip Pass required</span>
+                    <span className={styles.badgeSoft}>Free plan: {freeInviteLimit} invites</span>
                   )}
                   <span className={styles.badge}>{inviteCount} queued</span>
                 </div>
@@ -2776,8 +2841,8 @@ export default function TripOrganiserPage() {
               {!canInviteTravellers ? (
                 <div className={styles.publishGateCard}>
                   <p className={styles.publishGateCopy}>
-                    Traveller invites stay optional on free. Unlock them for this trip with the Trip
-                    Pass or upgrade the account to Pro organiser.
+                    You have used the {freeInviteLimit} free traveller invites for this trip. Use a
+                    Trip Pass or upgrade the account to Pro organiser to invite more.
                   </p>
                   <div className={styles.headerActions}>
                     <button
@@ -3782,7 +3847,6 @@ export default function TripOrganiserPage() {
                         setHotelSearchQuery((current) => current || tripForm.destination.trim());
                         setActiveStepIndex(index);
                         persistCurrentDraft(step.key);
-                        scrollToTripBuilderTop();
                       }}
                     >
                       <span>{isStepComplete(step.key) ? <FiCheck /> : index + 1}</span>

@@ -44,6 +44,14 @@ function extractResponseText(payload: OpenAIResponsesPayload) {
   return outputText || "";
 }
 
+function isRetryableOpenAIError(status: number, message: string) {
+  return status >= 500 || message.toLowerCase().includes("processing your request");
+}
+
+async function waitForRetry() {
+  await new Promise((resolve) => setTimeout(resolve, 700));
+}
+
 export async function POST(request: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
@@ -88,25 +96,47 @@ export async function POST(request: NextRequest) {
   ].join("\n");
 
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        input: prompt,
-      }),
-      cache: "no-store",
-    });
+    let payload: OpenAIResponsesPayload | null = null;
+    let openAIStatus = 500;
 
-    const payload = (await response.json()) as OpenAIResponsesPayload;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          input: prompt,
+        }),
+        cache: "no-store",
+      });
 
-    if (!response.ok) {
+      payload = (await response.json().catch(() => null)) as OpenAIResponsesPayload | null;
+      openAIStatus = response.status;
+
+      if (response.ok) {
+        break;
+      }
+
+      const errorMessage = payload?.error?.message || "";
+      const shouldRetry = attempt === 0 && isRetryableOpenAIError(response.status, errorMessage);
+
+      if (!shouldRetry) {
+        return NextResponse.json(
+          { error: errorMessage || "Unable to generate a trip description right now." },
+          { status: 400 },
+        );
+      }
+
+      await waitForRetry();
+    }
+
+    if (!payload) {
       return NextResponse.json(
-        { error: payload.error?.message || "Unable to generate a trip description right now." },
-        { status: 400 },
+        { error: "Unable to generate a trip description right now." },
+        { status: openAIStatus },
       );
     }
 

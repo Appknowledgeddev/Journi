@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { databaseSetupError, friendlyDatabaseError, isDatabaseSchemaError } from "@/lib/api/errors";
+import { missingSupabaseServerVariables, supabaseAdmin } from "@/lib/supabase/server";
 
 type TripRow = {
   id: string;
@@ -16,14 +17,21 @@ type TripRow = {
 };
 
 function schemaError(message: string) {
-  if (message.toLowerCase().includes("column") || message.toLowerCase().includes("schema")) {
-    return `${message}. The live Supabase schema may be out of date for trips or trip_participants.`;
+  if (isDatabaseSchemaError(message)) {
+    return friendlyDatabaseError(message, "load your trips");
   }
 
-  return message;
+  return "Journi could not load your trips right now. Please try again.";
 }
 
 export async function GET(request: NextRequest) {
+  if (missingSupabaseServerVariables.length > 0) {
+    return NextResponse.json(
+      { error: databaseSetupError(missingSupabaseServerVariables) },
+      { status: 503 },
+    );
+  }
+
   const authHeader = request.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
 

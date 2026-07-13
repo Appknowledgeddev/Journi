@@ -4,22 +4,19 @@ import {
   type TripDetail,
   type TripParticipant,
 } from "@/app/trips/[id]/trip-workspace-shared";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { databaseSetupError, friendlyDatabaseError, isDatabaseSchemaError } from "@/lib/api/errors";
+import { missingSupabaseServerVariables, supabaseAdmin } from "@/lib/supabase/server";
 
 type TripRow = TripDetail & {
   owner_id: string | null;
 };
 
 function schemaError(message: string) {
-  if (
-    message.toLowerCase().includes("column") ||
-    message.toLowerCase().includes("schema") ||
-    message.toLowerCase().includes("relation")
-  ) {
-    return `${message}. The live Supabase schema may be out of date for trips, trip_participants, or planning tables.`;
+  if (isDatabaseSchemaError(message)) {
+    return friendlyDatabaseError(message, "load your dashboard");
   }
 
-  return message;
+  return "Journi could not load your dashboard right now. Please try again.";
 }
 
 function isMissingPaymentsTable(message: string) {
@@ -28,6 +25,13 @@ function isMissingPaymentsTable(message: string) {
 }
 
 export async function GET(request: NextRequest) {
+  if (missingSupabaseServerVariables.length > 0) {
+    return NextResponse.json(
+      { error: databaseSetupError(missingSupabaseServerVariables) },
+      { status: 503 },
+    );
+  }
+
   const authHeader = request.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
 

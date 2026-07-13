@@ -62,7 +62,7 @@ type AppShellProps = {
 
 const navLinks = [
   { label: "Dashboard", href: "/dashboard", icon: <FiHome />, tourClass: "journi-tour-dashboard" },
-  { label: "Start a trip", href: "/trip-organiser", icon: <FiPlusCircle />, tourClass: "journi-tour-start-trip" },
+  { label: "Start a trip", href: "/trip-organiser?fresh=1", icon: <FiPlusCircle />, tourClass: "journi-tour-start-trip" },
   { label: "My trips", href: "/trips", icon: <FiMapPin />, tourClass: "journi-tour-my-trips" },
   { label: "Trip invites", href: "/trip-invites", icon: <FiSend /> },
   { label: "My connections", href: "/my-connections", icon: <FiUsers /> },

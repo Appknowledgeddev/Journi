@@ -94,10 +94,6 @@ export default function TripsPage() {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    setDraftResume(readTripOrganiserDraft());
-  }, []);
-
-  useEffect(() => {
     let mounted = true;
 
     async function loadTrips() {
@@ -114,12 +110,14 @@ export default function TripsPage() {
 
       if (!user) {
         setUserId(null);
+        setDraftResume(null);
         setTrips([]);
         setLoadingTrips(false);
         return;
       }
 
       setUserId(user.id);
+      setDraftResume(readTripOrganiserDraft(user.id));
 
       const {
         data: { session },
@@ -291,7 +289,7 @@ export default function TripsPage() {
       intro="Switch between trips you organise and trips you’ve joined as a participant."
       headerAction={
         <Link
-          href="/trip-organiser"
+          href="/trip-organiser?fresh=1"
           className={styles.primaryActionLink}
         >
           Add trip

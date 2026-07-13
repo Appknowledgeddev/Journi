@@ -4,26 +4,26 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    "Missing Supabase environment variables. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
-  );
-}
+export const missingSupabaseServerVariables = [
+  !supabaseUrl ? "NEXT_PUBLIC_SUPABASE_URL" : null,
+  !supabaseAnonKey ? "NEXT_PUBLIC_SUPABASE_ANON_KEY" : null,
+  !supabaseServiceRoleKey ? "SUPABASE_SERVICE_ROLE_KEY" : null,
+].filter((value): value is string => Boolean(value));
 
-if (!supabaseServiceRoleKey) {
-  throw new Error(
-    "Missing SUPABASE_SERVICE_ROLE_KEY. Add it to your environment to send traveller invite emails.",
-  );
-}
+export const hasSupabaseServerConfig = missingSupabaseServerVariables.length === 0;
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+const resolvedSupabaseUrl = supabaseUrl || "http://127.0.0.1:54321";
+const resolvedSupabaseAnonKey = supabaseAnonKey || "missing-supabase-anon-key";
+const resolvedSupabaseServiceRoleKey = supabaseServiceRoleKey || "missing-supabase-service-role-key";
+
+export const supabaseAdmin = createClient(resolvedSupabaseUrl, resolvedSupabaseServiceRoleKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
   },
 });
 
-export const supabaseServerPublic = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabaseServerPublic = createClient(resolvedSupabaseUrl, resolvedSupabaseAnonKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false,
