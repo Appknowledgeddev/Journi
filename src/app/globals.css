@@ -8,6 +8,8 @@
   --brand-accent-strong: #1d7fe0;
   --brand-accent-soft: rgba(44, 148, 245, 0.12);
   --brand-accent-tint: rgba(44, 148, 245, 0.2);
+  --font-manrope: "Manrope";
+  --font-geist-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
 }
 
 html {

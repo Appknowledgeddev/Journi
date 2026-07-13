@@ -29,6 +29,30 @@ type GooglePlaceDetailsResponse = {
   }>;
 };
 
+type TripRouteRow = {
+  id: string;
+  title: string;
+  destination: string | null;
+  description: string | null;
+  status: string;
+  trip_type_label?: string | null;
+  audience_filter?: string | null;
+  date_mode?: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  voting_deadline?: string | null;
+  group_size_band?: string | null;
+  group_size_min?: number | null;
+  budget_mode?: string | null;
+  budget_band?: string | null;
+  budget_total?: number | null;
+  budget_per_person_min?: number | null;
+  budget_per_person_max?: number | null;
+  cover_image_url: string | null;
+  created_at?: string | null;
+  owner_id: string | null;
+};
+
 type AuthenticatedUser = {
   id: string;
   email?: string;
@@ -180,11 +204,11 @@ export async function GET(
   const { id: tripId } = await params;
   const userEmail = (auth.user.email ?? "").toLowerCase();
 
-  let { data: trip, error: tripError } = await supabaseAdmin
+  let { data: trip, error: tripError } = (await supabaseAdmin
     .from("trips")
     .select(tripSelectWithMetadata)
     .eq("id", tripId)
-    .single();
+    .single()) as { data: TripRouteRow | null; error: { message: string } | null };
 
   if (tripError && isDatabaseSchemaError(tripError.message)) {
     const fallbackResult = await supabaseAdmin
@@ -193,7 +217,7 @@ export async function GET(
       .eq("id", tripId)
       .single();
 
-    trip = fallbackResult.data;
+    trip = fallbackResult.data as TripRouteRow | null;
     tripError = fallbackResult.error;
   }
 

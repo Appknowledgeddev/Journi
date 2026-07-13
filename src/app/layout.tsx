@@ -1,21 +1,9 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import { BuildMarker } from "@/components/build-marker";
 import { JourniYbugProvider } from "@/components/ybug-provider";
 
 export const dynamic = "force-dynamic";
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  weight: ["400", "500", "600", "700", "800"],
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Journi Group Planning Hub",
@@ -29,7 +17,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${geistMono.variable}`}>
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body>
         <JourniYbugProvider>
           <BuildMarker />
