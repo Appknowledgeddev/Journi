@@ -78,6 +78,18 @@ function formatTripDatePlanning(trip: TripCard) {
   return formatTripDateRange(trip.starts_at, trip.ends_at);
 }
 
+function getTripStatusLabel(status: string) {
+  if (status === "active") {
+    return "Published";
+  }
+
+  if (status === "draft") {
+    return "Draft";
+  }
+
+  return status;
+}
+
 export default function TripsPage() {
   const [trips, setTrips] = useState<TripCard[]>([]);
   const [draftResume, setDraftResume] = useState<ReturnType<typeof readTripOrganiserDraft>>(null);
@@ -393,7 +405,7 @@ export default function TripsPage() {
                       <div className={styles.rowTop}>
                         <span className={styles.rowTitle}>{trip.title}</span>
                         <span className={styles.badge}>
-                          {trip.roleView === "participant" ? "participant" : trip.status}
+                          {trip.roleView === "participant" ? "Participant" : getTripStatusLabel(trip.status)}
                         </span>
                       </div>
                         <div className={styles.tripMetaRow}>

@@ -135,6 +135,22 @@ export type TripWorkspaceStatusSummary = {
   participantSummary: TripParticipantSummary;
 };
 
+export function getTripStatusLabel(status: string) {
+  if (status === "active") {
+    return "Published";
+  }
+
+  if (status === "draft") {
+    return "Draft";
+  }
+
+  if (status === "cancelled") {
+    return "Cancelled";
+  }
+
+  return status;
+}
+
 export type TripSectionKey =
   | "destinations"
   | "dates"

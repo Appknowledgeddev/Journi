@@ -141,8 +141,6 @@ export async function POST(request: NextRequest) {
   const body = (await request.json()) as TripOrganiserFinalisePayload;
   const draft = body.draft;
   const tripForm = draft?.tripForm;
-  const origin = typeof body.origin === "string" && body.origin ? body.origin : request.nextUrl.origin;
-
   if (!draft || !tripForm) {
     return NextResponse.json(
       { error: "The trip draft could not be found. Head back to the organiser first." },
@@ -320,7 +318,7 @@ export async function POST(request: NextRequest) {
       email: invite.email?.trim().toLowerCase() || "",
       full_name: invite.fullName?.trim() || null,
       role: "traveller",
-      status: "invited",
+      status: "pending",
     }))
     .filter((invite) => Boolean(invite.email));
 
@@ -332,42 +330,6 @@ export async function POST(request: NextRequest) {
         { error: friendlyDatabaseError(error.message, "save the traveller invites") },
         { status: 400 },
       );
-    }
-
-    const inviteResults = await Promise.all(
-      participantRows.map(async (invite) => {
-        const response = await fetch(`${request.nextUrl.origin}/api/travellers/invite`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: invite.email,
-            fullName: invite.full_name || "",
-            tripTitle: tripForm.title?.trim() || "your trip",
-            tripId,
-            origin,
-          }),
-        });
-
-        if (!response.ok) {
-          const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-
-          return payload?.error || `Invite failed for ${invite.email}`;
-        }
-
-        return null;
-      }),
-    );
-
-    const failedInvite = inviteResults.find(Boolean);
-
-    if (failedInvite) {
-      return NextResponse.json({
-        success: true,
-        tripId,
-        warning: `Invite emails could not all be sent yet: ${failedInvite}`,
-      });
     }
   }
 

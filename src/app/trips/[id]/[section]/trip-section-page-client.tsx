@@ -15,6 +15,7 @@ import {
   type DiningSelection,
   formatTripDateRange,
   getVoteSummary,
+  getTripStatusLabel,
   type HotelSelection,
   planningCategories,
   summariseTripWorkspace,
@@ -547,83 +548,45 @@ export default function TripSectionPageClient() {
       return;
     }
 
-    if (plan === "free") {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setTripError("You need to be signed in before publishing a trip.");
-        return;
-      }
-
-      const { count, error: countError } = await supabase
-        .from("trips")
-        .select("id", { count: "exact", head: true })
-        .eq("owner_id", user.id)
-        .eq("status", "active");
-
-      if (countError) {
-        setTripError(countError.message);
-        return;
-      }
-
-      if ((count ?? 0) >= 1) {
-        setPublishGateMessage(
-          "Free plan organisers can only have one published trip at a time. Upgrade to Pro or use a Trip Pass to publish another.",
-        );
-        return;
-      }
-    }
-
     setIsPublishing(true);
     setTripError(null);
     setPublishGateMessage(null);
 
-    const { data, error } = await supabase
-      .from("trips")
-      .update({ status: "active" })
-      .eq("id", trip.id)
-      .select(
-        "id, title, destination, description, status, starts_at, ends_at, cover_image_url, created_at",
-      )
-      .single();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (error) {
-      setTripError(error.message);
+    if (!session?.access_token) {
+      setTripError("You need to be signed in before publishing this trip.");
       setIsPublishing(false);
       return;
     }
 
-    setTrip(data as TripDetail);
-    setIsPublishing(false);
-  }
+    const response = await fetch(`/api/trips/${trip.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        action: "publish",
+        origin: window.location.origin,
+      }),
+    });
+    const result = (await response.json().catch(() => null)) as {
+      error?: string;
+      trip?: TripDetail;
+      warning?: string;
+    } | null;
 
-  async function handleUnpublishTrip() {
-    if (!trip || trip.status !== "active") {
-      return;
-    }
-
-    setIsPublishing(true);
-    setTripError(null);
-    setPublishGateMessage(null);
-
-    const { data, error } = await supabase
-      .from("trips")
-      .update({ status: "draft" })
-      .eq("id", trip.id)
-      .select(
-        "id, title, destination, description, status, starts_at, ends_at, cover_image_url, created_at",
-      )
-      .single();
-
-    if (error) {
-      setTripError(error.message);
+    if (!response.ok || !result?.trip) {
+      setTripError(result?.error || "Unable to publish this trip.");
       setIsPublishing(false);
       return;
     }
 
-    setTrip(data as TripDetail);
+    setTrip((current) => (current ? { ...current, ...result.trip } : result.trip ?? null));
+    setPublishGateMessage(result.warning ?? null);
     setIsPublishing(false);
   }
 
@@ -638,7 +601,7 @@ export default function TripSectionPageClient() {
     }
 
     if (trip.status === "active") {
-      await handleUnpublishTrip();
+      setPublishGateMessage("This trip is already published. Published trips cannot be returned to draft or deleted.");
     }
   }
 
@@ -655,10 +618,26 @@ export default function TripSectionPageClient() {
     setIsDeleting(true);
     setTripError(null);
 
-    const { error } = await supabase.from("trips").delete().eq("id", trip.id);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    if (error) {
-      setTripError(error.message);
+    if (!session?.access_token) {
+      setTripError("You need to be signed in before deleting this draft.");
+      setIsDeleting(false);
+      return;
+    }
+
+    const response = await fetch(`/api/trips/${trip.id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      setTripError(result?.error || "Unable to delete this draft trip.");
       setIsDeleting(false);
       return;
     }
@@ -700,15 +679,17 @@ export default function TripSectionPageClient() {
     setParticipantsError(null);
     setParticipantGateMessage(null);
 
+    const nextParticipantEmail = participantEmail.trim().toLowerCase();
+    const nextParticipantName = participantName.trim();
     const { data, error } = await supabase
       .from("trip_participants")
       .insert({
         trip_id: trip.id,
         inviter_id: user.id,
-        email: participantEmail.trim().toLowerCase(),
-        full_name: participantName.trim() || null,
+        email: nextParticipantEmail,
+        full_name: nextParticipantName || null,
         role: "traveller",
-        status: "invited",
+        status: trip.status === "active" ? "invited" : "pending",
       })
       .select("id, email, full_name, role, status")
       .single();
@@ -723,12 +704,17 @@ export default function TripSectionPageClient() {
     setParticipantName("");
     setParticipantEmail("");
 
+    if (trip.status !== "active") {
+      setIsInviting(false);
+      return;
+    }
+
     const response = await fetch("/api/travellers/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: participantEmail.trim().toLowerCase(),
-        fullName: participantName.trim(),
+        email: nextParticipantEmail,
+        fullName: nextParticipantName,
         tripTitle: trip.title,
         tripId: trip.id,
         origin: window.location.origin,
@@ -1304,7 +1290,7 @@ export default function TripSectionPageClient() {
                   Access level drives whether someone can manage, publish, invite, or simply review and vote.
                 </p>
                 <div className={styles.tripMetricRow}>
-                  <span className={styles.tripMetricPill}>{trip.status}</span>
+                  <span className={styles.tripMetricPill}>{getTripStatusLabel(trip.status)}</span>
                   <span className={styles.tripMetricPill}>{accessRole}</span>
                 </div>
               </div>
@@ -1459,10 +1445,10 @@ export default function TripSectionPageClient() {
                         type="button"
                         role="switch"
                         aria-checked={trip.status === "active"}
-                        aria-label={trip.status === "active" ? "Unpublish trip" : "Publish trip"}
+                        aria-label={trip.status === "active" ? "Trip published" : "Publish trip"}
                         className={styles.tripPublishToggle}
                         onClick={() => void handleTogglePublish()}
-                        disabled={isPublishing}
+                        disabled={isPublishing || trip.status === "active"}
                       >
                         <span className={styles.tripPublishToggleLabel}>
                           {isPublishing ? "Saving..." : trip.status === "active" ? "Published" : "Draft"}
@@ -1481,7 +1467,7 @@ export default function TripSectionPageClient() {
                       </button>
                     ) : (
                       <span className={styles.badge}>
-                        {accessRole === "participant" ? "participant" : trip.status}
+                        {accessRole === "participant" ? "Participant" : getTripStatusLabel(trip.status)}
                       </span>
                     )}
                   </div>
