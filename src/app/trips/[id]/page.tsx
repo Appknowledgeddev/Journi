@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { JourniLoader } from "@/components/journi-loader";
 import { TripUpgradeModal } from "@/components/trip-upgrade-modal";
 import { TripVotePie } from "@/components/trip-vote-pie";
 import { supabase } from "@/lib/supabase/client";
@@ -13,6 +14,7 @@ import {
   buildVoteChartData,
   type CategoryKey,
   type DiningSelection,
+  formatHotelRate,
   formatTripDatePlanning,
   formatTripDateRange,
   getVoteSummary,
@@ -42,8 +44,11 @@ export default function TripDetailPage() {
   const [currentUserEmail, setCurrentUserEmail] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
+  const [isRequestingParticipation, setIsRequestingParticipation] = useState(false);
   const [plan, setPlan] = useState<Plan>("free");
   const [publishGateMessage, setPublishGateMessage] = useState<string | null>(null);
+  const [participationMessage, setParticipationMessage] = useState<string | null>(null);
   const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [participantsError, setParticipantsError] = useState<string | null>(null);
   const [participantName, setParticipantName] = useState("");
@@ -240,6 +245,11 @@ export default function TripDetailPage() {
     [activities, dining, hotels, overallProgress, participants, transport, trip, voting],
   );
   const sectionHref = (section: string) => `/trips/${tripId}/${section}`;
+  const currentParticipant = participants.find(
+    (participant) => participant.email.toLowerCase() === currentUserEmail.toLowerCase(),
+  );
+  const canRequestParticipation =
+    accessRole === "public" && !currentParticipant && Boolean(currentUserEmail);
 
   async function handleDeleteTrip() {
     if (!trip || trip.status !== "draft") {
@@ -345,6 +355,104 @@ export default function TripDetailPage() {
     if (trip.status === "active") {
       setPublishGateMessage("This trip is already published. Published trips cannot be returned to draft or deleted.");
     }
+  }
+
+  async function handleUpdateVisibility(nextVisibility: "private" | "public") {
+    if (!trip || accessRole !== "organiser" || trip.visibility === nextVisibility) {
+      return;
+    }
+
+    setIsUpdatingVisibility(true);
+    setTripError(null);
+    setPublishGateMessage(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      setTripError("You need to be signed in before updating this trip.");
+      setIsUpdatingVisibility(false);
+      return;
+    }
+
+    const response = await fetch(`/api/trips/${trip.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        action: "update_visibility",
+        visibility: nextVisibility,
+      }),
+    });
+    const result = (await response.json().catch(() => null)) as {
+      error?: string;
+      trip?: TripDetail;
+    } | null;
+
+    if (!response.ok || !result?.trip) {
+      setTripError(result?.error || "Unable to update trip visibility.");
+      setIsUpdatingVisibility(false);
+      return;
+    }
+
+    setTrip((current) => (current ? { ...current, ...result.trip } : result.trip ?? null));
+    setIsUpdatingVisibility(false);
+  }
+
+  async function handleRequestParticipation() {
+    if (!trip || accessRole !== "public") {
+      return;
+    }
+
+    setIsRequestingParticipation(true);
+    setTripError(null);
+    setParticipationMessage(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      setTripError("You need to be signed in before joining this trip.");
+      setIsRequestingParticipation(false);
+      return;
+    }
+
+    const response = await fetch(`/api/trips/${trip.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        action: "request_participation",
+      }),
+    });
+    const result = (await response.json().catch(() => null)) as {
+      error?: string;
+      message?: string;
+      participant?: TripParticipant;
+    } | null;
+
+    if (!response.ok || !result?.participant) {
+      setTripError(result?.error || "Unable to join this trip.");
+      setIsRequestingParticipation(false);
+      return;
+    }
+
+    setParticipants((current) =>
+      current.some((participant) => participant.id === result.participant?.id)
+        ? current
+        : [...current, result.participant as TripParticipant],
+    );
+    setParticipationMessage(
+      result.message ||
+        "You have been added as a potential participant. The organiser can review it before the trip is confirmed.",
+    );
+    setIsRequestingParticipation(false);
   }
 
   async function handleInviteParticipant(event: React.FormEvent<HTMLFormElement>) {
@@ -561,6 +669,31 @@ export default function TripDetailPage() {
                         <p className={`${styles.muted} ${styles.tripOverviewSupportText}`}>
                           {trip.description || "No trip summary added yet."}
                         </p>
+                        {accessRole === "public" ? (
+                          <div className={styles.publishGateCard}>
+                            <p className={styles.publishGateTitle}>
+                              {currentParticipant
+                                ? "You are connected to this public trip"
+                                : "Interested in joining this public trip?"}
+                            </p>
+                            <p className={styles.publishGateCopy}>
+                              {participationMessage ||
+                                (currentParticipant
+                                  ? `Your participant status is ${currentParticipant.status}.`
+                                  : "Add yourself as a potential participant so the organiser can see your interest before the trip is confirmed.")}
+                            </p>
+                            {canRequestParticipation ? (
+                              <button
+                                type="button"
+                                className={styles.primaryAction}
+                                onClick={() => void handleRequestParticipation()}
+                                disabled={isRequestingParticipation}
+                              >
+                                {isRequestingParticipation ? "Adding you..." : "I’m interested"}
+                              </button>
+                            ) : null}
+                          </div>
+                        ) : null}
                         {workspaceSummary ? (
                           <>
                             <div className={styles.tripQuestionGrid}>
@@ -802,7 +935,8 @@ export default function TripDetailPage() {
                           <span className={styles.tripFactLabel}>Selected stays</span>
                           <strong>{hotels.length}</strong>
                           <p className={styles.muted}>
-                            {hotels[0]?.name || "No hotel added yet."} This section shows where the group is currently leaning on accommodation.
+                            {hotels[0]?.name || "No hotel added yet."}
+                            {hotels[0] && formatHotelRate(hotels[0]) ? ` - ${formatHotelRate(hotels[0])}` : ""} This section shows where the group is currently leaning on accommodation.
                           </p>
                           <div className={styles.tripMetricRow}>
                             <span className={styles.tripMetricPill}>{hotelVoteSummary.votes} votes</span>
@@ -990,9 +1124,49 @@ export default function TripDetailPage() {
                           </p>
                           <div className={styles.tripMetricRow}>
                             <span className={styles.tripMetricPill}>{getTripStatusLabel(trip.status)}</span>
+                            <span className={styles.tripMetricPill}>
+                              {trip.visibility === "public" ? "Public" : "Private"}
+                            </span>
                             <span className={styles.tripMetricPill}>{accessRole}</span>
                           </div>
                         </div>
+                        {accessRole === "organiser" ? (
+                          <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
+                            <span className={styles.tripFactLabel}>Visibility</span>
+                            <strong>
+                              {trip.visibility === "public" ? "Public - open to all" : "Private - invited only"}
+                            </strong>
+                            <p className={styles.muted}>
+                              Public trips can appear on the Public trips page once published. Private trips stay invite-only.
+                            </p>
+                            <div className={styles.tripFilter}>
+                              <button
+                                type="button"
+                                className={
+                                  trip.visibility === "public"
+                                    ? styles.tripFilterButton
+                                    : styles.tripFilterButtonActive
+                                }
+                                onClick={() => void handleUpdateVisibility("private")}
+                                disabled={isUpdatingVisibility}
+                              >
+                                Private
+                              </button>
+                              <button
+                                type="button"
+                                className={
+                                  trip.visibility === "public"
+                                    ? styles.tripFilterButtonActive
+                                    : styles.tripFilterButton
+                                }
+                                onClick={() => void handleUpdateVisibility("public")}
+                                disabled={isUpdatingVisibility}
+                              >
+                                Public
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
                         <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
                           <span className={styles.tripFactLabel}>Actions</span>
                           <strong>Workspace controls</strong>
@@ -1025,9 +1199,10 @@ export default function TripDetailPage() {
 
           {loadingTrip ? (
             <section className={styles.panel}>
-              <div className={styles.emptyState}>
-                <p>Loading trip details...</p>
-              </div>
+              <JourniLoader
+                title="Opening trip workspace"
+                detail="Loading the plan, travellers, votes, and trip options."
+              />
             </section>
           ) : null}
 

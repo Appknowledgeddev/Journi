@@ -17,6 +17,7 @@ type TripOrganiserFinalisePayload = {
       destination?: string;
       description?: string;
       status?: string;
+      visibility?: string;
       tripType?: string;
       audience?: string;
       dateMode?: string;
@@ -37,6 +38,14 @@ type TripOrganiserFinalisePayload = {
       location?: string;
       bookingUrl?: string;
       notes?: string;
+      rateLabel?: string;
+      priceLevel?: string;
+      pricePerNight?: number | null;
+      currency?: string | null;
+      rateSource?: string;
+      amadeusHotelId?: string;
+      duffelAccommodationId?: string;
+      duffelSearchResultId?: string;
       googlePlaceId?: string;
       sourcePhotoUrl?: string;
       sourcePhotoAttribution?: string;
@@ -170,6 +179,7 @@ export async function POST(request: NextRequest) {
 
   const tripInsertWithMetadata = {
     ...baseTripInsert,
+    visibility: tripForm.visibility === "public" ? "public" : "private",
     trip_type_label: tripForm.tripType?.trim() || null,
     audience_filter: tripForm.audience?.trim() || null,
     date_mode: tripForm.dateMode?.trim() || "set_dates",
@@ -218,7 +228,22 @@ export async function POST(request: NextRequest) {
     name: hotel.name?.trim() || "",
     location: hotel.location?.trim() || null,
     booking_url: hotel.bookingUrl?.trim() || null,
-    notes: hotel.notes?.trim() || null,
+    price_per_night:
+      typeof hotel.pricePerNight === "number" && Number.isFinite(hotel.pricePerNight)
+        ? hotel.pricePerNight
+        : null,
+    currency: hotel.currency?.trim() || null,
+    notes:
+      [
+        hotel.notes?.trim(),
+        hotel.rateLabel ? `Rate guide: ${hotel.rateLabel}` : "",
+        hotel.rateSource ? `Rate source: ${hotel.rateSource}` : "",
+        hotel.amadeusHotelId ? `Amadeus hotel ID: ${hotel.amadeusHotelId}` : "",
+        hotel.duffelAccommodationId ? `Duffel accommodation ID: ${hotel.duffelAccommodationId}` : "",
+        hotel.duffelSearchResultId ? `Duffel search result ID: ${hotel.duffelSearchResultId}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n") || null,
     google_place_id: hotel.googlePlaceId || null,
     source_photo_url: hotel.sourcePhotoUrl || null,
     source_photo_attribution: hotel.sourcePhotoAttribution || null,

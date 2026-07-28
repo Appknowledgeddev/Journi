@@ -5,6 +5,7 @@ export type TripFormDraft = {
   destination: string;
   description: string;
   status: string;
+  visibility?: "private" | "public";
   tripType: string;
   audience: string;
   dateMode: string;
@@ -31,6 +32,14 @@ export type HotelDraft = {
   location: string;
   bookingUrl: string;
   notes: string;
+  rateLabel?: string;
+  priceLevel?: string;
+  pricePerNight?: number | null;
+  currency?: string | null;
+  rateSource?: string;
+  amadeusHotelId?: string;
+  duffelAccommodationId?: string;
+  duffelSearchResultId?: string;
   googlePlaceId?: string;
   sourcePhotoUrl?: string;
   sourcePhotoAttribution?: string;

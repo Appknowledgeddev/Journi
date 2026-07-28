@@ -13,6 +13,11 @@ type GooglePlaceDetailsResponse = {
   websiteUri?: string;
   googleMapsUri?: string;
   rating?: number;
+  priceLevel?: string;
+  priceRange?: {
+    startPrice?: GoogleMoney;
+    endPrice?: GoogleMoney;
+  };
   userRatingCount?: number;
   internationalPhoneNumber?: string;
   regularOpeningHours?: {
@@ -45,6 +50,71 @@ type GooglePlaceDetailsResponse = {
   };
 };
 
+type GoogleMoney = {
+  currencyCode?: string;
+  units?: string;
+  nanos?: number;
+};
+
+function moneyToNumber(money?: GoogleMoney) {
+  if (!money?.units && typeof money?.nanos !== "number") {
+    return null;
+  }
+
+  const units = money.units ? Number(money.units) : 0;
+  const nanos = typeof money.nanos === "number" ? money.nanos / 1_000_000_000 : 0;
+  const value = units + nanos;
+
+  return Number.isFinite(value) ? value : null;
+}
+
+function formatMoney(money?: GoogleMoney) {
+  const value = moneyToNumber(money);
+  const currencyCode = money?.currencyCode || "GBP";
+
+  if (value === null) {
+    return "";
+  }
+
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: currencyCode,
+    maximumFractionDigits: value % 1 === 0 ? 0 : 2,
+  }).format(value);
+}
+
+function formatPriceLevel(priceLevel?: string) {
+  switch (priceLevel) {
+    case "PRICE_LEVEL_FREE":
+      return "Free";
+    case "PRICE_LEVEL_INEXPENSIVE":
+      return "Budget";
+    case "PRICE_LEVEL_MODERATE":
+      return "Mid-range";
+    case "PRICE_LEVEL_EXPENSIVE":
+      return "Premium";
+    case "PRICE_LEVEL_VERY_EXPENSIVE":
+      return "Luxury";
+    default:
+      return "";
+  }
+}
+
+function formatRateLabel(place: GooglePlaceDetailsResponse) {
+  const startLabel = formatMoney(place.priceRange?.startPrice);
+  const endLabel = formatMoney(place.priceRange?.endPrice);
+
+  if (startLabel && endLabel) {
+    return `${startLabel}-${endLabel}`;
+  }
+
+  if (startLabel) {
+    return `From ${startLabel}`;
+  }
+
+  return formatPriceLevel(place.priceLevel);
+}
+
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
 
@@ -71,7 +141,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
         "X-Goog-FieldMask":
-          "id,displayName,formattedAddress,location,websiteUri,googleMapsUri,rating,userRatingCount,internationalPhoneNumber,regularOpeningHours,editorialSummary,photos,reviews",
+          "id,displayName,formattedAddress,location,websiteUri,googleMapsUri,rating,priceLevel,priceRange,userRatingCount,internationalPhoneNumber,regularOpeningHours,editorialSummary,photos,reviews",
       },
       cache: "no-store",
     });
@@ -94,6 +164,10 @@ export async function POST(request: NextRequest) {
       websiteUri: data.websiteUri ?? "",
       googleMapsUri: data.googleMapsUri ?? "",
       rating: data.rating ?? null,
+      rateLabel: formatRateLabel(data),
+      priceLevel: data.priceLevel ?? "",
+      pricePerNight: moneyToNumber(data.priceRange?.startPrice),
+      currency: data.priceRange?.startPrice?.currencyCode || data.priceRange?.endPrice?.currencyCode || "GBP",
       userRatingCount: data.userRatingCount ?? null,
       phone: data.internationalPhoneNumber ?? "",
       openingHours: data.regularOpeningHours?.weekdayDescriptions ?? [],

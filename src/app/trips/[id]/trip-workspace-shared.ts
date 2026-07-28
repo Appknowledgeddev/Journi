@@ -4,6 +4,7 @@ export type TripDetail = {
   destination: string | null;
   description: string | null;
   status: string;
+  visibility?: "private" | "public" | null;
   trip_type_label?: string | null;
   audience_filter?: string | null;
   date_mode?: string | null;
@@ -32,13 +33,15 @@ export type TripParticipant = {
   created_at?: string | null;
 };
 
-export type TripAccessRole = "organiser" | "participant";
+export type TripAccessRole = "organiser" | "participant" | "public";
 
 export type HotelSelection = {
   id: string;
   name: string;
   location: string | null;
   notes: string | null;
+  price_per_night?: number | null;
+  currency?: string | null;
   source_photo_url: string | null;
 };
 
@@ -149,6 +152,18 @@ export function getTripStatusLabel(status: string) {
   }
 
   return status;
+}
+
+export function formatHotelRate(hotel: Pick<HotelSelection, "price_per_night" | "currency">) {
+  if (typeof hotel.price_per_night !== "number" || !Number.isFinite(hotel.price_per_night)) {
+    return "";
+  }
+
+  return `From ${new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: hotel.currency || "GBP",
+    maximumFractionDigits: hotel.price_per_night % 1 === 0 ? 0 : 2,
+  }).format(hotel.price_per_night)}`;
 }
 
 export type TripSectionKey =

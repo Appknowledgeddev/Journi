@@ -43,6 +43,7 @@ type TripFormState = {
   destination: string;
   description: string;
   status: string;
+  visibility: "private" | "public";
   tripType: string;
   audience: string;
   dateMode: DateMode;
@@ -71,6 +72,14 @@ type HotelOption = {
   location: string;
   bookingUrl: string;
   notes: string;
+  rateLabel?: string;
+  priceLevel?: string;
+  pricePerNight?: number | null;
+  currency?: string | null;
+  rateSource?: string;
+  amadeusHotelId?: string;
+  duffelAccommodationId?: string;
+  duffelSearchResultId?: string;
   googlePlaceId?: string;
   sourcePhotoUrl?: string;
   sourcePhotoAttribution?: string;
@@ -95,6 +104,10 @@ type HotelDetails = {
   websiteUri: string;
   googleMapsUri: string;
   rating: number | null;
+  rateLabel?: string;
+  priceLevel?: string;
+  pricePerNight?: number | null;
+  currency?: string | null;
   userRatingCount: number | null;
   phone: string;
   openingHours: string[];
@@ -206,6 +219,7 @@ const initialTripForm: TripFormState = {
   destination: "",
   description: "",
   status: "draft",
+  visibility: "private",
   tripType: "",
   audience: "",
   dateMode: "set_dates",
@@ -426,6 +440,7 @@ export default function TripOrganiserPage() {
   const [hotelResults, setHotelResults] = useState<HotelSearchResult[]>([]);
   const [hotelSearchQuery, setHotelSearchQuery] = useState("");
   const [hotelSearchError, setHotelSearchError] = useState<string | null>(null);
+  const [hotelRateNotice, setHotelRateNotice] = useState<string | null>(null);
   const [isSearchingHotels, setIsSearchingHotels] = useState(false);
   const [isLoadingMoreHotels, setIsLoadingMoreHotels] = useState(false);
   const [hotelNextPageToken, setHotelNextPageToken] = useState<string | null>(null);
@@ -725,6 +740,7 @@ export default function TripOrganiserPage() {
     setHotelNextPageToken(null);
     setHotels([]);
     setHotelSearchError(null);
+    setHotelRateNotice(null);
     setDestinationSuggestions([]);
     setDestinationGalleryOpen(false);
     setIsEditingTripTitle(false);
@@ -742,6 +758,7 @@ export default function TripOrganiserPage() {
 
     setIsSearchingHotels(true);
     setHotelSearchError(null);
+    setHotelRateNotice(null);
     setHotelNextPageToken(null);
 
     const response = await fetch("/api/hotels/search", {
@@ -749,12 +766,18 @@ export default function TripOrganiserPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ destination }),
+      body: JSON.stringify({
+        destination,
+        checkInDate: tripForm.startsAt || undefined,
+        checkOutDate: tripForm.endsAt || undefined,
+        adults: 2,
+      }),
     });
 
     const data = (await response.json()) as {
       hotels?: HotelSearchResult[];
       nextPageToken?: string | null;
+      rateProviderNotice?: string | null;
       error?: string;
     };
 
@@ -767,6 +790,7 @@ export default function TripOrganiserPage() {
     }
 
     setHotelResults(data.hotels ?? []);
+    setHotelRateNotice(data.rateProviderNotice ?? null);
     setHotelNextPageToken(data.nextPageToken ?? null);
     console.info("[Journi Hotels] Initial hotel search loaded", {
       destination,
@@ -796,6 +820,7 @@ export default function TripOrganiserPage() {
       | {
           hotels?: HotelSearchResult[];
           nextPageToken?: string | null;
+          rateProviderNotice?: string | null;
           error?: string;
         }
       | undefined;
@@ -807,12 +832,19 @@ export default function TripOrganiserPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ destination, pageToken: nextPageToken }),
+        body: JSON.stringify({
+          destination,
+          pageToken: nextPageToken,
+          checkInDate: tripForm.startsAt || undefined,
+          checkOutDate: tripForm.endsAt || undefined,
+          adults: 2,
+        }),
       });
 
       data = (await response.json()) as {
         hotels?: HotelSearchResult[];
         nextPageToken?: string | null;
+        rateProviderNotice?: string | null;
         error?: string;
       };
 
@@ -845,6 +877,7 @@ export default function TripOrganiserPage() {
 
       return [...current, ...nextHotels];
     });
+    setHotelRateNotice(data.rateProviderNotice ?? null);
     setHotelNextPageToken(data.nextPageToken ?? null);
     console.info("[Journi Hotels] Loaded more hotels", {
       destination,
@@ -1120,6 +1153,14 @@ export default function TripOrganiserPage() {
           location: hotel.location,
           bookingUrl: hotel.bookingUrl,
           notes: hotel.notes,
+          rateLabel: hotel.rateLabel,
+          priceLevel: hotel.priceLevel,
+          pricePerNight: hotel.pricePerNight ?? null,
+          currency: hotel.currency ?? null,
+          rateSource: hotel.rateSource,
+          amadeusHotelId: hotel.amadeusHotelId,
+          duffelAccommodationId: hotel.duffelAccommodationId,
+          duffelSearchResultId: hotel.duffelSearchResultId,
           googlePlaceId: hotel.id,
           sourcePhotoUrl: hotel.photoUrl,
           sourcePhotoAttribution: hotel.photoAttribution,
@@ -1676,6 +1717,7 @@ export default function TripOrganiserPage() {
 
   function renderHotelResultCard(hotel: HotelSearchResult) {
     const selected = isHotelSelected(hotel);
+    const rateGuideText = hotel.rateLabel || "Live rate unavailable";
 
     return (
       <article
@@ -1693,6 +1735,16 @@ export default function TripOrganiserPage() {
         )}
         <strong>{hotel.name}</strong>
         <small>{hotel.location || "Location from API"}</small>
+        <small
+          className={hotel.rateLabel ? styles.hotelRateBadge : styles.hotelRateBadgeMuted}
+          title={
+            hotel.rateLabel
+              ? rateGuideText
+              : hotelRateNotice || "No live hotel rate came back for this hotel and date range."
+          }
+        >
+          {rateGuideText}
+        </small>
         <p>{hotel.notes}</p>
         {hotel.photoAttribution ? (
           <small className={styles.fieldHint}>Photo: {hotel.photoAttribution}</small>
@@ -1738,6 +1790,7 @@ export default function TripOrganiserPage() {
         {hotelSearchError ? (
           <p className={styles.formError}>{hotelSearchError}</p>
         ) : null}
+        {hotelRateNotice ? <p className={styles.fieldHint}>{hotelRateNotice}</p> : null}
 
         {hotelResults.length > 0 ? (
           <div className={styles.optionStack}>
@@ -2819,6 +2872,57 @@ export default function TripOrganiserPage() {
             <div className={styles.optionFormCard}>
               <div className={styles.rowTop}>
                 <div>
+                  <p className={styles.eyebrow}>Trip visibility</p>
+                  <h3 className={styles.sectionHeading}>Choose who can find this trip</h3>
+                  <p className={styles.muted}>
+                    Private trips are invited-only. Public trips appear on the Public trips page
+                    after they are published.
+                  </p>
+                </div>
+                <span className={styles.badgeSoft}>
+                  {tripForm.visibility === "public" ? "Open to all" : "Invited only"}
+                </span>
+              </div>
+
+              <div className={styles.tripFilter}>
+                <button
+                  type="button"
+                  className={
+                    tripForm.visibility === "private"
+                      ? styles.tripFilterButtonActive
+                      : styles.tripFilterButton
+                  }
+                  onClick={() =>
+                    setTripForm((current) => ({
+                      ...current,
+                      visibility: "private",
+                    }))
+                  }
+                >
+                  Private
+                </button>
+                <button
+                  type="button"
+                  className={
+                    tripForm.visibility === "public"
+                      ? styles.tripFilterButtonActive
+                      : styles.tripFilterButton
+                  }
+                  onClick={() =>
+                    setTripForm((current) => ({
+                      ...current,
+                      visibility: "public",
+                    }))
+                  }
+                >
+                  Public
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.optionFormCard}>
+              <div className={styles.rowTop}>
+                <div>
                   <p className={styles.eyebrow}>Traveller invites</p>
                   <h3 className={styles.sectionHeading}>Add people now or come back later</h3>
                   <p className={styles.muted}>
@@ -3284,6 +3388,25 @@ export default function TripOrganiserPage() {
                                     </option>
                                   ))}
                                 </select>
+                              </div>
+                              <div className={styles.field}>
+                                <span>Visibility</span>
+                                <select
+                                  value={tripForm.visibility}
+                                  onChange={(event) =>
+                                    setTripForm((current) => ({
+                                      ...current,
+                                      visibility:
+                                        event.target.value === "public" ? "public" : "private",
+                                    }))
+                                  }
+                                >
+                                  <option value="private">Private - invited only</option>
+                                  <option value="public">Public - open to all</option>
+                                </select>
+                                <small className={styles.fieldHint}>
+                                  Public trips can appear on the Public trips page after publishing.
+                                </small>
                               </div>
                               <div className={styles.field}>
                                 <span>Group size</span>
@@ -4074,6 +4197,10 @@ export default function TripOrganiserPage() {
                           </strong>
                         </div>
                         <div className={styles.infoCard}>
+                          <span className={styles.tripFactLabel}>Rate guide</span>
+                          <strong>{selectedHotelDetails.rateLabel || "Not available"}</strong>
+                        </div>
+                        <div className={styles.infoCard}>
                           <span className={styles.tripFactLabel}>Phone</span>
                           <strong>{selectedHotelDetails.phone || "Not available"}</strong>
                         </div>
@@ -4213,6 +4340,12 @@ export default function TripOrganiserPage() {
                             <h3>Phone</h3>
                           </div>
                           <strong>{selectedHotelDetails.phone || "Not available"}</strong>
+                        </div>
+                        <div className={styles.settingsRow}>
+                          <div>
+                            <h3>Rate guide</h3>
+                          </div>
+                          <strong>{selectedHotelDetails.rateLabel || "Not available"}</strong>
                         </div>
                         <div className={styles.settingsRow}>
                           <div>

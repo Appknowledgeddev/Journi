@@ -8,6 +8,7 @@ type TripRow = {
   destination: string | null;
   description: string | null;
   status: string;
+  visibility?: "private" | "public" | null;
   date_mode?: string | null;
   starts_at: string | null;
   ends_at: string | null;
@@ -16,12 +17,71 @@ type TripRow = {
   owner_id: string | null;
 };
 
+type ParticipantTripLink = {
+  trip_id: string | null;
+  status: string | null;
+};
+
+const baseTripSelect =
+  "id, title, destination, description, status, starts_at, ends_at, cover_image_url, owner_id, created_at";
+
+const tripSelectWithMetadata =
+  "id, title, destination, description, status, visibility, date_mode, starts_at, ends_at, voting_deadline, cover_image_url, owner_id, created_at";
+
 function schemaError(message: string) {
   if (isDatabaseSchemaError(message)) {
     return friendlyDatabaseError(message, "load your trips");
   }
 
   return "Journi could not load your trips right now. Please try again.";
+}
+
+async function loadTripsByOwner(userId: string) {
+  let { data, error } = (await supabaseAdmin
+    .from("trips")
+    .select(tripSelectWithMetadata)
+    .eq("owner_id", userId)
+    .order("created_at", { ascending: false })) as {
+    data: TripRow[] | null;
+    error: { message: string } | null;
+  };
+
+  if (error && isDatabaseSchemaError(error.message)) {
+    const fallbackResult = await supabaseAdmin
+      .from("trips")
+      .select(baseTripSelect)
+      .eq("owner_id", userId)
+      .order("created_at", { ascending: false });
+
+    data = fallbackResult.data as TripRow[] | null;
+    error = fallbackResult.error;
+  }
+
+  return { data, error };
+}
+
+async function loadTripsByIds(tripIds: string[]) {
+  let { data, error } = (await supabaseAdmin
+    .from("trips")
+    .select(tripSelectWithMetadata)
+    .in("id", tripIds)
+    .order("created_at", { ascending: false })) as {
+    data: TripRow[] | null;
+    error: { message: string } | null;
+  };
+
+  if (error && isDatabaseSchemaError(error.message)) {
+    const fallbackResult = await supabaseAdmin
+      .from("trips")
+      .select(baseTripSelect)
+      .in("id", tripIds)
+      .order("created_at", { ascending: false });
+
+    data = fallbackResult.data as TripRow[] | null;
+    error = fallbackResult.error;
+  }
+
+  return { data, error };
 }
 
 export async function GET(request: NextRequest) {
@@ -52,15 +112,11 @@ export async function GET(request: NextRequest) {
 
   const [{ data: ownedTrips, error: ownedTripsError }, { data: participantRows, error: participantError }] =
     await Promise.all([
-      supabaseAdmin
-        .from("trips")
-        .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url, owner_id")
-        .eq("owner_id", user.id)
-        .order("created_at", { ascending: false }),
+      loadTripsByOwner(user.id),
       supabaseAdmin
         .from("trip_participants")
-        .select("trip_id")
-        .eq("status", "accepted")
+        .select("trip_id, status")
+        .in("status", ["accepted", "pending", "linked", "invited"])
         .or(`user_id.eq.${user.id},email.eq.${userEmail}`),
     ]);
 
@@ -78,15 +134,16 @@ export async function GET(request: NextRequest) {
         .filter((tripId): tripId is string => Boolean(tripId)),
     ),
   );
+  const participantStatusByTripId = new Map(
+    ((participantRows ?? []) as ParticipantTripLink[])
+      .filter((row) => Boolean(row.trip_id))
+      .map((row) => [row.trip_id as string, row.status || "pending"]),
+  );
 
   let invitedTrips: TripRow[] = [];
 
   if (participantTripIds.length > 0) {
-    const { data: invitedTripRows, error: invitedTripsError } = await supabaseAdmin
-      .from("trips")
-      .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url, owner_id")
-      .in("id", participantTripIds)
-      .order("created_at", { ascending: false });
+    const { data: invitedTripRows, error: invitedTripsError } = await loadTripsByIds(participantTripIds);
 
     if (invitedTripsError) {
       return NextResponse.json({ error: schemaError(invitedTripsError.message) }, { status: 400 });
@@ -97,7 +154,11 @@ export async function GET(request: NextRequest) {
 
   const combinedTrips = [
     ...((ownedTrips ?? []) as TripRow[]).map((trip) => ({ ...trip, roleView: "organiser" as const })),
-    ...invitedTrips.map((trip) => ({ ...trip, roleView: "participant" as const })),
+    ...invitedTrips.map((trip) => ({
+      ...trip,
+      roleView: "participant" as const,
+      participantStatus: participantStatusByTripId.get(trip.id) || "pending",
+    })),
   ];
 
   const trips = Array.from(new Map(combinedTrips.map((trip) => [trip.id, trip])).values());

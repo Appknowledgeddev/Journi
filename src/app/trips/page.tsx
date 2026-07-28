@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { JourniLoader } from "@/components/journi-loader";
 import { supabase } from "@/lib/supabase/client";
 import { readTripOrganiserDraft } from "@/lib/trip-organiser/draft";
 import styles from "@/components/app-page.module.css";
@@ -13,6 +14,7 @@ type TripCard = {
   destination: string | null;
   description: string | null;
   status: string;
+  visibility?: "private" | "public" | null;
   date_mode?: string | null;
   starts_at: string | null;
   ends_at: string | null;
@@ -20,6 +22,7 @@ type TripCard = {
   cover_image_url: string | null;
   owner_id?: string | null;
   roleView?: "organiser" | "participant";
+  participantStatus?: string | null;
 };
 
 const tripCategoryBreakdown = [
@@ -34,6 +37,7 @@ type TripFormState = {
   destination: string;
   description: string;
   status: string;
+  visibility: "private" | "public";
   startsAt: string;
   endsAt: string;
   coverImageUrl: string;
@@ -44,6 +48,7 @@ const initialTripForm: TripFormState = {
   destination: "",
   description: "",
   status: "draft",
+  visibility: "private",
   startsAt: "",
   endsAt: "",
   coverImageUrl: "",
@@ -88,6 +93,30 @@ function getTripStatusLabel(status: string) {
   }
 
   return status;
+}
+
+function getTripRoleLabel(trip: TripCard) {
+  if (trip.roleView !== "participant") {
+    return getTripStatusLabel(trip.status);
+  }
+
+  if (trip.participantStatus === "pending") {
+    return "Pending";
+  }
+
+  if (trip.participantStatus === "accepted") {
+    return "Participant";
+  }
+
+  if (trip.participantStatus === "invited") {
+    return "Invited";
+  }
+
+  if (trip.participantStatus === "linked") {
+    return "Linked";
+  }
+
+  return "Participant";
 }
 
 export default function TripsPage() {
@@ -195,7 +224,7 @@ export default function TripsPage() {
     setIsCreating(true);
     setCreateError(null);
 
-    const payload = {
+    const basePayload = {
       owner_id: userId,
       title: tripForm.title.trim(),
       destination: tripForm.destination.trim() || null,
@@ -206,13 +235,40 @@ export default function TripsPage() {
       cover_image_url: tripForm.coverImageUrl.trim() || null,
     };
 
-    const { data, error } = await supabase
+    const payload = {
+      ...basePayload,
+      visibility: tripForm.visibility,
+    };
+
+    let { data, error } = (await supabase
       .from("trips")
       .insert(payload)
       .select(
-        "id, title, destination, description, status, starts_at, ends_at, cover_image_url",
+        "id, title, destination, description, status, visibility, starts_at, ends_at, cover_image_url",
       )
-      .single();
+      .single()) as {
+      data: TripCard | null;
+      error: { message: string } | null;
+    };
+
+    if (error && error.message.includes("visibility")) {
+      const fallbackResult = await supabase
+        .from("trips")
+        .insert(basePayload)
+        .select(
+          "id, title, destination, description, status, starts_at, ends_at, cover_image_url",
+        )
+        .single();
+
+      data = fallbackResult.data as TripCard | null;
+      error = fallbackResult.error;
+
+      if (!error) {
+        setCreateError(
+          "Trip created, but Supabase needs the latest visibility update before private/public can be saved.",
+        );
+      }
+    }
 
     if (error) {
       setCreateError(error.message);
@@ -374,7 +430,14 @@ export default function TripsPage() {
               </button>
             </div>
 
-            {tripError ? null : null}
+            {tripError ? <p className={styles.formError}>{tripError}</p> : null}
+
+            {loadingTrips ? (
+              <JourniLoader
+                title="Loading your trips"
+                detail="Gathering the trips you organise and the trips you have joined."
+              />
+            ) : null}
 
             {!loadingTrips && !tripError && filteredTrips.length === 0 ? (
               <div className={styles.emptyState}>
@@ -405,14 +468,14 @@ export default function TripsPage() {
                       <div className={styles.rowTop}>
                         <span className={styles.rowTitle}>{trip.title}</span>
                         <span className={styles.badge}>
-                          {trip.roleView === "participant" ? "Participant" : getTripStatusLabel(trip.status)}
+                          {getTripRoleLabel(trip)}
                         </span>
                       </div>
                         <div className={styles.tripMetaRow}>
                           <span>{trip.destination || "Destination to be confirmed"}</span>
                           <span>{formatTripDatePlanning(trip)}</span>
                         </div>
-                      <p className={styles.muted}>
+                      <p className={styles.tripListDescription}>
                         {trip.description || "No trip summary added yet."}
                       </p>
 
@@ -566,6 +629,22 @@ export default function TripsPage() {
                         <option value="draft">Draft</option>
                         <option value="active">Active</option>
                         <option value="confirmed">Confirmed</option>
+                      </select>
+                    </label>
+
+                    <label className={styles.field}>
+                      <span>Visibility</span>
+                      <select
+                        value={tripForm.visibility}
+                        onChange={(event) =>
+                          setTripForm((current) => ({
+                            ...current,
+                            visibility: event.target.value === "public" ? "public" : "private",
+                          }))
+                        }
+                      >
+                        <option value="private">Private - invited only</option>
+                        <option value="public">Public - open to all</option>
                       </select>
                     </label>
                   </div>

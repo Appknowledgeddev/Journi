@@ -18,7 +18,13 @@ const baseTripSelect =
   "id, title, destination, description, status, starts_at, ends_at, cover_image_url, created_at, owner_id";
 
 const tripSelectWithMetadata =
-  "id, title, destination, description, status, trip_type_label, audience_filter, date_mode, starts_at, ends_at, voting_deadline, group_size_band, group_size_min, budget_mode, budget_band, budget_total, budget_per_person_min, budget_per_person_max, cover_image_url, created_at, owner_id";
+  "id, title, destination, description, status, visibility, trip_type_label, audience_filter, date_mode, starts_at, ends_at, voting_deadline, group_size_band, group_size_min, budget_mode, budget_band, budget_total, budget_per_person_min, budget_per_person_max, cover_image_url, created_at, owner_id";
+
+const fallbackPublicSeedOwnerEmails = [
+  "journi-public-amelia@example.com",
+  "journi-public-marco@example.com",
+  "journi-public-sophie@example.com",
+];
 
 type GooglePlaceDetailsResponse = {
   photos?: Array<{
@@ -35,6 +41,7 @@ type TripRouteRow = {
   destination: string | null;
   description: string | null;
   status: string;
+  visibility?: "private" | "public" | null;
   trip_type_label?: string | null;
   audience_filter?: string | null;
   date_mode?: string | null;
@@ -81,6 +88,20 @@ async function getAuthenticatedUser(request: NextRequest) {
   }
 
   return { user: user as AuthenticatedUser };
+}
+
+async function isFallbackPublicSeedTrip(trip: TripRouteRow) {
+  if (trip.status !== "active" || !trip.owner_id) {
+    return false;
+  }
+
+  const { data, error } = await supabaseAdmin.auth.admin.getUserById(trip.owner_id);
+
+  if (error || !data.user?.email) {
+    return false;
+  }
+
+  return fallbackPublicSeedOwnerEmails.includes(data.user.email.toLowerCase());
 }
 
 async function sendTravellerInvite(args: {
@@ -225,10 +246,15 @@ export async function GET(
     return NextResponse.json({ error: schemaError(tripError?.message || "Trip not found.") }, { status: 404 });
   }
 
-  let accessRole: "organiser" | "participant" | null = null;
+  let accessRole: "organiser" | "participant" | "public" | null = null;
 
   if (trip.owner_id === auth.user.id) {
     accessRole = "organiser";
+  } else if (
+    trip.status === "active" &&
+    (trip.visibility === "public" || (await isFallbackPublicSeedTrip(trip)))
+  ) {
+    accessRole = "public";
   } else {
     const { data: participantLink, error: participantError } = await supabaseAdmin
       .from("trip_participants")
@@ -269,7 +295,7 @@ export async function GET(
   ] = await Promise.all([
     supabaseAdmin
       .from("hotels")
-      .select("id, name, location, notes, source_photo_url, google_place_id")
+      .select("id, name, location, notes, price_per_night, currency, source_photo_url, google_place_id")
       .eq("trip_id", tripId),
     supabaseAdmin
       .from("activities")
@@ -330,17 +356,33 @@ export async function PATCH(
   const body = (await request.json().catch(() => null)) as {
     action?: string;
     origin?: string;
+    visibility?: string;
   } | null;
 
-  if (body?.action !== "publish") {
+  if (
+    body?.action !== "publish" &&
+    body?.action !== "update_visibility" &&
+    body?.action !== "request_participation"
+  ) {
     return NextResponse.json({ error: "Unsupported trip action." }, { status: 400 });
   }
 
-  const { data: existingTrip, error: existingTripError } = await supabaseAdmin
+  let { data: existingTrip, error: existingTripError } = (await supabaseAdmin
     .from("trips")
-    .select(baseTripSelect)
+    .select(tripSelectWithMetadata)
     .eq("id", tripId)
-    .single();
+    .single()) as { data: TripRouteRow | null; error: { message: string } | null };
+
+  if (existingTripError && isDatabaseSchemaError(existingTripError.message)) {
+    const fallbackResult = await supabaseAdmin
+      .from("trips")
+      .select(baseTripSelect)
+      .eq("id", tripId)
+      .single();
+
+    existingTrip = fallbackResult.data as TripRouteRow | null;
+    existingTripError = fallbackResult.error;
+  }
 
   if (existingTripError || !existingTrip) {
     return NextResponse.json(
@@ -349,8 +391,138 @@ export async function PATCH(
     );
   }
 
+  if (body.action === "request_participation") {
+    if (existingTrip.owner_id === auth.user.id) {
+      return NextResponse.json(
+        { error: "You are already the organiser for this trip." },
+        { status: 409 },
+      );
+    }
+
+    const isPublicTrip =
+      existingTrip.status === "active" &&
+      (existingTrip.visibility === "public" || (await isFallbackPublicSeedTrip(existingTrip)));
+
+    if (!isPublicTrip) {
+      return NextResponse.json(
+        { error: "This trip is not open for public participant requests." },
+        { status: 403 },
+      );
+    }
+
+    const participantEmail = (auth.user.email ?? "").trim().toLowerCase();
+
+    if (!participantEmail) {
+      return NextResponse.json(
+        { error: "Add an email address to your account before joining this trip." },
+        { status: 400 },
+      );
+    }
+
+    const { data: existingParticipant, error: participantLookupError } = await supabaseAdmin
+      .from("trip_participants")
+      .select("id, email, full_name, role, status, invited_at, responded_at, created_at")
+      .eq("trip_id", tripId)
+      .eq("email", participantEmail)
+      .maybeSingle();
+
+    if (participantLookupError) {
+      return NextResponse.json({ error: schemaError(participantLookupError.message) }, { status: 400 });
+    }
+
+    if (existingParticipant) {
+      return NextResponse.json({
+        participant: existingParticipant,
+        message:
+          existingParticipant.status === "accepted"
+            ? "You are already confirmed for this trip."
+            : "You are already connected to this trip.",
+      });
+    }
+
+    const fullName =
+      typeof auth.user.user_metadata?.full_name === "string"
+        ? auth.user.user_metadata.full_name.trim()
+        : "";
+    const participantInsert = {
+      trip_id: tripId,
+      inviter_id: null,
+      user_id: auth.user.id,
+      email: participantEmail,
+      full_name: fullName || participantEmail.split("@")[0] || null,
+      role: "traveller",
+      status: "pending",
+    };
+
+    let { data: participant, error: participantInsertError } = await supabaseAdmin
+      .from("trip_participants")
+      .insert(participantInsert)
+      .select("id, email, full_name, role, status, invited_at, responded_at, created_at")
+      .single();
+
+    if (participantInsertError && isDatabaseSchemaError(participantInsertError.message)) {
+      const fallbackParticipantInsert: Omit<typeof participantInsert, "user_id"> = {
+        trip_id: participantInsert.trip_id,
+        inviter_id: participantInsert.inviter_id,
+        email: participantInsert.email,
+        full_name: participantInsert.full_name,
+        role: participantInsert.role,
+        status: participantInsert.status,
+      };
+      const fallbackResult = await supabaseAdmin
+        .from("trip_participants")
+        .insert(fallbackParticipantInsert)
+        .select("id, email, full_name, role, status, invited_at, responded_at, created_at")
+        .single();
+
+      participant = fallbackResult.data;
+      participantInsertError = fallbackResult.error;
+    }
+
+    if (participantInsertError || !participant) {
+      return NextResponse.json(
+        {
+          error: friendlyDatabaseError(
+            participantInsertError?.message || "Unable to request participation.",
+            "join this trip",
+          ),
+        },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({
+      participant,
+      message: "You have been added as a potential participant. The organiser can review it before the trip is confirmed.",
+    });
+  }
+
   if (existingTrip.owner_id !== auth.user.id) {
-    return NextResponse.json({ error: "Only the organiser can publish this trip." }, { status: 403 });
+    return NextResponse.json({ error: "Only the organiser can update this trip." }, { status: 403 });
+  }
+
+  if (body.action === "update_visibility") {
+    const nextVisibility = body.visibility === "public" ? "public" : "private";
+    const { data: updatedTrip, error: updateError } = await supabaseAdmin
+      .from("trips")
+      .update({ visibility: nextVisibility })
+      .eq("id", tripId)
+      .select(tripSelectWithMetadata)
+      .single();
+
+    if (updateError || !updatedTrip) {
+      return NextResponse.json(
+        {
+          error: friendlyDatabaseError(
+            updateError?.message || "Unable to update trip visibility.",
+            "update this trip visibility",
+          ),
+        },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json({ trip: updatedTrip });
   }
 
   if (existingTrip.status !== "draft") {
