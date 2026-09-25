@@ -24,6 +24,18 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
+
+        <div id="backoffice" className={styles.section}>
+          <p className={styles.sectionTitle}>Development tools</p>
+          <p className={styles.sectionCopy}>
+            Open the admin backoffice while working locally. Use <strong>/#backoffice</strong> to jump straight here.
+          </p>
+          <div className={styles.actions}>
+            <Link href="/backoffice" className={styles.primaryButton}>
+              Open backoffice
+            </Link>
+          </div>
+        </div>
       </section>
     </main>
   );

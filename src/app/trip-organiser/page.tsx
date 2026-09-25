@@ -1,5 +1,6 @@
 "use client";
 
+import { ScrollableOptionCards } from "@/components/scrollable-option-cards";
 import { DateRange, DayPicker } from "react-day-picker";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -11,6 +12,7 @@ import {
   FiEdit3,
   FiImage,
   FiMapPin,
+  FiStar,
   FiX,
 } from "react-icons/fi";
 import { AppShell } from "@/components/app-shell";
@@ -294,10 +296,36 @@ function hasDiningValue(option: DiningOption) {
   return Boolean(option.name.trim());
 }
 
+function hasCompleteHotel(option: HotelOption) {
+  return Boolean(option.name.trim() && option.location.trim());
+}
+
+function hasCompleteActivity(option: ActivityOption) {
+  return Boolean(option.title.trim() && option.location.trim());
+}
+
+function hasCompleteTransport(option: TransportOption) {
+  return Boolean(option.mode.trim() && option.provider.trim() && option.arrivalLocation.trim());
+}
+
+function hasCompleteDining(option: DiningOption) {
+  return Boolean(option.name.trim() && option.location.trim());
+}
+
 function buildGoogleMapsPlaceUrl(name: string, location: string) {
   const query = [name, location].filter(Boolean).join(" ");
 
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+function getGoogleRatingFromNotes(notes: string) {
+  const match = notes.match(/Google rating\s+(\d+(?:\.\d+)?)/i);
+
+  return match?.[1] ?? "";
+}
+
+function getNotesWithoutGoogleRating(notes: string) {
+  return notes.replace(/Google rating\s+\d+(?:\.\d+)?\.?\s*/i, "").trim();
 }
 
 function parseDateInput(value: string) {
@@ -432,6 +460,10 @@ export default function TripOrganiserPage() {
   const transportCarouselRef = useRef<HTMLDivElement | null>(null);
   const diningCarouselRef = useRef<HTMLDivElement | null>(null);
   const tripBuilderTopRef = useRef<HTMLDivElement | null>(null);
+  const selectedHotelsSummaryRef = useRef<HTMLDivElement | null>(null);
+  const selectedActivitiesSummaryRef = useRef<HTMLDivElement | null>(null);
+  const selectedTransportSummaryRef = useRef<HTMLDivElement | null>(null);
+  const selectedDiningSummaryRef = useRef<HTMLDivElement | null>(null);
   const hasRestoredDraftRef = useRef(false);
   const aiTypingIntervalRef = useRef<number | null>(null);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
@@ -452,6 +484,7 @@ export default function TripOrganiserPage() {
   const [destinationGalleryOpen, setDestinationGalleryOpen] = useState(false);
   const [isEditingTripTitle, setIsEditingTripTitle] = useState(false);
   const [isEditingDestination, setIsEditingDestination] = useState(false);
+  const [isEditingTripType, setIsEditingTripType] = useState(false);
   const [selectedHotelDetails, setSelectedHotelDetails] = useState<HotelDetails | null>(null);
   const [hotelDetailsError, setHotelDetailsError] = useState<string | null>(null);
   const [isLoadingHotelDetails, setIsLoadingHotelDetails] = useState(false);
@@ -503,15 +536,28 @@ export default function TripOrganiserPage() {
   const showSelectedDestination = hasHydrated && hasSelectedDestination;
   const hasCoverImage = Boolean(tripForm.coverImageUrl.trim());
   const hasTripName = Boolean(tripForm.title.trim());
+  const hasTripType = Boolean(tripForm.tripType.trim());
+  const hasTripDescription = Boolean(tripForm.description.trim()) && !isEditingDescription;
   const tripDateOptions = getTripDateOptions(tripForm);
   const hasTripDates = tripDateOptions.length > 0;
   const hasDatePlan = tripForm.dateMode === "flexible" ? true : hasTripDates;
-  const hasSelectedHotels = hotels.length > 0;
-  const hasSelectedActivities = activities.some(hasActivityValue);
-  const hasSelectedTransport = transport.some(hasTransportValue);
-  const hasSelectedDining = dining.some(hasDiningValue);
+  const hasBudgetPlan =
+    tripForm.budgetMode === "overall"
+      ? Boolean(parseNumericInput(tripForm.totalBudget))
+      : Boolean(tripForm.budgetBand);
+  const hasSelectedHotels = hotels.some(hasCompleteHotel);
+  const hasSelectedActivities = activities.some(hasCompleteActivity);
+  const hasSelectedTransport = transport.some(hasCompleteTransport);
+  const hasSelectedDining = dining.some(hasCompleteDining);
   const inviteCount = invites.length;
-  const tripBasicsReady = hasSelectedDestination && hasCoverImage && hasTripName && hasDatePlan;
+  const tripBasicsReady =
+    hasSelectedDestination &&
+    hasCoverImage &&
+    hasTripName &&
+    hasTripType &&
+    hasTripDescription &&
+    hasDatePlan &&
+    hasBudgetPlan;
   const showDockedStepper = true;
   const pageStackClassName = `${styles.stack} ${styles.stepperDockLayout}`;
   const mainSectionClassName = styles.tripWorkspace;
@@ -535,6 +581,83 @@ export default function TripOrganiserPage() {
       default:
         return false;
     }
+  }
+
+  function getNextStepKey(stepKey: StepKey) {
+    const currentIndex = steps.findIndex((step) => step.key === stepKey);
+
+    return currentIndex >= 0 ? steps[currentIndex + 1]?.key ?? null : null;
+  }
+
+  function getStepLabel(stepKey: StepKey) {
+    return steps.find((step) => step.key === stepKey)?.label ?? "next step";
+  }
+
+  function getStepValidationError(stepKey: StepKey) {
+    switch (stepKey) {
+      case "details":
+        if (!hasSelectedDestination) {
+          return "Choose a destination before moving on.";
+        }
+        if (!hasCoverImage) {
+          return "Add a cover image before moving on.";
+        }
+        if (!hasTripName) {
+          return "Add a trip name before moving on.";
+        }
+        if (!hasTripType) {
+          return "Add a trip type before moving on.";
+        }
+        if (!hasDatePlan) {
+          return "Add at least one date option, or choose flexible dates.";
+        }
+        if (!hasBudgetPlan) {
+          return "Add a budget before moving on.";
+        }
+        if (!hasTripDescription) {
+          return "Add and save a trip description before moving on.";
+        }
+        return null;
+      case "hotels":
+        return hasSelectedHotels
+          ? null
+          : "Select at least one hotel with a name and location before moving on.";
+      case "activities":
+        return hasSelectedActivities
+          ? null
+          : "Select at least one activity with a name and location before moving on.";
+      case "transport":
+        return hasSelectedTransport
+          ? null
+          : "Select at least one transport option with a provider, type, and location before moving on.";
+      case "dining":
+        return hasSelectedDining
+          ? null
+          : "Select at least one dining option with a name and location before moving on.";
+      default:
+        return null;
+    }
+  }
+
+  function validateBeforeStep(targetStepKey: StepKey) {
+    const targetIndex = steps.findIndex((step) => step.key === targetStepKey);
+
+    if (targetIndex <= 0) {
+      return true;
+    }
+
+    for (const step of steps.slice(0, targetIndex)) {
+      const validationError = getStepValidationError(step.key);
+
+      if (validationError) {
+        setCreateError(validationError);
+        goToStep(step.key, { scrollToTop: true });
+        return false;
+      }
+    }
+
+    setCreateError(null);
+    return true;
   }
 
   function buildCurrentDraft(nextStepKey?: StepKey): TripOrganiserDraft {
@@ -564,6 +687,45 @@ export default function TripOrganiserPage() {
         scrollToTripBuilderTop();
       }
     }
+  }
+
+  function continueToStep(stepKey: StepKey, onContinue?: () => void) {
+    if (!validateBeforeStep(stepKey)) {
+      return;
+    }
+
+    setCreateError(null);
+    setHotelSearchQuery((current) => current || tripForm.destination.trim());
+    persistCurrentDraft(stepKey);
+
+    if (onContinue) {
+      onContinue();
+      return;
+    }
+
+    goToStep(stepKey);
+  }
+
+  function renderContinuationButton(
+    nextStepKey: StepKey | null,
+    options?: { onContinue?: () => void },
+  ) {
+    if (!nextStepKey || !isStepComplete(activeStep.key)) {
+      return null;
+    }
+
+    return (
+      <div className={styles.tripContinuationAction}>
+        <button
+          type="button"
+          className={styles.tripContinuationButton}
+          onClick={() => continueToStep(nextStepKey, options?.onContinue)}
+        >
+          <span>Continue to {getStepLabel(nextStepKey).toLowerCase()}</span>
+          <FiChevronRight />
+        </button>
+      </div>
+    );
   }
 
   function updateBudgetFromMode(nextBudgetMode: BudgetMode, nextValues?: Partial<TripFormState>) {
@@ -1718,6 +1880,7 @@ export default function TripOrganiserPage() {
   function renderHotelResultCard(hotel: HotelSearchResult) {
     const selected = isHotelSelected(hotel);
     const rateGuideText = hotel.rateLabel || "Live rate unavailable";
+    const googleRating = getGoogleRatingFromNotes(hotel.notes);
 
     return (
       <article
@@ -1745,9 +1908,12 @@ export default function TripOrganiserPage() {
         >
           {rateGuideText}
         </small>
-        <p>{hotel.notes}</p>
-        {hotel.photoAttribution ? (
-          <small className={styles.fieldHint}>Photo: {hotel.photoAttribution}</small>
+        {googleRating ? (
+          <span className={styles.hotelRatingBadge}>
+            <FiStar />
+            <strong>{googleRating}</strong>
+            <small>Google</small>
+          </span>
         ) : null}
         <div className={styles.hotelCardActions}>
           <button
@@ -1850,7 +2016,21 @@ export default function TripOrganiserPage() {
               >
                 View all hotels
               </button>
+              {hasSelectedHotels ? (
+                <button
+                  type="button"
+                  className={styles.primaryAction}
+                  onClick={() => continueToStep("activities")}
+                >
+                  Continue to activities
+                </button>
+              ) : null}
             </div>
+            {hasSelectedHotels ? (
+              <p className={styles.fieldHint}>
+                {hotels.length} {hotels.length === 1 ? "hotel" : "hotels"} selected.
+              </p>
+            ) : null}
           </div>
         ) : null}
 
@@ -1884,10 +2064,6 @@ export default function TripOrganiserPage() {
         )}
         <strong>{activity.title}</strong>
         <small>{activity.location || "Location from Google"}</small>
-        <p>{activity.notes}</p>
-        {activity.photoAttribution ? (
-          <small className={styles.fieldHint}>Photo: {activity.photoAttribution}</small>
-        ) : null}
         <div className={styles.hotelCardActions}>
           <a
             href={
@@ -1994,6 +2170,27 @@ export default function TripOrganiserPage() {
     });
   }
 
+  function scrollToCompletedSummary(stepKey: StepKey) {
+    const summaryByStep: Partial<Record<StepKey, HTMLDivElement | null>> = {
+      hotels: selectedHotelsSummaryRef.current,
+      activities: selectedActivitiesSummaryRef.current,
+      transport: selectedTransportSummaryRef.current,
+      dining: selectedDiningSummaryRef.current,
+    };
+    const target = summaryByStep[stepKey];
+
+    if (!target) {
+      return false;
+    }
+
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    return true;
+  }
+
   function renderSelectedHotelsSummary() {
     if (!hasSelectedHotels) {
       return null;
@@ -2012,7 +2209,7 @@ export default function TripOrganiserPage() {
     });
 
     return (
-      <div className={styles.optionFormCard}>
+      <div ref={selectedHotelsSummaryRef} className={styles.selectedOptionsSection}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Hotels</p>
@@ -2031,29 +2228,60 @@ export default function TripOrganiserPage() {
             Edit hotels
           </button>
         </div>
-        <div className={styles.selectionSummaryGrid}>
-          {selectedHotels.map((hotel) => (
-            <article key={`${hotel.name}-${hotel.location}`} className={styles.selectionSummaryCard}>
-              {hotel.photoUrl ? (
-                <img
-                  src={hotel.photoUrl}
-                  alt={hotel.name}
-                  className={styles.selectionSummaryImage}
-                />
-              ) : (
-                <div className={styles.selectionSummaryImageFallback} />
-              )}
-              <div className={styles.selectionSummaryBody}>
+        <ScrollableOptionCards className={styles.selectedOptionsCarousel} aria-label="Selected stays carousel">
+          {selectedHotels.map((hotel) => {
+            const googleRating = getGoogleRatingFromNotes(hotel.notes);
+
+            return (
+              <article key={`${hotel.name}-${hotel.location}`} className={styles.hotelResultCard}>
+                {hotel.photoUrl ? (
+                  <img
+                    src={hotel.photoUrl}
+                    alt={hotel.name}
+                    className={styles.hotelResultImage}
+                  />
+                ) : (
+                  <div className={styles.hotelResultImageFallback} />
+                )}
                 <strong>{hotel.name}</strong>
                 <small>{hotel.location || "Location ready to confirm"}</small>
-                <p>{hotel.notes || "Saved from Google hotel results."}</p>
-                {hotel.photoAttribution ? (
-                  <span className={styles.fieldHint}>Photo: {hotel.photoAttribution}</span>
+                {googleRating ? (
+                  <span className={styles.hotelRatingBadge}>
+                    <FiStar />
+                    <strong>{googleRating}</strong>
+                    <small>Google</small>
+                  </span>
                 ) : null}
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className={styles.selectedStayActions}>
+                  <button
+                    type="button"
+                    className={styles.hotelActionButton}
+                    onClick={() =>
+                      handleViewHotelDetails({
+                        id: `${hotel.name}-${hotel.location}`,
+                        name: hotel.name,
+                        location: hotel.location,
+                        notes: hotel.notes,
+                        photoUrl: hotel.photoUrl,
+                        photoAttribution: hotel.photoAttribution,
+                        bookingUrl: hotel.bookingUrl,
+                        priceLevel: hotel.priceLevel,
+                        rateLabel: hotel.rateLabel,
+                        rateSource: hotel.rateSource,
+                        pricePerNight: hotel.pricePerNight,
+                        currency: hotel.currency,
+                        latitude: hotel.latitude ?? null,
+                        longitude: hotel.longitude ?? null,
+                      })
+                    }
+                  >
+                    View more
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </ScrollableOptionCards>
       </div>
     );
   }
@@ -2076,7 +2304,7 @@ export default function TripOrganiserPage() {
     });
 
     return (
-      <div className={styles.optionFormCard}>
+      <div ref={selectedActivitiesSummaryRef} className={styles.selectedOptionsSection}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Activities</p>
@@ -2095,32 +2323,36 @@ export default function TripOrganiserPage() {
             Edit activities
           </button>
         </div>
-        <div className={styles.selectionSummaryGrid}>
+        <ScrollableOptionCards className={styles.selectedOptionsCarousel} aria-label="Selected activities carousel">
           {selectedActivities.map((activity) => (
             <article
               key={`${activity.title}-${activity.location}`}
-              className={styles.selectionSummaryCard}
+              className={styles.hotelResultCard}
             >
               {activity.photoUrl ? (
                 <img
                   src={activity.photoUrl}
                   alt={activity.title}
-                  className={styles.selectionSummaryImage}
+                  className={styles.hotelResultImage}
                 />
               ) : (
-                <div className={styles.selectionSummaryImageFallback} />
+                <div className={styles.hotelResultImageFallback} />
               )}
-              <div className={styles.selectionSummaryBody}>
-                <strong>{activity.title}</strong>
-                <small>{activity.location || "Activity location"}</small>
-                <p>{activity.notes || "Saved from Google activity ideas."}</p>
-                {activity.photoAttribution ? (
-                  <span className={styles.fieldHint}>Photo: {activity.photoAttribution}</span>
-                ) : null}
+              <strong>{activity.title}</strong>
+              <small>{activity.location || "Activity location"}</small>
+              <div className={styles.selectedStayActions}>
+                <a
+                  href={activity.bookingUrl || buildGoogleMapsPlaceUrl(activity.title, activity.location)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.hotelActionLink}
+                >
+                  View more
+                </a>
               </div>
             </article>
           ))}
-        </div>
+        </ScrollableOptionCards>
       </div>
     );
   }
@@ -2144,7 +2376,7 @@ export default function TripOrganiserPage() {
     });
 
     return (
-      <div className={styles.optionFormCard}>
+      <div ref={selectedTransportSummaryRef} className={styles.selectedOptionsSection}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Transport</p>
@@ -2163,36 +2395,36 @@ export default function TripOrganiserPage() {
             Edit transport
           </button>
         </div>
-        <div className={styles.selectionSummaryGrid}>
+        <ScrollableOptionCards className={styles.selectedOptionsCarousel} aria-label="Selected transport carousel">
           {selectedTransportOptions.map((option) => (
             <article
               key={`${option.provider}-${option.arrivalLocation}-${option.mode}`}
-              className={styles.selectionSummaryCard}
+              className={styles.hotelResultCard}
             >
               {option.photoUrl ? (
                 <img
                   src={option.photoUrl}
                   alt={option.provider || option.mode}
-                  className={styles.selectionSummaryImage}
+                  className={styles.hotelResultImage}
                 />
               ) : (
-                <div className={styles.selectionSummaryImageFallback} />
+                <div className={styles.hotelResultImageFallback} />
               )}
-              <div className={styles.selectionSummaryBody}>
-                <strong>{option.provider || option.mode}</strong>
-                <small>{option.mode}</small>
-                <p>
-                  {option.departureLocation && option.arrivalLocation
-                    ? `${option.departureLocation} to ${option.arrivalLocation}`
-                    : option.arrivalLocation || "Transport route ready to confirm"}
-                </p>
-                {option.photoAttribution ? (
-                  <span className={styles.fieldHint}>Photo: {option.photoAttribution}</span>
-                ) : null}
+              <strong>{option.provider || option.mode}</strong>
+              <small>{option.mode}</small>
+              <div className={styles.selectedStayActions}>
+                <a
+                  href={buildGoogleMapsPlaceUrl(option.provider, option.arrivalLocation)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.hotelActionLink}
+                >
+                  View more
+                </a>
               </div>
             </article>
           ))}
-        </div>
+        </ScrollableOptionCards>
       </div>
     );
   }
@@ -2215,7 +2447,7 @@ export default function TripOrganiserPage() {
     });
 
     return (
-      <div className={styles.optionFormCard}>
+      <div ref={selectedDiningSummaryRef} className={styles.selectedOptionsSection}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Dining</p>
@@ -2233,32 +2465,36 @@ export default function TripOrganiserPage() {
             Edit dining
           </button>
         </div>
-        <div className={styles.selectionSummaryGrid}>
+        <ScrollableOptionCards className={styles.selectedOptionsCarousel} aria-label="Selected dining carousel">
           {selectedDiningOptions.map((option) => (
             <article
               key={`${option.name}-${option.location}`}
-              className={styles.selectionSummaryCard}
+              className={styles.hotelResultCard}
             >
               {option.photoUrl ? (
                 <img
                   src={option.photoUrl}
                   alt={option.name}
-                  className={styles.selectionSummaryImage}
+                  className={styles.hotelResultImage}
                 />
               ) : (
-                <div className={styles.selectionSummaryImageFallback} />
+                <div className={styles.hotelResultImageFallback} />
               )}
-              <div className={styles.selectionSummaryBody}>
-                <strong>{option.name}</strong>
-                <small>{option.cuisine || "Dining option"}</small>
-                <p>{option.location || "Restaurant location ready to confirm"}</p>
-                {option.photoAttribution ? (
-                  <span className={styles.fieldHint}>Photo: {option.photoAttribution}</span>
-                ) : null}
+              <strong>{option.name}</strong>
+              <small>{option.cuisine || "Dining option"}</small>
+              <div className={styles.selectedStayActions}>
+                <a
+                  href={option.reservationUrl || buildGoogleMapsPlaceUrl(option.name, option.location)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={styles.hotelActionLink}
+                >
+                  View more
+                </a>
               </div>
             </article>
           ))}
-        </div>
+        </ScrollableOptionCards>
       </div>
     );
   }
@@ -2270,6 +2506,7 @@ export default function TripOrganiserPage() {
       showActivities?: boolean;
       showTransport?: boolean;
       showDining?: boolean;
+      onContinue?: () => void;
     },
   ) {
     return (
@@ -2384,6 +2621,9 @@ export default function TripOrganiserPage() {
             {options?.showDining ? renderSelectedDiningSummary() : null}
             {content}
           </div>
+          {renderContinuationButton(getNextStepKey(activeStep.key), {
+            onContinue: options?.onContinue,
+          })}
         </div>
       </div>
     );
@@ -2408,10 +2648,6 @@ export default function TripOrganiserPage() {
         )}
         <strong>{option.provider}</strong>
         <small>{option.mode}</small>
-        <p>{option.arrivalLocation || "Transport option from Google"}</p>
-        {option.photoAttribution ? (
-          <small className={styles.fieldHint}>Photo: {option.photoAttribution}</small>
-        ) : null}
         <div className={styles.hotelCardActions}>
           <a
             href={
@@ -2530,10 +2766,6 @@ export default function TripOrganiserPage() {
         )}
         <strong>{option.name}</strong>
         <small>{option.cuisine}</small>
-        <p>{option.location || "Dining option from Google"}</p>
-        {option.photoAttribution ? (
-          <small className={styles.fieldHint}>Photo: {option.photoAttribution}</small>
-        ) : null}
         <div className={styles.hotelCardActions}>
           <a
             href={
@@ -2635,7 +2867,7 @@ export default function TripOrganiserPage() {
 
   return (
     <AppShell
-      title="Create your trip"
+      title=""
     >
       {({ userId, loading, email, isPro }) => {
         const freeInviteLimit = 5;
@@ -2647,35 +2879,7 @@ export default function TripOrganiserPage() {
             return;
           }
 
-          if (!tripBasicsReady) {
-            setCreateError(
-              "Finish destination, cover image, trip name, and your date plan before moving to finalise.",
-            );
-            goToStep("details", { scrollToTop: true });
-            return;
-          }
-
-          if (!hasSelectedHotels) {
-            setCreateError("Select at least one hotel before finalising the trip.");
-            goToStep("hotels", { scrollToTop: true });
-            return;
-          }
-
-          if (!hasSelectedActivities) {
-            setCreateError("Select at least one activity before finalising the trip.");
-            goToStep("activities", { scrollToTop: true });
-            return;
-          }
-
-          if (!hasSelectedTransport) {
-            setCreateError("Select at least one transport option before finalising the trip.");
-            goToStep("transport", { scrollToTop: true });
-            return;
-          }
-
-          if (!hasSelectedDining) {
-            setCreateError("Select at least one dining option before finalising the trip.");
-            goToStep("dining", { scrollToTop: true });
+          if (!validateBeforeStep("finalise")) {
             return;
           }
 
@@ -2746,12 +2950,17 @@ export default function TripOrganiserPage() {
             return;
           }
 
-          if (!tripForm.title.trim()) {
-            setSaveError("Trip name is required.");
-            return;
-          }
+	          if (!tripForm.title.trim()) {
+	            setSaveError("Trip name is required.");
+	            return;
+	          }
 
-          setIsSaving(true);
+	          if (!validateBeforeStep("finalise")) {
+	            setSaveError("Complete the required trip sections before saving.");
+	            return;
+	          }
+
+	          setIsSaving(true);
           setSaveError(null);
 
           const {
@@ -3067,12 +3276,6 @@ export default function TripOrganiserPage() {
                               className={styles.imagePreview}
                             />
                             <div className={styles.tripImageTextOverlay}>
-                              {showSelectedDestination ? (
-                                <p className={styles.tripImageMeta}>
-                                  <FiMapPin />
-                                  <span>Destination</span>
-                                </p>
-                              ) : null}
                               {showSelectedDestination && isEditingDestination ? (
                                 <input
                                   value={tripForm.destination}
@@ -3123,7 +3326,7 @@ export default function TripOrganiserPage() {
                                   </h1>
                                 </button>
                               )}
-                              {showSelectedDestination && (isEditingTripTitle || !tripForm.title.trim()) ? (
+                              {showSelectedDestination && isEditingTripTitle ? (
                                 <input
                                   value={tripForm.title}
                                   onChange={(event) =>
@@ -3135,25 +3338,7 @@ export default function TripOrganiserPage() {
                                   placeholder={`${tripForm.destination} getaway`}
                                   className={styles.tripInlineSubtitleInput}
                                 />
-                              ) : (
-                                <button
-                                  type="button"
-                                  className={styles.tripInlineTrigger}
-                                  onClick={() => {
-                                    if (showSelectedDestination) {
-                                      setIsEditingTripTitle(true);
-                                      setIsEditingDestination(false);
-                                    }
-                                  }}
-                                >
-                                  <p className={styles.tripImageSubtitle}>
-                                    {tripForm.title.trim() ||
-                                      (showSelectedDestination
-                                        ? "Add a trip name next"
-                                        : "Select where this trip is going to begin")}
-                                  </p>
-                                </button>
-                              )}
+                              ) : null}
                             </div>
                             <button
                               type="button"
@@ -3353,20 +3538,120 @@ export default function TripOrganiserPage() {
 
                         {hasCoverImage ? (
                           <>
-                            <div className={styles.formGrid}>
-                              <label className={styles.field}>
-                                <span>Trip type</span>
-                                <input
-                                  value={tripForm.tripType}
-                                  onChange={(event) =>
-                                    setTripForm((current) => ({
-                                      ...current,
-                                      tripType: event.target.value,
-                                    }))
-                                  }
-                                  placeholder="Birthday, anniversary, hen, friends getaway"
-                                />
-                              </label>
+                            <section className={styles.tripStoryCard}>
+                              {isEditingDescription ? (
+                                <>
+                                  <textarea
+                                    value={pendingDescription}
+                                    onChange={(event) => setPendingDescription(event.target.value)}
+                                    placeholder="Add a short description for this trip."
+                                    rows={4}
+                                    className={styles.tripStoryTextarea}
+                                  />
+                                  <div className={styles.formActions}>
+                                    <button
+                                      type="button"
+                                      className={styles.secondaryAction}
+                                      onClick={() => void handleGenerateTripDescription()}
+                                      disabled={isGeneratingDescription || isTypingDescription}
+                                    >
+                                      {isGeneratingDescription
+                                        ? "Generating..."
+                                        : isTypingDescription
+                                          ? "Writing..."
+                                          : "Generate with AI"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={styles.primaryAction}
+                                      onClick={() => {
+                                        setTripForm((current) => ({
+                                          ...current,
+                                          description: pendingDescription,
+                                        }));
+                                        setIsEditingDescription(false);
+                                      }}
+                                    >
+                                      Save story
+                                    </button>
+                                  </div>
+                                  {aiDescriptionError ? (
+                                    <p className={styles.formError}>{aiDescriptionError}</p>
+                                  ) : null}
+                                  {tripForm.aiDescriptionGenerated ? (
+                                    <small className={styles.fieldHint}>
+                                      This description was generated from the organiser brief and can be
+                                      edited freely.
+                                    </small>
+                                  ) : null}
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className={styles.tripStoryPreview}
+                                  onClick={() => setIsEditingDescription(true)}
+                                >
+                                  <span
+                                    className={
+                                      isTypingDescription
+                                        ? `${styles.tripStoryText} ${styles.typingDescription}`
+                                        : styles.tripStoryText
+                                    }
+                                    aria-live="polite"
+                                  >
+                                    {tripForm.description || "Add a polished trip description."}
+                                    {isTypingDescription ? (
+                                      <span className={styles.typingCursor} aria-hidden="true" />
+                                    ) : null}
+                                  </span>
+                                  <small>Click to edit</small>
+                                </button>
+                              )}
+                            </section>
+
+                            <div className={styles.tripSetupGrid}>
+                              <section className={styles.tripSetupCard}>
+                                <div className={styles.rowTop}>
+                                  <span className={styles.tripSetupLabel}>Trip type</span>
+                                  {tripForm.tripType.trim() && !isEditingTripType ? (
+                                    <button
+                                      type="button"
+                                      className={styles.inlineEditLink}
+                                      onClick={() => setIsEditingTripType(true)}
+                                    >
+                                      Edit
+                                    </button>
+                                  ) : null}
+                                </div>
+                                {isEditingTripType ? (
+                                  <input
+                                    value={tripForm.tripType}
+                                    onChange={(event) =>
+                                      setTripForm((current) => ({
+                                        ...current,
+                                        tripType: event.target.value,
+                                      }))
+                                    }
+                                    onBlur={() => setIsEditingTripType(false)}
+                                    onKeyDown={(event) => {
+                                      if (event.key === "Enter") {
+                                        setIsEditingTripType(false);
+                                      }
+                                    }}
+                                    placeholder="Birthday, anniversary, friends getaway"
+                                    className={styles.tripSetupInlineInput}
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className={styles.tripSetupValueButton}
+                                    onClick={() => setIsEditingTripType(true)}
+                                  >
+                                    {tripForm.tripType.trim() || "Add trip type"}
+                                  </button>
+                                )}
+                              </section>
                               <div className={styles.field}>
                                 <span>Audience</span>
                                 <select
@@ -3710,85 +3995,9 @@ export default function TripOrganiserPage() {
                           </>
                         ) : null}
 
-                        {hasDatePlan ? (
-                          <div className={styles.field}>
-                            <div className={styles.rowTop}>
-                              <span>Description</span>
-                              {tripForm.description.trim() && !isEditingDescription ? (
-                                <button
-                                  type="button"
-                                  className={styles.inlineEditLink}
-                                  onClick={() => setIsEditingDescription(true)}
-                                >
-                                  Edit description
-                                </button>
-                              ) : null}
-                            </div>
-                            {isEditingDescription ? (
-                              <>
-                                <textarea
-                                  value={pendingDescription}
-                                  onChange={(event) => setPendingDescription(event.target.value)}
-                                  placeholder="Write a short summary of the trip"
-                                  rows={5}
-                                />
-                                <div className={styles.formActions}>
-                                  <button
-                                    type="button"
-                                    className={styles.secondaryAction}
-                                    onClick={() => void handleGenerateTripDescription()}
-                                    disabled={isGeneratingDescription || isTypingDescription}
-                                  >
-                                    {isGeneratingDescription
-                                      ? "Generating..."
-                                      : isTypingDescription
-                                        ? "Writing..."
-                                        : "Generate with AI"}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className={styles.primaryAction}
-                                    onClick={() => {
-                                      setTripForm((current) => ({
-                                        ...current,
-                                        description: pendingDescription,
-                                      }));
-                                      setIsEditingDescription(false);
-                                    }}
-                                  >
-                                    Save description
-                                  </button>
-                                </div>
-                                {aiDescriptionError ? (
-                                  <p className={styles.formError}>{aiDescriptionError}</p>
-                                ) : null}
-                                {tripForm.aiDescriptionGenerated ? (
-                                  <small className={styles.fieldHint}>
-                                    This description was generated from the organiser brief and can be
-                                    edited freely.
-                                  </small>
-                                ) : null}
-                              </>
-                            ) : (
-                              <p
-                                className={
-                                  isTypingDescription
-                                    ? `${styles.muted} ${styles.typingDescription}`
-                                    : styles.muted
-                                }
-                                aria-live="polite"
-                              >
-                                {tripForm.description}
-                                {isTypingDescription ? (
-                                  <span className={styles.typingCursor} aria-hidden="true" />
-                                ) : null}
-                              </p>
-                            )}
-                          </div>
-                        ) : null}
-
                         {showHotelsInline ? renderHotelsSection() : null}
                       </div>
+                      {renderContinuationButton(getNextStepKey(activeStep.key))}
                     </div>
                   </div>
                 ) : null}
@@ -3895,7 +4104,7 @@ export default function TripOrganiserPage() {
               </div>
 
               {activeStep.key === "hotels" ? (
-                renderHotelsSection()
+                renderTripContinuationCard(renderHotelsSection())
               ) : null}
 
               {activeStep.key === "activities" ? (
@@ -3916,6 +4125,7 @@ export default function TripOrganiserPage() {
                   showHotels: true,
                   showActivities: true,
                   showTransport: true,
+                  onContinue: handleGoToFinalise,
                 })
               ) : null}
 
@@ -3939,35 +4149,20 @@ export default function TripOrganiserPage() {
                             : styles.stepperItem
                       }
                       onClick={() => {
-                        if (index > 0 && !tripBasicsReady) {
-                          setCreateError(
-                            "Finish destination, cover image, trip name, and your date plan before moving ahead.",
-                          );
-                          return;
-                        }
-
-                        if (index > 1 && !hasSelectedHotels) {
-                          setCreateError("Select at least one hotel before moving on to activities.");
-                          return;
-                        }
-
-                        if (index > 2 && !hasSelectedActivities) {
-                          setCreateError("Select at least one activity before moving on to transport.");
-                          return;
-                        }
-
-                        if (index > 3 && !hasSelectedTransport) {
-                          setCreateError("Select at least one transport option before moving on.");
-                          return;
-                        }
-
-                        if (index > 4 && !hasSelectedDining) {
-                          setCreateError("Select at least one dining option before moving to review.");
+                        if (!validateBeforeStep(step.key)) {
                           return;
                         }
 
                         setCreateError(null);
                         setHotelSearchQuery((current) => current || tripForm.destination.trim());
+                        if (
+                          step.key !== activeStep.key &&
+                          isStepComplete(step.key) &&
+                          scrollToCompletedSummary(step.key)
+                        ) {
+                          return;
+                        }
+
                         setActiveStepIndex(index);
                         persistCurrentDraft(step.key);
                       }}
@@ -3998,17 +4193,11 @@ export default function TripOrganiserPage() {
                   <div className={styles.stepperDockAction}>
                     <button
                       type="button"
-                      className={styles.primaryAction}
-                      disabled={!hasSelectedHotels}
-                      onClick={() => {
-                        if (!hasSelectedHotels) {
-                          setCreateError("Select at least one hotel before moving on to activities.");
-                          return;
-                        }
-
-                        setCreateError(null);
-                        goToStep("activities");
-                      }}
+	                      className={styles.primaryAction}
+	                      disabled={!hasSelectedHotels}
+	                      onClick={() => {
+	                        continueToStep("activities");
+	                      }}
                     >
                       Mark hotels complete
                     </button>
@@ -4017,17 +4206,11 @@ export default function TripOrganiserPage() {
                   <div className={styles.stepperDockAction}>
                     <button
                       type="button"
-                      className={styles.primaryAction}
-                      disabled={!hasSelectedActivities}
-                      onClick={() => {
-                        if (!hasSelectedActivities) {
-                        setCreateError("Select at least one activity before moving on.");
-                          return;
-                        }
-
-                        setCreateError(null);
-                        goToStep("transport");
-                      }}
+	                      className={styles.primaryAction}
+	                      disabled={!hasSelectedActivities}
+	                      onClick={() => {
+	                        continueToStep("transport");
+	                      }}
                     >
                       Mark activities complete
                     </button>
@@ -4036,17 +4219,11 @@ export default function TripOrganiserPage() {
                   <div className={styles.stepperDockAction}>
                     <button
                       type="button"
-                      className={styles.primaryAction}
-                      disabled={!hasSelectedTransport}
-                      onClick={() => {
-                        if (!hasSelectedTransport) {
-                        setCreateError("Select at least one transport option before moving on.");
-                          return;
-                        }
-
-                        setCreateError(null);
-                        goToStep("dining");
-                      }}
+	                      className={styles.primaryAction}
+	                      disabled={!hasSelectedTransport}
+	                      onClick={() => {
+	                        continueToStep("dining");
+	                      }}
                     >
                       Mark transport complete
                     </button>
@@ -4055,16 +4232,11 @@ export default function TripOrganiserPage() {
                   <div className={styles.stepperDockAction}>
                     <button
                       type="button"
-                      className={styles.primaryAction}
-                      disabled={!hasSelectedDining || loading}
-                      onClick={() => {
-                        if (!hasSelectedDining) {
-                          setCreateError("Select at least one dining option before finalising.");
-                          return;
-                        }
-
-                        handleGoToFinalise();
-                      }}
+	                      className={styles.primaryAction}
+	                      disabled={!hasSelectedDining || loading}
+	                      onClick={() => {
+	                        handleGoToFinalise();
+	                      }}
                     >
                       Review and finalise
                     </button>

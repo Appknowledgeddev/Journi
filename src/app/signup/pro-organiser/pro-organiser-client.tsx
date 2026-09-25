@@ -141,10 +141,10 @@ export function ProOrganiserClient({
       {!compact ? (
         <Link href="/" className={styles.pageLogo}>
           <Image
-            src="/journi-logo-app.png"
+            src="/journi-logo-current.webp"
             alt="Journi"
-            width={360}
-            height={124}
+            width={256}
+            height={256}
             className={styles.pageLogoImage}
             priority
           />

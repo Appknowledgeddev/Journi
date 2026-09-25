@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { dispatchNotificationAction } from "@/lib/notifications/dispatch";
 
 const INVITE_RESPONSE_WEBHOOK = "https://hook.eu1.make.com/6m3wyqfvgf9cmugq7uk7e6i3imrhtyky";
 
@@ -87,17 +88,36 @@ export async function POST(request: NextRequest) {
   };
 
   if (!testOnly) {
-    const { data, error: updateError } = await supabaseAdmin
+    let { data, error: updateError } = await supabaseAdmin
       .from("trip_participants")
       .update({
         status: action,
+        membership_status: action === "accepted" ? "active" : "declined",
+        attendance_status: action === "accepted" ? null : "not_going",
         response_reason: reason,
         responded_at: updatedInvite.responded_at,
         user_id: user.id,
       })
       .eq("id", inviteId)
-      .select("id, trip_id, email, full_name, role, status, invited_at, response_reason, responded_at")
+      .select("id, trip_id, email, full_name, role, status, membership_status, attendance_status, invited_at, response_reason, responded_at")
       .single();
+
+    if (updateError && updateError.message.toLowerCase().includes("membership_status")) {
+      const fallbackResult = await supabaseAdmin
+        .from("trip_participants")
+        .update({
+          status: action,
+          response_reason: reason,
+          responded_at: updatedInvite.responded_at,
+          user_id: user.id,
+        })
+        .eq("id", inviteId)
+        .select("id, trip_id, email, full_name, role, status, invited_at, response_reason, responded_at")
+        .single();
+
+      data = fallbackResult.data as typeof data;
+      updateError = fallbackResult.error;
+    }
 
     if (updateError || !data) {
       return NextResponse.json(
@@ -141,6 +161,20 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.warn("[Journi Invite Response] Unable to send response webhook", error);
+  }
+
+  if (!testOnly) {
+    await dispatchNotificationAction({
+      actionKey: action === "accepted" ? "participant.accepted" : "participant.declined",
+      tripId: trip.id,
+      actorUserId: user.id,
+      title: `${updatedInvite.full_name || user.email || "A participant"} ${action} ${trip.title}`,
+      message: `${updatedInvite.full_name || user.email || "A participant"} has ${action} the invitation to ${trip.title}.`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/trips/${trip.id}`,
+      affectedUserId: user.id,
+      affectedEmail: updatedInvite.email,
+      context: { inviteId: updatedInvite.id, responseStatus: action },
+    });
   }
 
   return NextResponse.json({

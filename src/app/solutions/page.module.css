@@ -8,7 +8,6 @@
     linear-gradient(180deg, #f5f8ff 0%, #eef3ff 38%, #f7f9fc 100%);
   color: #10203f;
 }
-
 .backgroundGlow {
   position: absolute;
   inset: -20rem auto auto -12rem;

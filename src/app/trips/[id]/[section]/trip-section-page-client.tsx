@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { TripExpenses } from "@/components/trip-expenses";
 import { AppShell } from "@/components/app-shell";
-import { JourniLoader } from "@/components/journi-loader";
 import { TripUpgradeModal } from "@/components/trip-upgrade-modal";
 import { TripVotePie } from "@/components/trip-vote-pie";
 import { supabase } from "@/lib/supabase/client";
@@ -16,6 +16,8 @@ import {
   type DiningSelection,
   formatHotelRate,
   formatTripDateRange,
+  getAttendanceStatusLabel,
+  getParticipantMembershipLabel,
   getVoteSummary,
   getTripStatusLabel,
   type HotelSelection,
@@ -49,7 +51,6 @@ const validSections: TripSectionKey[] = [
   "budget",
   "accommodation",
   "activities",
-  "discussion",
   "expenses",
   "settings",
 ];
@@ -91,7 +92,7 @@ const sectionMeta: Record<
   expenses: {
     eyebrow: "Expenses",
     title: "Expenses",
-    description: "How this trip connects to spending, payments, and cost visibility.",
+    description: "Payments and planned costs for this trip.",
   },
   settings: {
     eyebrow: "Settings",
@@ -131,9 +132,12 @@ export default function TripSectionPageClient() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
   const [isRequestingParticipation, setIsRequestingParticipation] = useState(false);
+  const [isUpdatingAttendance, setIsUpdatingAttendance] = useState(false);
+  const [reviewingParticipantId, setReviewingParticipantId] = useState<string | null>(null);
   const [plan, setPlan] = useState<Plan>("free");
   const [publishGateMessage, setPublishGateMessage] = useState<string | null>(null);
   const [participationMessage, setParticipationMessage] = useState<string | null>(null);
+  const [requestMessage, setRequestMessage] = useState("");
   const [participants, setParticipants] = useState<TripParticipant[]>([]);
   const [participantsError, setParticipantsError] = useState<string | null>(null);
   const [participantName, setParticipantName] = useState("");
@@ -235,34 +239,46 @@ export default function TripSectionPageClient() {
         return;
       }
 
+      const nextParticipants = result.participants ?? [];
+      const nextCanUseTripMessaging =
+        nextParticipants.filter(
+          (participant) =>
+            participant.membership_status === "active" || participant.status === "accepted",
+        ).length > 0;
+
       setTrip(result.trip);
-      setParticipants(result.participants ?? []);
+      setParticipants(nextParticipants);
       setHotels(result.hotels ?? []);
       setActivities(result.activities ?? []);
       setTransport(result.transport ?? []);
       setDining(result.dining ?? []);
       setAccessRole(result.accessRole ?? "participant");
 
-      const discussionResponse = await fetch(`/api/trips/${tripId}/discussion`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      if (activeSection === "discussion" && nextCanUseTripMessaging) {
+        const discussionResponse = await fetch(`/api/trips/${tripId}/discussion`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
 
-      const discussionResult = (await discussionResponse.json()) as {
-        comments?: DiscussionComment[];
-        error?: string;
-      };
+        const discussionResult = (await discussionResponse.json()) as {
+          comments?: DiscussionComment[];
+          error?: string;
+        };
 
-      if (!mounted) {
-        return;
-      }
+        if (!mounted) {
+          return;
+        }
 
-      if (!discussionResponse.ok) {
-        setDiscussionComments([]);
-        setDiscussionError(discussionResult.error || "Unable to load discussion.");
+        if (!discussionResponse.ok) {
+          setDiscussionComments([]);
+          setDiscussionError(discussionResult.error || "Unable to load discussion.");
+        } else {
+          setDiscussionComments(discussionResult.comments ?? []);
+          setDiscussionError(null);
+        }
       } else {
-        setDiscussionComments(discussionResult.comments ?? []);
+        setDiscussionComments([]);
         setDiscussionError(null);
       }
 
@@ -341,6 +357,7 @@ export default function TripSectionPageClient() {
   const workspaceSummary = useMemo(
     () =>
       trip
+      && accessRole !== "public"
         ? summariseTripWorkspace({
             trip,
             participants,
@@ -358,13 +375,17 @@ export default function TripSectionPageClient() {
             dining,
           })
         : null,
-    [activities, dining, hotels, overallProgress, participants, transport, trip, voting],
+    [accessRole, activities, dining, hotels, overallProgress, participants, transport, trip, voting],
   );
 
   const activeSectionMeta = activeSection ? sectionMeta[activeSection] : null;
 
   const activitySupportCount = transport.length + dining.length;
   const acceptedParticipants = workspaceSummary?.participantSummary.confirmed ?? 0;
+  const canUseTripMessaging =
+    participants.filter(
+      (participant) => participant.membership_status === "active" || participant.status === "accepted",
+    ).length > 0;
   const invitedParticipants = workspaceSummary?.participantSummary.invited ?? 0;
   const inactiveParticipantNames = workspaceSummary?.participantSummary.inactiveUsers ?? [];
 
@@ -374,6 +395,10 @@ export default function TripSectionPageClient() {
   );
   const canRequestParticipation =
     accessRole === "public" && !currentParticipant && Boolean(currentUserEmail);
+  const pendingApprovalParticipants = participants.filter(
+    (participant) =>
+      participant.membership_status === "pending_approval" || participant.status === "pending",
+  );
 
   const planningSummaryCards = useMemo(
     () =>
@@ -687,6 +712,7 @@ export default function TripSectionPageClient() {
       },
       body: JSON.stringify({
         action: "request_participation",
+        requestMessage,
       }),
     });
     const result = (await response.json().catch(() => null)) as {
@@ -710,7 +736,106 @@ export default function TripSectionPageClient() {
       result.message ||
         "You have been added as a potential participant. The organiser can review it before the trip is confirmed.",
     );
+    setRequestMessage("");
     setIsRequestingParticipation(false);
+  }
+
+  async function handleReviewParticipant(participantId: string, action: "approve_participant" | "decline_participant") {
+    if (!trip || accessRole !== "organiser") {
+      return;
+    }
+
+    setReviewingParticipantId(participantId);
+    setParticipantsError(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      setParticipantsError("You need to be signed in before reviewing participants.");
+      setReviewingParticipantId(null);
+      return;
+    }
+
+    const response = await fetch(`/api/trips/${trip.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        action,
+        participantId,
+      }),
+    });
+    const result = (await response.json().catch(() => null)) as {
+      error?: string;
+      participant?: TripParticipant;
+    } | null;
+
+    if (!response.ok || !result?.participant) {
+      setParticipantsError(result?.error || "Unable to review this participant.");
+      setReviewingParticipantId(null);
+      return;
+    }
+
+    setParticipants((current) =>
+      current.map((participant) =>
+        participant.id === participantId ? (result.participant as TripParticipant) : participant,
+      ),
+    );
+    setReviewingParticipantId(null);
+  }
+
+  async function handleUpdateAttendance(attendanceStatus: "going" | "maybe" | "not_going") {
+    if (!trip || accessRole !== "participant") {
+      return;
+    }
+
+    setIsUpdatingAttendance(true);
+    setTripError(null);
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      setTripError("You need to be signed in before updating attendance.");
+      setIsUpdatingAttendance(false);
+      return;
+    }
+
+    const response = await fetch(`/api/trips/${trip.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        action: "update_attendance",
+        attendanceStatus,
+      }),
+    });
+    const result = (await response.json().catch(() => null)) as {
+      error?: string;
+      participant?: TripParticipant;
+      warning?: string;
+    } | null;
+
+    if (!response.ok || !result?.participant) {
+      setTripError(result?.error || "Unable to update attendance.");
+      setIsUpdatingAttendance(false);
+      return;
+    }
+
+    setParticipants((current) =>
+      current.map((participant) =>
+        participant.id === result.participant?.id ? (result.participant as TripParticipant) : participant,
+      ),
+    );
+    setParticipationMessage(result.warning ?? null);
+    setIsUpdatingAttendance(false);
   }
 
   async function handleDeleteTrip() {
@@ -1199,6 +1324,27 @@ export default function TripSectionPageClient() {
         );
 
       case "discussion":
+        if (!canUseTripMessaging) {
+          return (
+            <section className={styles.tripWorkspaceSectionCard}>
+              <div className={styles.tripWorkspaceSectionTop}>
+                <div>
+                  <p className={styles.eyebrow}>Messaging</p>
+                  <h2>Group messaging</h2>
+                </div>
+                <Link href={`/trips/${tripId}`} className={styles.tripSectionToggle}>
+                  Back to trip →
+                </Link>
+              </div>
+              <div className={styles.emptyState}>
+                <p>
+                  Messaging will appear once a participant has been approved for this trip.
+                </p>
+              </div>
+            </section>
+          );
+        }
+
         return (
           <section className={styles.tripWorkspaceSectionCard}>
             <div className={styles.tripWorkspaceSectionTop}>
@@ -1354,36 +1500,7 @@ export default function TripSectionPageClient() {
         );
 
       case "expenses":
-        return (
-          <section className={styles.tripWorkspaceSectionCard}>
-            <div className={styles.tripWorkspaceCardGrid}>
-              <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
-                <span className={styles.tripFactLabel}>Expense tracking</span>
-                <strong>Trip-level costs are supported</strong>
-                <p className={styles.muted}>
-                  Review trip-linked payments, selected planning costs, and shared spend in one place.
-                </p>
-                <div className={styles.tripMetricRow}>
-                  <span className={styles.tripMetricPill}>
-                    {hotels.length + activities.length + transport.length + dining.length} planned items
-                  </span>
-                </div>
-              </div>
-              <div className={`${styles.infoCard} ${styles.infoCardCompact}`}>
-                <span className={styles.tripFactLabel}>Trip cost context</span>
-                <strong>Open the wider expenses workspace</strong>
-                <p className={styles.muted}>
-                  Use the full expenses area when you need payment history, reconciliations, and all spend together.
-                </p>
-              </div>
-            </div>
-            <div className={styles.formActions}>
-              <Link href="/my-expenses" className={styles.secondaryActionLink}>
-                Open expenses workspace
-              </Link>
-            </div>
-          </section>
-        );
+        return <TripExpenses key={trip.id} tripId={trip.id} />;
 
       case "settings":
         return (
@@ -1513,19 +1630,98 @@ export default function TripSectionPageClient() {
                 <p className={styles.publishGateCopy}>
                   {participationMessage ||
                     (currentParticipant
-                      ? `Your participant status is ${currentParticipant.status}.`
+                      ? `Your membership status is ${getParticipantMembershipLabel(currentParticipant)}. ${getAttendanceStatusLabel(currentParticipant.attendance_status)}.`
                       : "Add yourself as a potential participant so the organiser can see your interest before the trip is confirmed.")}
                 </p>
                 {canRequestParticipation ? (
-                  <button
-                    type="button"
-                    className={styles.primaryAction}
-                    onClick={() => void handleRequestParticipation()}
-                    disabled={isRequestingParticipation}
-                  >
-                    {isRequestingParticipation ? "Adding you..." : "I’m interested"}
-                  </button>
+                  <div className={styles.optionStack}>
+                    <label className={styles.field}>
+                      <span>Request message</span>
+                      <textarea
+                        value={requestMessage}
+                        onChange={(event) => setRequestMessage(event.target.value)}
+                        placeholder="Tell the organiser a little about yourself. Optional."
+                        rows={3}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className={styles.primaryAction}
+                      onClick={() => void handleRequestParticipation()}
+                      disabled={isRequestingParticipation}
+                    >
+                      {isRequestingParticipation ? "Adding you..." : "I’m interested"}
+                    </button>
+                  </div>
                 ) : null}
+              </div>
+            ) : null}
+            {accessRole === "participant" && currentParticipant ? (
+              <div className={styles.publishGateCard}>
+                <p className={styles.publishGateTitle}>Your attendance</p>
+                <p className={styles.publishGateCopy}>
+                  Membership and attendance are separate. You are an active participant; now tell the organiser whether you are going.
+                </p>
+                <div className={styles.tripFilter}>
+                  {[
+                    ["going", "Going"],
+                    ["maybe", "Maybe"],
+                    ["not_going", "Not going"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      className={
+                        currentParticipant.attendance_status === value
+                          ? styles.tripFilterButtonActive
+                          : styles.tripFilterButton
+                      }
+                      onClick={() => void handleUpdateAttendance(value as "going" | "maybe" | "not_going")}
+                      disabled={isUpdatingAttendance}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {accessRole === "organiser" && pendingApprovalParticipants.length > 0 ? (
+              <div className={styles.publishGateCard}>
+                <p className={styles.publishGateTitle}>Pending approval</p>
+                <p className={styles.publishGateCopy}>
+                  Review public trip interest before people become active participants.
+                </p>
+                <div className={styles.participantsList}>
+                  {pendingApprovalParticipants.map((participant) => (
+                    <article key={participant.id} className={styles.participantCard}>
+                      <div className={styles.rowTop}>
+                        <span className={styles.rowTitle}>{participant.full_name || participant.email}</span>
+                        <span className={styles.badge}>{getParticipantMembershipLabel(participant)}</span>
+                      </div>
+                      {participant.request_message ? (
+                        <p className={styles.muted}>{participant.request_message}</p>
+                      ) : null}
+                      <div className={styles.headerActions}>
+                        <button
+                          type="button"
+                          className={styles.primaryAction}
+                          onClick={() => void handleReviewParticipant(participant.id, "approve_participant")}
+                          disabled={reviewingParticipantId === participant.id}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.secondaryAction}
+                          onClick={() => void handleReviewParticipant(participant.id, "decline_participant")}
+                          disabled={reviewingParticipantId === participant.id}
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               </div>
             ) : null}
             <div className={styles.participantsList}>
@@ -1538,11 +1734,11 @@ export default function TripSectionPageClient() {
                   <article key={participant.id} className={styles.participantCard}>
                     <div className={styles.rowTop}>
                       <span className={styles.rowTitle}>{participant.full_name || participant.email}</span>
-                      <span className={styles.badge}>{participant.status}</span>
+                      <span className={styles.badge}>{getParticipantMembershipLabel(participant)}</span>
                     </div>
                     <div className={styles.tripMetaRow}>
                       <span>{participant.email}</span>
-                      <span>{participant.role}</span>
+                      <span>{getAttendanceStatusLabel(participant.attendance_status)}</span>
                     </div>
                   </article>
                 ))
@@ -1645,7 +1841,7 @@ export default function TripSectionPageClient() {
                     )}
                   </div>
                 </div>
-                {workspaceSummary ? (
+                {activeSection !== "expenses" && workspaceSummary ? (
                   <div className={styles.tripQuestionGrid}>
                     <div className={styles.tripQuestionCard}>
                       <span className={styles.tripFactLabel}>Current phase</span>
@@ -1665,7 +1861,7 @@ export default function TripSectionPageClient() {
                     </div>
                   </div>
                 ) : null}
-                {workspaceSummary ? (
+                {activeSection !== "expenses" && workspaceSummary ? (
                   <div className={styles.tripMetricRow}>
                     <span className={styles.tripMetricPill}>
                       {workspaceSummary.participantSummary.invited} invited
@@ -1687,7 +1883,7 @@ export default function TripSectionPageClient() {
                     ) : null}
                   </div>
                 ) : null}
-                {workspaceSummary ? (
+                {activeSection !== "expenses" && workspaceSummary ? (
                   <p className={styles.metricMeta}>
                     {workspaceSummary.confidenceScore}% confidence. {workspaceSummary.confidenceMessage} {workspaceSummary.latestChange}
                   </p>
@@ -1696,15 +1892,6 @@ export default function TripSectionPageClient() {
 
               <div className={styles.tripSectionPageContent}>{renderSectionContent()}</div>
             </div>
-          ) : null}
-
-          {loadingTrip ? (
-            <section className={styles.panel}>
-              <JourniLoader
-                title="Opening trip section"
-                detail="Loading the latest trip details and planning choices."
-              />
-            </section>
           ) : null}
 
           <TripUpgradeModal

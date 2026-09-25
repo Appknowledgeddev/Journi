@@ -1,5 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logBackofficeActivity } from "@/lib/backoffice/activity";
 import { supabaseAdmin, supabaseServerPublic } from "@/lib/supabase/server";
+
+function getBearerToken(request: NextRequest) {
+  const authHeader = request.headers.get("authorization") ?? "";
+  return authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
+}
+
+async function getActor(request: NextRequest) {
+  const token = getBearerToken(request);
+
+  if (!token) {
+    return null;
+  }
+
+  const {
+    data: { user },
+  } = await supabaseAdmin.auth.getUser(token);
+
+  return user ? { id: user.id, email: user.email } : null;
+}
+
+async function logInviteNotification(args: {
+  request: NextRequest;
+  tripId: string;
+  recipientEmail: string;
+  status: "sent" | "failed";
+  error?: string | null;
+}) {
+  const actor = await getActor(args.request);
+
+  await logBackofficeActivity({
+    actor,
+    action: `notification.${args.status}`,
+    tableName: "notifications",
+    recordId: `participant_invited:${args.recipientEmail}`,
+    tripId: args.tripId || null,
+    summary: `Trip invite sent ${args.status === "sent" ? "for" : "failed for"} ${args.recipientEmail}`,
+    metadata: {
+      notification: {
+        triggerKey: "participant_invited",
+        title: "Trip invite sent",
+        recipientEmail: args.recipientEmail,
+        actorEmail: actor?.email ?? null,
+        channel: "Email",
+        status: args.status,
+        error: args.error ?? null,
+      },
+    },
+  });
+}
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as {
@@ -35,11 +85,19 @@ export async function POST(request: NextRequest) {
     );
 
     if (existingUser?.id && tripId) {
-      await supabaseAdmin
+      const { error: linkError } = await supabaseAdmin
         .from("trip_participants")
-        .update({ user_id: existingUser.id, status: "linked" })
+        .update({ user_id: existingUser.id, status: "linked", membership_status: "invited" })
         .eq("trip_id", tripId)
         .eq("email", email);
+
+      if (linkError?.message.toLowerCase().includes("membership_status")) {
+        await supabaseAdmin
+          .from("trip_participants")
+          .update({ user_id: existingUser.id, status: "linked" })
+          .eq("trip_id", tripId)
+          .eq("email", email);
+      }
     }
 
     if (existingUser) {
@@ -57,8 +115,22 @@ export async function POST(request: NextRequest) {
       });
 
       if (error) {
+        await logInviteNotification({
+          request,
+          tripId,
+          recipientEmail: email,
+          status: "failed",
+          error: error.message,
+        });
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
+
+      await logInviteNotification({
+        request,
+        tripId,
+        recipientEmail: email,
+        status: "sent",
+      });
 
       return NextResponse.json({ success: true, mode: "existing-user" });
     }
@@ -73,8 +145,22 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
+      await logInviteNotification({
+        request,
+        tripId,
+        recipientEmail: email,
+        status: "failed",
+        error: error.message,
+      });
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    await logInviteNotification({
+      request,
+      tripId,
+      recipientEmail: email,
+      status: "sent",
+    });
 
     return NextResponse.json({ success: true, mode: "new-user" });
   } catch (error) {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isMissingTripDateMode } from "@/lib/trips/invite-schema";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 type TripDetail = {
@@ -58,11 +59,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invite not found for this user." }, { status: 404 });
   }
 
-  const { data: trip, error: tripError } = await supabaseAdmin
+  let { data: trip, error: tripError } = await supabaseAdmin
     .from("trips")
     .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url")
     .eq("id", invite.trip_id)
     .single();
+
+  if (isMissingTripDateMode(tripError)) {
+    const fallback = await supabaseAdmin.from("trips")
+      .select("id, title, destination, description, status, starts_at, ends_at, voting_deadline, cover_image_url")
+      .eq("id", invite.trip_id).single();
+    trip = fallback.data ? { ...fallback.data, date_mode: null } : null;
+    tripError = fallback.error;
+  }
 
   if (tripError || !trip) {
     return NextResponse.json({ error: "Trip not found for this invite." }, { status: 404 });

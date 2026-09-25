@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CSSProperties, ChangeEvent, PointerEvent as ReactPointerEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import {
-  FiBell,
   FiChevronDown,
   FiCreditCard,
+  FiExternalLink,
   FiGlobe,
   FiHome,
   FiLogOut,
@@ -21,6 +21,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { Menu, MenuItem, Sidebar } from "react-pro-sidebar";
+import { isAssumedSession } from "@/lib/auth/assumed-session";
 import { hasStoredActiveSubscription } from "@/lib/auth/routing";
 import {
   clampProfilePosition,
@@ -28,6 +29,7 @@ import {
   resolveProfileBackgroundStyle,
 } from "@/lib/profile-card";
 import { supabase } from "@/lib/supabase/client";
+import { AccountNotifications } from "./account-notifications";
 import { UpgradePlanModal } from "./upgrade-plan-modal";
 import styles from "./app-shell.module.css";
 
@@ -59,6 +61,10 @@ type AppShellProps = {
   children: (state: ShellState) => ReactNode;
   headerBadge?: string;
   headerAction?: ReactNode;
+  headerActionInline?: boolean;
+  compactTitle?: boolean;
+  dockPanel?: ReactNode;
+  dockPanelOpen?: boolean;
 };
 
 const navLinks = [
@@ -71,26 +77,8 @@ const navLinks = [
   { label: "My expenses", href: "/my-expenses", icon: <FiCreditCard /> },
 ];
 
-const testNotifications = [
-  {
-    id: "trip-vote",
-    title: "New votes on Lisbon getaway",
-    detail: "Two travellers just voted on hotels and activities.",
-    time: "2m ago",
-  },
-  {
-    id: "invite-accepted",
-    title: "Trip invite accepted",
-    detail: "Sophie accepted your invitation to Mallorca Summer Escape.",
-    time: "18m ago",
-  },
-  {
-    id: "profile-reminder",
-    title: "Finish your profile card",
-    detail: "Add your background and profile photo to complete your card.",
-    time: "Today",
-  },
-];
+const assumedSessionHiddenNavHrefs = new Set(["/my-expenses"]);
+const assumedSessionRestrictedPaths = ["/payments", "/profile", "/settings", "/subscription"];
 
 export function AppShell({
   kicker,
@@ -99,6 +87,10 @@ export function AppShell({
   children,
   headerBadge,
   headerAction,
+  headerActionInline = false,
+  compactTitle = false,
+  dockPanel,
+  dockPanelOpen = false,
 }: AppShellProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -140,6 +132,7 @@ export function AppShell({
   const [profilePromptOpen, setProfilePromptOpen] = useState(false);
   const [profilePromptClosing, setProfilePromptClosing] = useState(false);
   const [celebrationActive, setCelebrationActive] = useState(false);
+  const [assumedSession, setAssumedSession] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const backgroundInputRef = useRef<HTMLInputElement | null>(null);
   const profilePromptAvatarStageRef = useRef<HTMLDivElement | null>(null);
@@ -151,6 +144,42 @@ export function AppShell({
       avatarUrl.trim() &&
       (backgroundUrl.trim() || backgroundPattern.trim()),
   );
+
+  useEffect(() => {
+    setAssumedSession(isAssumedSession());
+  }, [pathname]);
+
+  useEffect(() => {
+    function replaceBrokenImage(event: Event) {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement)) return;
+      if (image.dataset.journiFallbackApplied === "true") return;
+
+      image.dataset.journiFallbackApplied = "true";
+      image.srcset = "";
+      image.src = "/images/journi-image-placeholder-pale.svg";
+      if (!image.alt) image.alt = "Journi beach placeholder";
+    }
+
+    document.addEventListener("error", replaceBrokenImage, true);
+    return () => document.removeEventListener("error", replaceBrokenImage, true);
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    let stopped = false;
+    async function heartbeat() {
+      if (stopped || document.visibilityState !== "visible") return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      await fetch("/api/notifications/presence", { method: "POST", headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ path: window.location.pathname }) }).catch(() => undefined);
+    }
+    void heartbeat();
+    const interval = window.setInterval(() => void heartbeat(), 60_000);
+    const onVisibility = () => { if (document.visibilityState === "visible") void heartbeat(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => { stopped = true; window.clearInterval(interval); document.removeEventListener("visibilitychange", onVisibility); };
+  }, [userId, pathname]);
 
   useEffect(() => {
     let mounted = true;
@@ -373,6 +402,10 @@ export function AppShell({
 
   useEffect(() => {
     function handleOpenProfileCard() {
+      if (isAssumedSession()) {
+        return;
+      }
+
       setProfilePromptError(null);
       setProfilePromptClosing(false);
       setProfilePromptOpen(true);
@@ -386,6 +419,10 @@ export function AppShell({
 
   useEffect(() => {
     function handleDebugStartTour() {
+      if (isAssumedSession()) {
+        return;
+      }
+
       void startIntroTour(true);
     }
 
@@ -442,7 +479,7 @@ export function AppShell({
   }
 
   async function startIntroTour(force = false) {
-    if (!userId || introTourActiveRef.current) {
+    if (!userId || introTourActiveRef.current || isAssumedSession()) {
       return;
     }
 
@@ -517,6 +554,7 @@ export function AppShell({
     if (
       loading ||
       !userId ||
+      assumedSession ||
       !profileComplete ||
       pathname === "/profile" ||
       profilePromptOpen ||
@@ -531,7 +569,7 @@ export function AppShell({
     }, 350);
 
     return () => window.clearTimeout(timeoutId);
-  }, [celebrationActive, loading, pathname, profileComplete, profilePromptClosing, profilePromptOpen, userId]);
+  }, [assumedSession, celebrationActive, loading, pathname, profileComplete, profilePromptClosing, profilePromptOpen, userId]);
 
   useEffect(() => {
     function handleProfileSaved(event: Event) {
@@ -539,6 +577,10 @@ export function AppShell({
         event instanceof CustomEvent ? (event.detail as { profileComplete?: boolean } | undefined) : undefined;
 
       if (!detail?.profileComplete) {
+        return;
+      }
+
+      if (isAssumedSession()) {
         return;
       }
 
@@ -560,6 +602,18 @@ export function AppShell({
       return;
     }
 
+    if (assumedSession) {
+      if (
+        assumedSessionRestrictedPaths.some(
+          (path) => pathname === path || pathname.startsWith(`${path}/`),
+        )
+      ) {
+        router.replace("/dashboard");
+        router.refresh();
+      }
+      return;
+    }
+
     const checkoutComplete = searchParams.get("checkout") === "complete";
     const checkoutProduct = searchParams.get("product");
     const isReturningFromProCheckout =
@@ -573,7 +627,7 @@ export function AppShell({
       router.replace("/signup/pro-organiser/payment");
       router.refresh();
     }
-  }, [loading, pathname, plan, searchParams, subscriptionStatus, router]);
+  }, [assumedSession, loading, pathname, plan, searchParams, subscriptionStatus, router]);
 
   async function handleLogout() {
     setProfileOpen(false);
@@ -621,6 +675,9 @@ export function AppShell({
       : "Free plan";
   const avatarSource = fullName || email || "J";
   const avatarLetter = avatarSource.trim().charAt(0).toUpperCase();
+  const visibleNavLinks = assumedSession
+    ? navLinks.filter((item) => !assumedSessionHiddenNavHrefs.has(item.href))
+    : navLinks;
 
   async function uploadProfileAsset(
     file: File,
@@ -811,7 +868,7 @@ export function AppShell({
 
       if (profilePromptFullyComplete) {
         window.setTimeout(() => {
-          if (celebrationActive) {
+          if (celebrationActive || isAssumedSession()) {
             return;
           }
 
@@ -853,6 +910,7 @@ export function AppShell({
   const showProfilePrompt =
     !loading &&
     userId &&
+    !assumedSession &&
     pathname !== "/profile" &&
     !celebrationActive &&
     (profilePromptOpen || (!profileComplete && !profilePromptDismissed));
@@ -872,14 +930,20 @@ export function AppShell({
 
   return (
     <main className={styles.page}>
-      <div className={styles.shellFrame}>
-        <div className={styles.environmentBanner}>
-          <strong>MVP status</strong>
-          <span>
-            Journi is currently in MVP production stage. Features and flows are still being
-            refined.
-          </span>
-        </div>
+      <div className={dockPanelOpen ? styles.shellDevToolsFrameOpen : styles.shellDevToolsFrame}>
+        <div className={styles.shellFrame}>
+        {assumedSession ? (
+          <div className={styles.assumedSessionBanner}>
+            <strong>Admin view active</strong>
+            <span>
+              You are viewing this account through backoffice. Profile setup, password areas,
+              account details, and payment information are hidden.
+            </span>
+            <Link href="/backoffice" target="_blank" rel="noopener noreferrer" className={styles.assumedSessionBackoffice}>
+              Open backoffice <FiExternalLink aria-hidden="true" />
+            </Link>
+          </div>
+        ) : null}
 
         <div className={sidebarCollapsed ? styles.appShellCollapsed : styles.appShell}>
           <Sidebar
@@ -911,10 +975,18 @@ export function AppShell({
               role="button"
               tabIndex={0}
               onClick={() => {
+                if (assumedSession) {
+                  return;
+                }
+
                 setProfilePromptError(null);
                 setProfilePromptOpen(true);
               }}
               onKeyDown={(event) => {
+                if (assumedSession) {
+                  return;
+                }
+
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
                   setProfilePromptError(null);
@@ -977,7 +1049,7 @@ export function AppShell({
                 },
               }}
             >
-              {navLinks.map((item) => (
+              {visibleNavLinks.map((item) => (
                 <MenuItem
                   key={item.href}
                   active={pathname === item.href}
@@ -1016,66 +1088,26 @@ export function AppShell({
             <header className={styles.topNav}>
             <Link href="/dashboard" className={styles.topLogo}>
               <Image
-                src="/journi-logo-app.png"
+                src="/journi-logo-current.webp"
                 alt="Journi"
-                width={220}
-                height={78}
+                width={256}
+                height={256}
                 className={styles.topLogoImage}
                 priority
               />
             </Link>
 
             <div className={styles.topActions}>
-              <div className={styles.notificationsMenu}>
-                <button
-                  type="button"
-                  className={`${styles.notificationButton} journi-tour-notifications`}
-                  onClick={() => {
-                    setNotificationsOpen((current) => !current);
-                    setProfileOpen(false);
-                  }}
-                  aria-expanded={notificationsOpen}
-                  aria-label="Open notifications"
-                >
-                  <FiBell />
-                  <span className={styles.notificationBadge}>{testNotifications.length}</span>
-                </button>
-
-                {notificationsOpen ? (
-                  <div className={styles.notificationsDropdown}>
-                    <div className={styles.notificationsHeader}>
-                      <div>
-                        <p className={styles.notificationsTitle}>Notifications</p>
-                        <p className={styles.notificationsMeta}>
-                          {testNotifications.length} new updates
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className={styles.notificationsList}>
-                      {testNotifications.map((notification) => (
-                        <button
-                          key={notification.id}
-                          type="button"
-                          className={styles.notificationItem}
-                          onClick={() => setNotificationsOpen(false)}
-                        >
-                          <span className={styles.notificationDot} />
-                          <span className={styles.notificationCopy}>
-                            <span className={styles.notificationItemTitle}>
-                              {notification.title}
-                            </span>
-                            <span className={styles.notificationItemDetail}>
-                              {notification.detail}
-                            </span>
-                          </span>
-                          <span className={styles.notificationTime}>{notification.time}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
+              <AccountNotifications
+                key={userId || "signed-out"}
+                userId={userId}
+                open={notificationsOpen}
+                onToggle={() => {
+                  setNotificationsOpen((current) => !current);
+                  setProfileOpen(false);
+                }}
+                onClose={() => setNotificationsOpen(false)}
+              />
 
               <div className={styles.profileMenu}>
                 <button
@@ -1095,9 +1127,15 @@ export function AppShell({
                   )}
                   <span className={styles.profileButtonMeta}>
                       <span className={styles.profileButtonText}>
-                      {loading ? "Loading..." : fullName || email || "Journi organiser"}
+                      {loading
+                        ? "Loading..."
+                        : assumedSession
+                          ? "Assumed account"
+                          : fullName || email || "Journi organiser"}
                       </span>
-                    <span className={styles.profileButtonPlan}>{loading ? "..." : planLabel}</span>
+                    <span className={styles.profileButtonPlan}>
+                      {loading ? "..." : assumedSession ? "Admin view" : planLabel}
+                    </span>
                   </span>
                   <FiChevronDown className={profileOpen ? styles.profileChevronOpen : styles.profileChevron} />
                 </button>
@@ -1114,50 +1152,73 @@ export function AppShell({
                         <p className={styles.profileName}>
                           {loading
                             ? "Loading organiser..."
-                            : fullName || email || "Journi organiser"}
+                            : assumedSession
+                              ? "Assumed account"
+                              : fullName || email || "Journi organiser"}
                         </p>
-                        <p className={styles.profilePlan}>{planLabel}</p>
+                        <p className={styles.profilePlan}>
+                          {assumedSession ? "Sensitive account details hidden" : planLabel}
+                        </p>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      className={styles.dropdownItem}
-                      onClick={() => {
-                        setProfileOpen(false);
-                        if (isPro) {
-                          router.push("/subscription");
-                          return;
-                        }
+                    {assumedSession ? (
+                      <div className={styles.dropdownNotice}>
+                        Profile, password, and billing areas are hidden while assuming this
+                        account.
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.dropdownItem}
+                          onClick={() => {
+                            setProfileOpen(false);
+                            if (isPro) {
+                              router.push("/subscription");
+                              return;
+                            }
 
-                        setUpgradeOpen(true);
-                      }}
-                    >
-                      <FiChevronDown />
-                      <span>{isPro ? "Manage subscription" : "Update plan"}</span>
-                    </button>
-                    <button
-                      type="button"
+                            setUpgradeOpen(true);
+                          }}
+                        >
+                          <FiChevronDown />
+                          <span>{isPro ? "Manage subscription" : "Update plan"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.dropdownItem}
+                          onClick={() => {
+                            setProfileOpen(false);
+                            router.push("/profile");
+                          }}
+                        >
+                          <FiUser />
+                          <span>Profile</span>
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.dropdownItem}
+                          onClick={() => {
+                            setProfileOpen(false);
+                            router.push("/settings");
+                          }}
+                        >
+                          <FiSettings />
+                          <span>Settings</span>
+                        </button>
+                      </>
+                    )}
+                    <Link
+                      href="/backoffice"
+                      target="_blank"
+                      rel="noreferrer"
                       className={styles.dropdownItem}
-                      onClick={() => {
-                        setProfileOpen(false);
-                        router.push("/profile");
-                      }}
-                    >
-                      <FiUser />
-                      <span>Profile</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.dropdownItem}
-                      onClick={() => {
-                        setProfileOpen(false);
-                        router.push("/settings");
-                      }}
+                      onClick={() => setProfileOpen(false)}
                     >
                       <FiSettings />
-                      <span>Settings</span>
-                    </button>
+                      <span>Backoffice</span>
+                    </Link>
                     <button type="button" className={styles.dropdownItem} onClick={handleLogout}>
                       <FiX />
                       <span>Log out</span>
@@ -1170,7 +1231,7 @@ export function AppShell({
 
             <div className={styles.contentScroll}>
             {hasPageHeader ? (
-              <header className={styles.pageHeader}>
+              <header className={`${styles.pageHeader} ${headerActionInline ? styles.pageHeaderInline : ""} ${compactTitle ? styles.compactPageTitle : ""}`}>
                 <div className={styles.pageHeaderLeft}>
                   <p className={styles.kicker} suppressHydrationWarning>
                     {kicker ?? ""}
@@ -1481,6 +1542,8 @@ export function AppShell({
             </div>
           </section>
         </div>
+        </div>
+        {dockPanelOpen ? <div className={styles.shellDevToolsPane}>{dockPanel}</div> : null}
       </div>
 
       <UpgradePlanModal

@@ -10,6 +10,31 @@
   flex-direction: column;
 }
 
+.shellDevToolsFrame,
+.shellDevToolsFrameOpen {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.shellDevToolsFrameOpen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+}
+
+.shellDevToolsFrameOpen .shellFrame {
+  min-width: 0;
+}
+
+.shellDevToolsPane {
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid rgba(26, 38, 55, 0.22);
+  background: #eef2f6;
+  box-shadow: -8px 0 24px rgba(17, 38, 64, 0.12);
+}
+
 .appShell {
   --shell-sidebar-width: 290px;
   --shell-main-padding: 24px;
@@ -377,19 +402,32 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 86px;
-  padding: 20px 0 14px;
+  flex-shrink: 0;
+  height: 64px;
+  padding: 7px 0;
   border-bottom: 1px solid rgba(24, 49, 83, 0.08);
   box-shadow: 0 10px 18px -18px rgba(17, 38, 64, 0.45);
 }
 
 .topLogo {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
+  width: 144px;
+  height: 48px;
+  overflow: hidden;
   line-height: 0;
 }
 
 .topLogoImage {
-  width: auto;
-  height: 72px;
+  /* The square source has generous transparent padding around the wordmark. */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 176px;
+  height: 176px;
+  max-width: none;
+  transform: translate(-50%, -44%);
 }
 
 .topActions {
@@ -428,6 +466,42 @@
   min-width: 0;
   font-weight: 800;
 }
+
+.assumedSessionBanner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 24px;
+  margin: 0;
+  padding: 3px 18px;
+  border: 0;
+  border-bottom: 1px solid rgba(180, 83, 9, 0.2);
+  background: #fffbeb;
+  color: #7c2d12;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.assumedSessionBanner strong {
+  color: #9a3412;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.assumedSessionBanner span {
+  min-width: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.assumedSessionBackoffice { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 4px 8px; border: 1px solid #e9cfa1; border-radius: 6px; color: #92400e; font-size: .7rem; font-weight: 700; text-decoration: none; }
+.assumedSessionBackoffice:hover { background: #fef3c7; }
+.assumedSessionBackoffice:focus-visible { outline: 2px solid #b45309; outline-offset: 2px; }
 
 .notificationsMenu,
 .profileMenu {
@@ -474,6 +548,11 @@
 
 .notificationsDropdown {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  max-height: min(440px, calc(100dvh - 100px));
+  box-sizing: border-box;
+  overflow: hidden;
   top: calc(100% + 10px);
   right: 0;
   width: 320px;
@@ -487,6 +566,7 @@
 
 .notificationsHeader {
   display: flex;
+  flex-shrink: 0;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
@@ -514,16 +594,40 @@
 
 .notificationsList {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+}
+
+.notificationsReadAll {
+  border: 0;
+  padding: 4px;
+  background: transparent;
+  color: var(--brand-accent-strong);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.notificationsReadAll:disabled,
+.notificationItem:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .notificationItem {
+  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: 10px;
   width: 100%;
-  padding: 10px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px 4px;
   border: 0;
   border-radius: 14px;
   background: transparent;
@@ -536,9 +640,11 @@
 }
 
 .notificationDot {
+  position: absolute;
+  right: 4px;
+  top: 30px;
   width: 8px;
   height: 8px;
-  margin-top: 6px;
   border-radius: 999px;
   background: var(--brand-accent);
 }
@@ -547,15 +653,24 @@
   display: grid;
   gap: 4px;
   min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .notificationItemTitle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   color: #112640;
   font-size: 0.84rem;
   font-weight: 800;
 }
 
 .notificationItemDetail {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   color: rgba(24, 49, 83, 0.72);
   font-size: 0.78rem;
   line-height: 1.45;
@@ -721,6 +836,7 @@
   font-size: 0.86rem;
   font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .dropdownItem:hover {
@@ -730,6 +846,18 @@
 .dropdownItem :global(svg) {
   width: 16px;
   height: 16px;
+}
+
+.dropdownNotice {
+  margin: 8px 0;
+  padding: 10px;
+  border: 1px solid rgba(180, 83, 9, 0.18);
+  border-radius: 12px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.35;
 }
 
 .contentScroll {
@@ -1186,6 +1314,8 @@
   max-width: 58rem;
 }
 
+.pageHeader.pageHeaderInline { justify-content: flex-start; align-items: center; flex-direction: row; flex-wrap: wrap; gap: 12px 20px; }
+
 .kicker {
   color: #cf6d2e;
   font-size: 0.8rem;
@@ -1231,6 +1361,14 @@
 }
 
 @media (max-width: 1100px) {
+  .shellDevToolsFrameOpen {
+    display: block;
+  }
+
+  .shellDevToolsPane {
+    display: none;
+  }
+
   .appShell,
   .appShellCollapsed {
     --shell-sidebar-width: 0px;
@@ -1253,7 +1391,6 @@
     padding-inline: 18px;
   }
 
-  .topNav,
   .pageHeader {
     flex-direction: column;
     align-items: flex-start;
@@ -1282,7 +1419,7 @@
   }
 
   .topActions {
-    width: 100%;
+    min-width: 0;
     justify-content: flex-end;
   }
 
@@ -1304,3 +1441,32 @@
     padding-inline: 8px;
   }
 }
+
+@media (max-width: 480px) {
+  .topNav {
+    gap: 12px;
+  }
+
+  .topLogo {
+    width: 124px;
+  }
+
+  .topLogoImage {
+    width: 160px;
+    height: 160px;
+  }
+
+  .topActions {
+    gap: 8px;
+  }
+
+  .profileButtonMeta {
+    display: none;
+  }
+
+  .profileButton {
+    min-height: 42px;
+  }
+}
+
+.pageHeader.compactPageTitle h1 { font-size: clamp(1.4rem, 2.4vw, 1.8rem); line-height: 1.3; }

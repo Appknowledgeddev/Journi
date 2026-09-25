@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { supabase } from "@/lib/supabase/client";
@@ -10,6 +10,9 @@ import { getAuthenticatedRoute } from "@/lib/auth/routing";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
+  const safeNextPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : null;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,7 +30,7 @@ export default function SignInPage() {
         return;
       }
 
-      router.replace(getAuthenticatedRoute(user));
+      router.replace(safeNextPath ?? getAuthenticatedRoute(user));
       router.refresh();
     }
 
@@ -36,7 +39,7 @@ export default function SignInPage() {
     return () => {
       mounted = false;
     };
-  }, [router]);
+  }, [router, safeNextPath]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -54,7 +57,7 @@ export default function SignInPage() {
       return;
     }
 
-    router.push(getAuthenticatedRoute(data.user));
+    router.push(safeNextPath ?? getAuthenticatedRoute(data.user));
     router.refresh();
   }
 
@@ -63,10 +66,10 @@ export default function SignInPage() {
       <div className={styles.backdrop} />
       <Link href="/" className={styles.pageLogo}>
         <Image
-          src="/journi-logo-app.png"
+          src="/journi-logo-current.webp"
           alt="Journi"
-          width={320}
-          height={112}
+          width={256}
+          height={256}
           className={styles.pageLogoImage}
           priority
         />

@@ -28,6 +28,33 @@ type PublicTripRow = {
   owner_id: string | null;
 };
 
+async function withCardDetails<T extends { id: string; owner_id: string | null }>(trips: T[]) {
+  if (!trips.length) return trips;
+  const ids = trips.map((trip) => trip.id);
+  const [members, ...options] = await Promise.all([
+    supabaseAdmin.from("trip_participants").select("trip_id,user_id,email,status,membership_status").in("trip_id", ids),
+    ...["hotels", "activities", "transport", "dining"].map((table) => supabaseAdmin.from(table).select("trip_id").in("trip_id", ids)),
+  ]);
+  // Optional card details must not prevent browsing public trips if unavailable.
+  return trips.map((trip) => {
+    const users = new Set<string>(trip.owner_id ? [trip.owner_id] : []);
+    const emails = new Set<string>();
+    let peopleCount = trip.owner_id ? 1 : 0;
+    const active = (members.data || []).filter((member) => member.trip_id === trip.id && (member.membership_status ? member.membership_status === "active" : member.status === "accepted"))
+      .sort((a, b) => Number(Boolean(b.user_id)) - Number(Boolean(a.user_id)));
+    for (const member of active) {
+      const email = member.email?.trim().toLowerCase();
+      const duplicate = (member.user_id && users.has(member.user_id)) || (email && emails.has(email));
+      if (member.user_id) users.add(member.user_id);
+      if (email) emails.add(email);
+      if (!duplicate) peopleCount++;
+    }
+    return { ...trip, peopleCount: members.error ? null : peopleCount,
+      optionCounts: options.map((result) => result.error ? null : (result.data || []).filter((row) => row.trip_id === trip.id).length),
+    };
+  });
+}
+
 async function getFallbackPublicSeedOwnerIds() {
   const { data, error } = await supabaseAdmin.auth.admin.listUsers({
     page: 1,
@@ -112,10 +139,10 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json({
-        trips: (fallbackTrips ?? []).map((trip) => ({
+        trips: await withCardDetails((fallbackTrips ?? []).map((trip) => ({
           ...trip,
           visibility: "public",
-        })),
+        }))),
       });
     }
 
@@ -125,5 +152,5 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ trips: data ?? [] });
+  return NextResponse.json({ trips: await withCardDetails(data ?? []) });
 }

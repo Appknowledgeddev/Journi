@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FiCalendar, FiUsers } from "react-icons/fi";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { JourniLoader } from "@/components/journi-loader";
@@ -23,13 +24,15 @@ type TripCard = {
   owner_id?: string | null;
   roleView?: "organiser" | "participant";
   participantStatus?: string | null;
+  peopleCount?: number;
+  categoryProgress?: Record<string, { voted: number; eligible: number }>;
 };
 
 const tripCategoryBreakdown = [
-  { label: "Hotels", progress: 80, colorClass: "progressFillBlue" },
-  { label: "Activities", progress: 40, colorClass: "progressFillOrange" },
-  { label: "Transport", progress: 70, colorClass: "progressFillPurple" },
-  { label: "Dining", progress: 50, colorClass: "progressFillGreen" },
+  { label: "Hotels", key: "hotels", colorClass: "progressFillBlue" },
+  { label: "Activities", key: "activities", colorClass: "progressFillOrange" },
+  { label: "Transport", key: "transport", colorClass: "progressFillPurple" },
+  { label: "Dining", key: "dining", colorClass: "progressFillGreen" },
 ];
 
 type TripFormState = {
@@ -100,11 +103,11 @@ function getTripRoleLabel(trip: TripCard) {
     return getTripStatusLabel(trip.status);
   }
 
-  if (trip.participantStatus === "pending") {
-    return "Pending";
+  if (trip.participantStatus === "pending" || trip.participantStatus === "pending_approval") {
+    return "Pending approval";
   }
 
-  if (trip.participantStatus === "accepted") {
+  if (trip.participantStatus === "accepted" || trip.participantStatus === "active") {
     return "Participant";
   }
 
@@ -352,16 +355,45 @@ export default function TripsPage() {
 
   return (
     <AppShell
-      kicker="Trips"
-      title="Your trips."
-      intro="Switch between trips you organise and trips you’ve joined as a participant."
+      title="Your trips"
+      headerActionInline
       headerAction={
-        <Link
-          href="/trip-organiser?fresh=1"
-          className={styles.primaryActionLink}
-        >
-          Add trip
-        </Link>
+        <div className={`${styles.tripFilter} ${styles.compactTripFilter}`} role="group" aria-label="Filter trips">
+              <button
+                type="button"
+                className={
+                  tripFilter === "all" ? styles.tripFilterButtonActive : styles.tripFilterButton
+                }
+                aria-pressed={tripFilter === "all"}
+                onClick={() => setTripFilter("all")}
+              >
+                All trips
+              </button>
+              <button
+                type="button"
+                className={
+                  tripFilter === "organiser"
+                    ? styles.tripFilterButtonActive
+                    : styles.tripFilterButton
+                }
+                aria-pressed={tripFilter === "organiser"}
+                onClick={() => setTripFilter("organiser")}
+              >
+                Organised by me
+              </button>
+              <button
+                type="button"
+                className={
+                  tripFilter === "participant"
+                    ? styles.tripFilterButtonActive
+                    : styles.tripFilterButton
+                }
+                aria-pressed={tripFilter === "participant"}
+                onClick={() => setTripFilter("participant")}
+              >
+                I’m a participant
+              </button>
+            </div>
       }
     >
       {() => (
@@ -396,39 +428,7 @@ export default function TripsPage() {
               </div>
             ) : null}
 
-            <div className={styles.tripFilter}>
-              <button
-                type="button"
-                className={
-                  tripFilter === "all" ? styles.tripFilterButtonActive : styles.tripFilterButton
-                }
-                onClick={() => setTripFilter("all")}
-              >
-                All trips
-              </button>
-              <button
-                type="button"
-                className={
-                  tripFilter === "organiser"
-                    ? styles.tripFilterButtonActive
-                    : styles.tripFilterButton
-                }
-                onClick={() => setTripFilter("organiser")}
-              >
-                Organised by me
-              </button>
-              <button
-                type="button"
-                className={
-                  tripFilter === "participant"
-                    ? styles.tripFilterButtonActive
-                    : styles.tripFilterButton
-                }
-                onClick={() => setTripFilter("participant")}
-              >
-                I’m a participant
-              </button>
-            </div>
+
 
             {tripError ? <p className={styles.formError}>{tripError}</p> : null}
 
@@ -454,6 +454,9 @@ export default function TripsPage() {
                     className={styles.tripListCardLink}
                   >
                     <article className={styles.tripListCard}>
+                      <span className={styles.tripCardRoleBadge}>
+                        {getTripRoleLabel(trip)}
+                      </span>
                       {trip.cover_image_url ? (
                         <img
                           src={trip.cover_image_url}
@@ -467,39 +470,42 @@ export default function TripsPage() {
                     <div className={styles.tripListBody}>
                       <div className={styles.rowTop}>
                         <span className={styles.rowTitle}>{trip.title}</span>
-                        <span className={styles.badge}>
-                          {getTripRoleLabel(trip)}
-                        </span>
                       </div>
                         <div className={styles.tripMetaRow}>
                           <span>{trip.destination || "Destination to be confirmed"}</span>
-                          <span>{formatTripDatePlanning(trip)}</span>
                         </div>
+                      <div className={styles.tripCardFacts}>
+                        <span className={styles.tripCardDate}><FiCalendar aria-hidden="true" /><strong>{formatTripDatePlanning(trip)}</strong></span>
+                        {trip.peopleCount !== undefined ? <span className={styles.tripCardPeople}><FiUsers aria-hidden="true" /><span><strong>{trip.peopleCount}</strong> {trip.peopleCount === 1 ? "person" : "people"}</span></span> : null}
+                      </div>
                       <p className={styles.tripListDescription}>
                         {trip.description || "No trip summary added yet."}
                       </p>
 
                       <div className={styles.tripCardMiniGrid}>
-                        {tripCategoryBreakdown.map((category) => (
-                          <div key={`${trip.id}-${category.label}`} className={styles.tripCardMiniItem}>
+                        {tripCategoryBreakdown.map((category) => {
+                          const counts = trip.categoryProgress?.[category.key];
+                          const progress = counts && counts.eligible > 0 ? Math.min(100, Math.round(counts.voted / counts.eligible * 100)) : 0;
+                          return (
+                          <div key={`${trip.id}-${category.label}`} className={styles.tripCardMiniItem} title={`${counts?.voted ?? 0} of ${counts?.eligible ?? 0} people have voted`}>
                             <div className={styles.tripCardMiniTop}>
                               <span>{category.label}</span>
                               <div
                                 className={styles.tripCardMiniCircle}
                                 style={
                                   {
-                                    "--progress": `${category.progress}%`,
+                                    "--progress": `${progress}%`,
                                   } as CSSProperties
                                 }
                               >
                                 <span
                                   className={styles[category.colorClass as keyof typeof styles]}
                                 />
-                                <strong>{category.progress}%</strong>
+                                <strong>{progress}%</strong>
                               </div>
                             </div>
                           </div>
-                        ))}
+                        ); })}
                       </div>
                     </div>
                   </article>

@@ -62,6 +62,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid user session." }, { status: 401 });
   }
 
+  const requestedTripId = request.nextUrl.searchParams.get("tripId");
+  if (requestedTripId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestedTripId)) {
+    return NextResponse.json({ error: "Invalid trip ID." }, { status: 400 });
+  }
+
   const userEmail = (user.email ?? "").toLowerCase();
 
   const { data: ownedTrips, error: ownedTripsError } = await supabaseAdmin
@@ -76,21 +81,38 @@ export async function GET(request: NextRequest) {
 
   const { data: participantRows, error: participantError } = await supabaseAdmin
     .from("trip_participants")
-    .select("trip_id")
-    .or(`user_id.eq.${user.id},email.eq.${userEmail}`);
+    .select(requestedTripId ? "trip_id,status,membership_status" : "trip_id")
+    .or(`user_id.eq.${user.id},email.eq.${JSON.stringify(userEmail)}`);
 
   if (participantError) {
     return NextResponse.json({ error: schemaError(participantError.message) }, { status: 400 });
   }
 
-  const accessibleTripIds = Array.from(
+  const participantLinks = (participantRows ?? []) as unknown as Array<{
+    trip_id: string | null;
+    status?: string;
+    membership_status?: string;
+  }>;
+
+  let accessibleTripIds = Array.from(
     new Set([
       ...((ownedTrips ?? []) as TripRow[]).map((trip) => trip.id),
-      ...((participantRows ?? []) as Array<{ trip_id: string | null }>)
+      ...participantLinks
         .map((row) => row.trip_id)
         .filter((tripId): tripId is string => Boolean(tripId)),
     ]),
   );
+
+  const ownsRequestedTrip = Boolean(requestedTripId && ownedTrips?.some((trip) => trip.id === requestedTripId));
+  if (requestedTripId) {
+    const activeMember = participantLinks.some(
+      (row) => row.trip_id === requestedTripId && (row.membership_status ? row.membership_status === "active" : row.status === "accepted"),
+    );
+    if (!ownsRequestedTrip && !activeMember) {
+      return NextResponse.json({ error: "Only the organiser and active travellers can view trip expenses." }, { status: 403 });
+    }
+    accessibleTripIds = [requestedTripId];
+  }
 
   let sharedTrips: TripRow[] = (ownedTrips ?? []) as TripRow[];
 
@@ -113,11 +135,17 @@ export async function GET(request: NextRequest) {
     paymentFilters.push(`trip_id.in.(${accessibleTripIds.join(",")})`);
   }
 
-  const { data: paymentRows, error: paymentsError } = await supabaseAdmin
+  let paymentsQuery = supabaseAdmin
     .from("payments")
     .select("id, trip_id, user_id, status, amount, currency, paid_at, created_at, metadata")
-    .or(paymentFilters.join(","))
     .order("created_at", { ascending: false });
+  if (requestedTripId) {
+    paymentsQuery = paymentsQuery.eq("trip_id", requestedTripId);
+    if (!ownsRequestedTrip) paymentsQuery = paymentsQuery.eq("user_id", user.id);
+  } else {
+    paymentsQuery = paymentsQuery.or(paymentFilters.join(","));
+  }
+  const { data: paymentRows, error: paymentsError } = await paymentsQuery;
 
   let paymentsWarning: string | null = null;
   let safePaymentRows: PaymentRow[] = (paymentRows ?? []) as PaymentRow[];
@@ -137,7 +165,7 @@ export async function GET(request: NextRequest) {
   let transport: SelectionExpenseRow[] = [];
   let dining: SelectionExpenseRow[] = [];
 
-  if (accessibleTripIds.length > 0) {
+  if (accessibleTripIds.length > 0 && (!requestedTripId || ownsRequestedTrip)) {
     const [
       { data: hotelRows, error: hotelError },
       { data: activityRows, error: activityError },
@@ -249,6 +277,7 @@ export async function GET(request: NextRequest) {
     trips: sharedTrips,
     payments: safePaymentRows,
     selectionExpenses: [...hotels, ...activities, ...transport, ...dining],
-    warning: paymentsWarning,
+    warning: paymentsWarning ? "Payment history is currently unavailable. Planned costs are shown below." : null,
+    paymentScope: requestedTripId && !ownsRequestedTrip ? "personal" : "trip",
   });
 }

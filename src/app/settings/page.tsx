@@ -1,26 +1,9 @@
 "use client";
 
+import { NotificationPreferences } from "@/components/notification-preferences";
 import { AppShell } from "@/components/app-shell";
 import sectionStyles from "@/components/app-page.module.css";
 import { ProfileManager } from "@/app/profile/page";
-
-const notificationSettings = [
-  {
-    title: "Traveller invites",
-    description: "Get notified when new participants are invited into one of your trip hubs.",
-    status: "On",
-  },
-  {
-    title: "Votes and replies",
-    description: "Keep up with shortlist votes, comments, and decisions as group planning moves forward.",
-    status: "On",
-  },
-  {
-    title: "Payment reminders",
-    description: "Receive organiser nudges before trips need subscription or payment follow-up.",
-    status: "Off",
-  },
-];
 
 export default function SettingsPage() {
   return (
@@ -33,6 +16,7 @@ export default function SettingsPage() {
         <div className={sectionStyles.stack}>
           <ProfileManager {...state} loading={loading} plan={plan} isPro={isPro} />
 
+          <NotificationPreferences />
           <section className={sectionStyles.panel}>
             <div className={sectionStyles.sectionTop}>
               <div>
@@ -42,22 +26,6 @@ export default function SettingsPage() {
             </div>
 
             <div className={sectionStyles.settingsList}>
-              {notificationSettings.map((item) => (
-                <div key={item.title} className={sectionStyles.settingsRow}>
-                  <div>
-                    <h3>{item.title}</h3>
-                  </div>
-                  <span
-                    className={
-                      item.status === "On"
-                        ? sectionStyles.badgeSuccess
-                        : sectionStyles.badge
-                    }
-                  >
-                    {item.status}
-                  </span>
-                </div>
-              ))}
               <div className={sectionStyles.settingsRow}>
                 <div>
                   <h3>Default trip mode</h3>

@@ -20,6 +20,7 @@ type TripRow = {
 type ParticipantTripLink = {
   trip_id: string | null;
   status: string | null;
+  membership_status?: string | null;
 };
 
 const baseTripSelect =
@@ -110,15 +111,29 @@ export async function GET(request: NextRequest) {
 
   const userEmail = (user.email ?? "").toLowerCase();
 
-  const [{ data: ownedTrips, error: ownedTripsError }, { data: participantRows, error: participantError }] =
+  const [{ data: ownedTrips, error: ownedTripsError }, participantResult] =
     await Promise.all([
       loadTripsByOwner(user.id),
       supabaseAdmin
         .from("trip_participants")
-        .select("trip_id, status")
-        .in("status", ["accepted", "pending", "linked", "invited"])
+        .select("trip_id, status, membership_status")
+        .in("membership_status", ["active", "pending_approval", "invited"])
         .or(`user_id.eq.${user.id},email.eq.${userEmail}`),
     ]);
+
+  let participantError = participantResult.error as { message: string } | null;
+  let normalisedParticipantRows = (participantResult.data ?? []) as ParticipantTripLink[];
+
+  if (participantError && isDatabaseSchemaError(participantError.message)) {
+    const fallbackResult = await supabaseAdmin
+      .from("trip_participants")
+      .select("trip_id, status")
+      .in("status", ["accepted", "pending", "linked", "invited"])
+      .or(`user_id.eq.${user.id},email.eq.${userEmail}`);
+
+    normalisedParticipantRows = (fallbackResult.data ?? []) as ParticipantTripLink[];
+    participantError = fallbackResult.error;
+  }
 
   if (ownedTripsError || participantError) {
     return NextResponse.json(
@@ -129,15 +144,22 @@ export async function GET(request: NextRequest) {
 
   const participantTripIds = Array.from(
     new Set(
-      ((participantRows ?? []) as Array<{ trip_id: string | null }>)
+      normalisedParticipantRows
         .map((row) => row.trip_id)
         .filter((tripId): tripId is string => Boolean(tripId)),
     ),
   );
   const participantStatusByTripId = new Map(
-    ((participantRows ?? []) as ParticipantTripLink[])
+    normalisedParticipantRows
       .filter((row) => Boolean(row.trip_id))
-      .map((row) => [row.trip_id as string, row.status || "pending"]),
+      .map((row) => [
+        row.trip_id as string,
+        row.membership_status === "pending_approval"
+          ? "pending_approval"
+          : row.membership_status === "active"
+            ? "active"
+            : row.status || "pending",
+      ]),
   );
 
   let invitedTrips: TripRow[] = [];
@@ -163,5 +185,28 @@ export async function GET(request: NextRequest) {
 
   const trips = Array.from(new Map(combinedTrips.map((trip) => [trip.id, trip])).values());
 
-  return NextResponse.json({ trips });
+  if (!trips.length) return NextResponse.json({ trips });
+  const { data: progress, error: progressError } = await supabaseAdmin.rpc("trip_card_progress", { trip_ids: trips.map((trip) => trip.id) });
+  if (progressError) return NextResponse.json({ error: "Unable to load trip progress." }, { status: 500 });
+  const { data: members, error: membersError } = await supabaseAdmin
+    .from("trip_participants")
+    .select("trip_id,user_id,email,status,membership_status")
+    .in("trip_id", trips.map((trip) => trip.id));
+  if (membersError) return NextResponse.json({ error: schemaError(membersError.message) }, { status: 400 });
+  return NextResponse.json({ trips: trips.map((trip) => {
+    const userIds = new Set<string>(trip.owner_id ? [trip.owner_id] : []);
+    const emails = new Set<string>();
+    let peopleCount = trip.owner_id ? 1 : 0;
+    // Registered members first, so duplicate email-only invitations do not inflate the count.
+    const active = (members || []).filter((member) => member.trip_id === trip.id && (member.membership_status ? member.membership_status === "active" : member.status === "accepted"))
+      .sort((a, b) => Number(Boolean(b.user_id)) - Number(Boolean(a.user_id)));
+    for (const member of active) {
+      const email = member.email?.trim().toLowerCase();
+      const duplicate = (member.user_id && userIds.has(member.user_id)) || (email && emails.has(email));
+      if (member.user_id) userIds.add(member.user_id);
+      if (email) emails.add(email);
+      if (!duplicate) peopleCount++;
+    }
+    return { ...trip, peopleCount, categoryProgress: progress?.[trip.id] || {} };
+  }) });
 }

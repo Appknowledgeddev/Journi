@@ -25,10 +25,10 @@ export default function DevelopersPage() {
       title="A developer surface that stays clear even as the system underneath gets more complex."
       intro="This is the best place to connect the frontend to real data. We can replace this placeholder content with live Supabase reads, auth, and dashboard components."
       details={details}
-      ctaTitle="Turn this into a real app."
-      ctaText="Next up, I can install the Supabase client, create env variables, and wire a live example into these routes."
-      ctaHref="/"
-      ctaLabel="Back to home"
+      ctaTitle="Open the local admin surface."
+      ctaText="Use the backoffice to inspect users, trips, notifications, testing logs, and operational data while developing."
+      ctaHref="/backoffice"
+      ctaLabel="Open backoffice"
     />
   );
 }

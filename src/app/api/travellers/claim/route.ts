@@ -14,11 +14,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing user linkage details." }, { status: 400 });
   }
 
-  const { error } = await supabaseAdmin
+  let { error } = await supabaseAdmin
     .from("trip_participants")
-    .update({ user_id: userId, status: "linked" })
+    .update({ user_id: userId, status: "linked", membership_status: "invited" })
     .eq("email", email)
     .is("user_id", null);
+
+  if (error?.message.toLowerCase().includes("membership_status")) {
+    const fallbackResult = await supabaseAdmin
+      .from("trip_participants")
+      .update({ user_id: userId, status: "linked" })
+      .eq("email", email)
+      .is("user_id", null);
+
+    error = fallbackResult.error;
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });

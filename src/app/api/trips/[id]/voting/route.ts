@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { dispatchNotificationAction } from "@/lib/notifications/dispatch";
 
 type CategoryKey = "hotels" | "activities" | "transport" | "dining";
 
@@ -57,6 +58,30 @@ function schemaError(message: string) {
   return message;
 }
 
+function hasParticipantAccess(participant: { status?: string | null; membership_status?: string | null } | null) {
+  if (!participant) {
+    return false;
+  }
+
+  if (
+    participant.membership_status === "declined" ||
+    participant.membership_status === "removed" ||
+    participant.status === "declined"
+  ) {
+    return false;
+  }
+
+  return (
+    participant.membership_status === "active" ||
+    participant.membership_status === "pending_approval" ||
+    participant.membership_status === "invited" ||
+    participant.status === "accepted" ||
+    participant.status === "pending" ||
+    participant.status === "linked" ||
+    participant.status === "invited"
+  );
+}
+
 async function getAuthedUser(request: NextRequest) {
   const authHeader = request.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
@@ -80,7 +105,7 @@ async function getAuthedUser(request: NextRequest) {
 async function verifyTripAccess(tripId: string, userId: string, userEmail: string) {
   const { data: trip, error: tripError } = await supabaseAdmin
     .from("trips")
-    .select("id, owner_id")
+    .select("id, owner_id, status, voting_deadline")
     .eq("id", tripId)
     .single();
 
@@ -94,9 +119,8 @@ async function verifyTripAccess(tripId: string, userId: string, userEmail: strin
 
   const { data: participantLink, error: participantError } = await supabaseAdmin
     .from("trip_participants")
-    .select("id")
+    .select("id, status, membership_status")
     .eq("trip_id", tripId)
-    .eq("status", "accepted")
     .or(`user_id.eq.${userId},email.eq.${userEmail}`)
     .maybeSingle();
 
@@ -104,7 +128,7 @@ async function verifyTripAccess(tripId: string, userId: string, userEmail: strin
     return { error: NextResponse.json({ error: schemaError(participantError.message) }, { status: 400 }) };
   }
 
-  if (!participantLink) {
+  if (!hasParticipantAccess(participantLink)) {
     return { error: NextResponse.json({ error: "You do not have access to this trip." }, { status: 403 }) };
   }
 
@@ -146,10 +170,26 @@ async function loadVotingState(tripId: string, participantIds: string[]) {
 
   const pollIds = (polls ?? []).map((poll) => poll.id);
   const categories = {
-    hotels: { title: "Hotels", uniqueVoterIds: new Set<string>(), itemVotes: {} as Record<string, { votes: number; voterIds: string[] }> },
-    activities: { title: "Activities", uniqueVoterIds: new Set<string>(), itemVotes: {} as Record<string, { votes: number; voterIds: string[] }> },
-    transport: { title: "Transport", uniqueVoterIds: new Set<string>(), itemVotes: {} as Record<string, { votes: number; voterIds: string[] }> },
-    dining: { title: "Dining", uniqueVoterIds: new Set<string>(), itemVotes: {} as Record<string, { votes: number; voterIds: string[] }> },
+    hotels: {
+      title: "Hotels",
+      uniqueVoterIds: new Set<string>(),
+      itemVotes: {} as Record<string, { votes: number; upVotes: number; downVotes: number; voterIds: string[]; upVoterIds: string[]; downVoterIds: string[] }>,
+    },
+    activities: {
+      title: "Activities",
+      uniqueVoterIds: new Set<string>(),
+      itemVotes: {} as Record<string, { votes: number; upVotes: number; downVotes: number; voterIds: string[]; upVoterIds: string[]; downVoterIds: string[] }>,
+    },
+    transport: {
+      title: "Transport",
+      uniqueVoterIds: new Set<string>(),
+      itemVotes: {} as Record<string, { votes: number; upVotes: number; downVotes: number; voterIds: string[]; upVoterIds: string[]; downVoterIds: string[] }>,
+    },
+    dining: {
+      title: "Dining",
+      uniqueVoterIds: new Set<string>(),
+      itemVotes: {} as Record<string, { votes: number; upVotes: number; downVotes: number; voterIds: string[]; upVoterIds: string[]; downVoterIds: string[] }>,
+    },
   };
 
   if (pollIds.length === 0) {
@@ -188,7 +228,7 @@ async function loadVotingState(tripId: string, participantIds: string[]) {
   const { data: votes, error: votesError } = pollOptionIds.length
     ? await supabaseAdmin
         .from("poll_votes")
-        .select("poll_id, poll_option_id, voter_id")
+        .select("poll_id, poll_option_id, voter_id, vote_direction")
         .in("poll_option_id", pollOptionIds)
     : { data: [], error: null };
 
@@ -205,6 +245,7 @@ async function loadVotingState(tripId: string, participantIds: string[]) {
   }
 
   for (const vote of votes ?? []) {
+    if (!participantIds.includes(vote.voter_id)) continue;
     const category = pollIdToCategory.get(vote.poll_id);
     const pollOption = pollOptionMap.get(vote.poll_option_id);
     const entityId = pollOption?.option_id ? optionIdToEntityId.get(pollOption.option_id) : null;
@@ -217,10 +258,25 @@ async function loadVotingState(tripId: string, participantIds: string[]) {
     const voteKey = vote.voter_id ?? `anon-${vote.poll_option_id}`;
     categoryState.uniqueVoterIds.add(voteKey);
 
-    const current = categoryState.itemVotes[entityId] ?? { votes: 0, voterIds: [] };
-    current.votes += 1;
+    const voteDirection = vote.vote_direction === "down" ? "down" : "up";
+    const current = categoryState.itemVotes[entityId] ?? {
+      votes: 0,
+      upVotes: 0,
+      downVotes: 0,
+      voterIds: [],
+      upVoterIds: [],
+      downVoterIds: [],
+    };
+    current.upVotes += voteDirection === "up" ? 1 : 0;
+    current.downVotes += voteDirection === "down" ? 1 : 0;
+    current.votes = current.upVotes;
     if (vote.voter_id) {
       current.voterIds.push(vote.voter_id);
+      if (voteDirection === "up") {
+        current.upVoterIds.push(vote.voter_id);
+      } else {
+        current.downVoterIds.push(vote.voter_id);
+      }
     }
     categoryState.itemVotes[entityId] = current;
   }
@@ -262,9 +318,8 @@ export async function GET(
 
   const { data: participants, error: participantsError } = await supabaseAdmin
     .from("trip_participants")
-    .select("user_id, email, status")
-    .eq("trip_id", tripId)
-    .eq("status", "accepted");
+    .select("user_id, email, status, membership_status")
+    .eq("trip_id", tripId);
 
   if (participantsError) {
     return NextResponse.json({ error: schemaError(participantsError.message) }, { status: 400 });
@@ -272,14 +327,15 @@ export async function GET(
 
   const participantIds = Array.from(
     new Set(
-      ((participants ?? []) as Array<{ user_id: string | null; email: string | null }>)
-        .map((participant) => participant.user_id)
+      ((participants ?? []) as Array<{ user_id: string | null; email: string | null; status?: string | null; membership_status?: string | null }>)
+        .filter((participant) => participant.membership_status ? participant.membership_status === "active" : participant.status === "accepted")
+        .map((participant) => participant.user_id || (participant.email ? `email:${participant.email.toLowerCase()}` : null))
         .filter((value): value is string => Boolean(value)),
     ),
   );
 
   try {
-    const categories = await loadVotingState(tripId, participantIds);
+    const categories = await loadVotingState(tripId, [...new Set([access.trip.owner_id, ...participantIds])]);
     return NextResponse.json({ categories });
   } catch (error) {
     return NextResponse.json(
@@ -309,15 +365,22 @@ export async function POST(
   const payload = (await request.json()) as {
     category?: CategoryKey;
     entityId?: string;
+    direction?: "up" | "down";
   };
 
   const category = payload.category;
   const entityId = payload.entityId?.trim();
+  const direction = payload.direction === "down" ? "down" : "up";
+  let notificationAction = "vote.cast";
 
   if (!category || !(category in categoryConfig) || !entityId) {
     return NextResponse.json({ error: "Category and entity are required." }, { status: 400 });
   }
 
+  if (["cancelled", "closed", "completed"].includes(access.trip.status) || (access.trip.voting_deadline && Date.parse(access.trip.voting_deadline) <= Date.now())) return NextResponse.json({ error: "Voting is closed. Ask the organiser to reopen it." }, { status: 409 });
+  const { data: decision, error: decisionError } = await supabaseAdmin.from("trip_decisions").select("option_id").eq("trip_id", tripId).eq("category", category).maybeSingle();
+  if (decisionError) return NextResponse.json({ error: "Unable to check the voting deadline." }, { status: 503 });
+  if (decision) return NextResponse.json({ error: "This decision is locked. Ask the organiser to reopen it." }, { status: 409 });
   const config = categoryConfig[category];
   const { data: entityRow, error: entityError } = await supabaseAdmin
     .from(config.table)
@@ -332,7 +395,7 @@ export async function POST(
 
   const entityRecord = entityRow as unknown as Record<string, unknown>;
 
-  let { data: poll, error: pollError } = await supabaseAdmin
+  const { data: existingPoll, error: pollError } = await supabaseAdmin
     .from("polls")
     .select("id, title")
     .eq("trip_id", tripId)
@@ -342,6 +405,8 @@ export async function POST(
   if (pollError) {
     return NextResponse.json({ error: schemaError(pollError.message) }, { status: 400 });
   }
+
+  let poll = existingPoll;
 
   if (!poll) {
     const { data: createdPoll, error: createPollError } = await supabaseAdmin
@@ -363,7 +428,7 @@ export async function POST(
     poll = createdPoll;
   }
 
-  let { data: option, error: optionError } = await supabaseAdmin
+  const { data: existingOption, error: optionError } = await supabaseAdmin
     .from("options")
     .select("id")
     .eq("trip_id", tripId)
@@ -374,6 +439,8 @@ export async function POST(
   if (optionError) {
     return NextResponse.json({ error: schemaError(optionError.message) }, { status: 400 });
   }
+
+  let option = existingOption;
 
   if (!option) {
     const { data: createdOption, error: createOptionError } = await supabaseAdmin
@@ -396,12 +463,14 @@ export async function POST(
     option = createdOption;
   }
 
-  let { data: pollOption, error: pollOptionError } = await supabaseAdmin
+  const { data: existingPollOption, error: pollOptionError } = await supabaseAdmin
     .from("poll_options")
     .select("id")
     .eq("poll_id", poll.id)
     .eq("option_id", option.id)
     .maybeSingle();
+
+  let pollOption = existingPollOption;
 
   if (pollOptionError) {
     return NextResponse.json({ error: schemaError(pollOptionError.message) }, { status: 400 });
@@ -430,7 +499,7 @@ export async function POST(
 
   const { data: existingVote, error: existingVoteError } = await supabaseAdmin
     .from("poll_votes")
-    .select("id")
+    .select("id, vote_direction")
     .eq("poll_id", poll.id)
     .eq("poll_option_id", pollOption.id)
     .eq("voter_id", auth.user.id)
@@ -440,7 +509,8 @@ export async function POST(
     return NextResponse.json({ error: schemaError(existingVoteError.message) }, { status: 400 });
   }
 
-  if (existingVote) {
+  if (existingVote?.vote_direction === direction) {
+    notificationAction = "vote.removed";
     const { error: deleteVoteError } = await supabaseAdmin
       .from("poll_votes")
       .delete()
@@ -449,11 +519,21 @@ export async function POST(
     if (deleteVoteError) {
       return NextResponse.json({ error: schemaError(deleteVoteError.message) }, { status: 400 });
     }
+  } else if (existingVote) {
+    const { error: updateVoteError } = await supabaseAdmin
+      .from("poll_votes")
+      .update({ vote_direction: direction })
+      .eq("id", existingVote.id);
+
+    if (updateVoteError) {
+      return NextResponse.json({ error: schemaError(updateVoteError.message) }, { status: 400 });
+    }
   } else {
     const { error: insertVoteError } = await supabaseAdmin.from("poll_votes").insert({
       poll_id: poll.id,
       poll_option_id: pollOption.id,
       voter_id: auth.user.id,
+      vote_direction: direction,
       voter_name:
         typeof auth.user.user_metadata?.full_name === "string"
           ? auth.user.user_metadata.full_name
@@ -467,24 +547,36 @@ export async function POST(
 
   const { data: participants, error: participantsError } = await supabaseAdmin
     .from("trip_participants")
-    .select("user_id, email, status")
-    .eq("trip_id", tripId)
-    .eq("status", "accepted");
+    .select("user_id, email, status, membership_status")
+    .eq("trip_id", tripId);
 
   if (participantsError) {
     return NextResponse.json({ error: schemaError(participantsError.message) }, { status: 400 });
   }
 
+  void dispatchNotificationAction({
+    actionKey: notificationAction,
+    tripId,
+    actorUserId: auth.user.id,
+    title: notificationAction === "vote.removed" ? "A vote was removed" : "A new vote was added",
+    message: `${auth.user.user_metadata?.full_name || auth.user.email || "A traveller"} ${notificationAction === "vote.removed" ? "removed a vote from" : "voted on"} ${config.label(entityRecord)}.`,
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || ""}/trips/${tripId}/voting`,
+    context: { category, entityId, direction },
+  }).catch((error) => {
+    console.error("Unable to dispatch vote notification", error);
+  });
+
   const participantIds = Array.from(
     new Set(
-      ((participants ?? []) as Array<{ user_id: string | null; email: string | null }>)
-        .map((participant) => participant.user_id)
+      ((participants ?? []) as Array<{ user_id: string | null; email: string | null; status?: string | null; membership_status?: string | null }>)
+        .filter((participant) => participant.membership_status ? participant.membership_status === "active" : participant.status === "accepted")
+        .map((participant) => participant.user_id || (participant.email ? `email:${participant.email.toLowerCase()}` : null))
         .filter((value): value is string => Boolean(value)),
     ),
   );
 
   try {
-    const categories = await loadVotingState(tripId, participantIds);
+    const categories = await loadVotingState(tripId, [...new Set([access.trip.owner_id, ...participantIds])]);
     return NextResponse.json({ categories });
   } catch (error) {
     return NextResponse.json(

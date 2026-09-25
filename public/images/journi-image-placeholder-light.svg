@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1456 1092" role="img" aria-labelledby="title description">
+  <title id="title">Journi image not found</title>
+  <desc id="description">A grey cartoon beach with a repeating Journi image-not-found watermark.</desc>
+  <rect width="1456" height="1092" fill="#fbfbfb" />
+  <circle cx="1110" cy="218" r="74" fill="#ffffff" />
+  <path d="M0 590H1456V1092H0Z" fill="#eef0f1" />
+  <path d="M0 784C220 682 378 708 564 786C752 866 936 820 1098 748C1240 686 1350 704 1456 746V1092H0Z" fill="#f5f4f2" />
+  <path d="M0 760C210 672 390 694 574 770C760 846 932 804 1094 734C1244 670 1360 688 1456 724" fill="none" stroke="#ffffff" stroke-width="30" />
+  <path d="M815 590L1008 430L1110 504L1218 410L1428 590Z" fill="#e3e5e6" />
+  <path d="M160 760C166 536 226 330 330 176" fill="none" stroke="#d9dddf" stroke-width="58" stroke-linecap="round" />
+  <path d="M324 204C216 78 98 92 40 142C164 152 232 196 318 246C228 180 112 226 58 326C174 294 250 286 330 252C282 278 266 374 314 470C370 374 388 286 346 242C412 282 490 298 560 346C552 228 470 172 350 214C438 176 504 128 562 76C442 58 360 110 324 204Z" fill="#dfe2e3" />
+  <ellipse cx="208" cy="890" rx="90" ry="42" fill="#e4e6e7" />
+  <ellipse cx="390" cy="934" rx="44" ry="25" fill="#e9eaeb" />
+  <path d="M988 642C1038 616 1092 616 1142 642M1010 680C1048 662 1086 662 1124 680" fill="none" stroke="#f7f7f6" stroke-width="15" stroke-linecap="round" />
+  <g transform="translate(728 546) rotate(-12)" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" fill="#3f4852" fill-opacity="0.68">
+    <text y="-12" font-size="112" font-weight="900" letter-spacing="8">JOURNI</text>
+    <text y="58" font-size="34" font-weight="800" letter-spacing="5">IMAGE NOT FOUND</text>
+  </g>
+</svg>

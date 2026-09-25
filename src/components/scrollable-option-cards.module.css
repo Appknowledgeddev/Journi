@@ -1,0 +1,10 @@
+.wrapper { position: relative; min-width: 0; }
+.arrow { position: absolute; top: calc(50% - 9px); transform: translateY(-50%); z-index: 2; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid #dce6f1; border-radius: 50%; background: #fff; color: #287edd; box-shadow: 0 3px 14px #18315324; cursor: pointer; transition: background 160ms ease, opacity 160ms ease; }
+.arrow:hover:not(:disabled) { background: #edf5ff; }
+.arrow:disabled { opacity: .4; cursor: default; }
+.arrow svg { width: 20px; height: 20px; }
+.left { left: -12px; }
+.right { right: -12px; }
+.arrow:focus-visible, .rail:focus-visible { outline: 2px solid #287edd; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .arrow { transition: none; } .rail { scroll-behavior: auto; } }
+@media (pointer: coarse) { .arrow { width: 44px; height: 44px; } }

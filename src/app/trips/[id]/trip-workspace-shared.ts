@@ -28,8 +28,12 @@ export type TripParticipant = {
   full_name: string | null;
   role: string;
   status: string;
+  membership_status?: "invited" | "pending_approval" | "active" | "declined" | "removed" | null;
+  attendance_status?: "going" | "maybe" | "not_going" | null;
+  request_message?: string | null;
   invited_at?: string | null;
   responded_at?: string | null;
+  reviewed_at?: string | null;
   created_at?: string | null;
 };
 
@@ -43,6 +47,7 @@ export type HotelSelection = {
   price_per_night?: number | null;
   currency?: string | null;
   source_photo_url: string | null;
+  google_place_id?: string | null;
 };
 
 export type ActivitySelection = {
@@ -51,6 +56,7 @@ export type ActivitySelection = {
   location: string | null;
   notes: string | null;
   source_photo_url: string | null;
+  google_place_id?: string | null;
 };
 
 export type TransportSelection = {
@@ -60,6 +66,7 @@ export type TransportSelection = {
   arrival_location: string | null;
   notes: string | null;
   source_photo_url: string | null;
+  google_place_id?: string | null;
 };
 
 export type DiningSelection = {
@@ -68,6 +75,7 @@ export type DiningSelection = {
   location: string | null;
   notes: string | null;
   source_photo_url: string | null;
+  google_place_id?: string | null;
 };
 
 export type CategoryKey = "hotels" | "activities" | "transport" | "dining";
@@ -77,7 +85,17 @@ export type VoteCategoryState = {
   voterCount: number;
   eligibleVoterCount: number;
   progress: number;
-  itemVotes: Record<string, { votes: number; voterIds: string[] }>;
+  itemVotes: Record<
+    string,
+    {
+      votes: number;
+      upVotes?: number;
+      downVotes?: number;
+      voterIds: string[];
+      upVoterIds?: string[];
+      downVoterIds?: string[];
+    }
+  >;
 };
 
 export type VotingState = Record<CategoryKey, VoteCategoryState>;
@@ -152,6 +170,45 @@ export function getTripStatusLabel(status: string) {
   }
 
   return status;
+}
+
+export function getParticipantMembershipLabel(participant: Pick<TripParticipant, "status" | "membership_status">) {
+  const membershipStatus =
+    participant.membership_status ??
+    (participant.status === "accepted"
+      ? "active"
+      : participant.status === "declined"
+        ? "declined"
+        : participant.status === "pending"
+          ? "pending_approval"
+          : "invited");
+
+  switch (membershipStatus) {
+    case "active":
+      return "Active participant";
+    case "pending_approval":
+      return "Pending approval";
+    case "declined":
+      return "Declined";
+    case "removed":
+      return "Removed";
+    case "invited":
+    default:
+      return "Invited";
+  }
+}
+
+export function getAttendanceStatusLabel(attendanceStatus?: string | null) {
+  switch (attendanceStatus) {
+    case "going":
+      return "Going";
+    case "maybe":
+      return "Maybe";
+    case "not_going":
+      return "Not going";
+    default:
+      return "Attendance not set";
+  }
 }
 
 export function formatHotelRate(hotel: Pick<HotelSelection, "price_per_night" | "currency">) {
@@ -254,13 +311,20 @@ function countTripParticipants(participants: TripParticipant[]): TripParticipant
   const responded = participants.filter(
     (participant) =>
       Boolean(participant.responded_at) ||
+      participant.membership_status === "active" ||
+      participant.membership_status === "declined" ||
       participant.status === "accepted" ||
       participant.status === "declined",
   ).length;
-  const confirmed = participants.filter((participant) => participant.status === "accepted").length;
-  const declined = participants.filter((participant) => participant.status === "declined").length;
+  const confirmed = participants.filter(
+    (participant) => participant.membership_status === "active" || participant.status === "accepted",
+  ).length;
+  const declined = participants.filter(
+    (participant) => participant.membership_status === "declined" || participant.status === "declined",
+  ).length;
   const viewed = participants.filter(
     (participant) =>
+      participant.membership_status === "active" ||
       participant.status !== "invited" && participant.status !== "pending",
   ).length;
   const outstanding = Math.max(invited - responded, 0);
@@ -277,6 +341,8 @@ function countTripParticipants(participants: TripParticipant[]): TripParticipant
       .filter(
         (participant) =>
           !participant.responded_at &&
+          participant.membership_status !== "active" &&
+          participant.membership_status !== "declined" &&
           participant.status !== "accepted" &&
           participant.status !== "declined",
       )
@@ -574,7 +640,7 @@ export function summariseTripWorkspace(args: {
 
 export function buildVoteChartData<T extends { id: string }>(
   items: T[],
-  itemVotes: Record<string, { votes: number; voterIds: string[] }> | undefined,
+  itemVotes: VoteCategoryState["itemVotes"] | undefined,
   getLabel: (item: T) => string,
 ) {
   return items

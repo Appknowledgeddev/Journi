@@ -10,10 +10,10 @@ export default function TripPassPage() {
       <div className={styles.overlay} />
       <Link href="/" className={styles.pageLogo}>
         <Image
-          src="/journi-logo-app.png"
+          src="/journi-logo-current.webp"
           alt="Journi"
-          width={320}
-          height={112}
+          width={256}
+          height={256}
           className={styles.pageLogoImage}
           priority
         />

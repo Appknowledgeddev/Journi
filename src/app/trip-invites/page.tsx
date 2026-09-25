@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AppShell } from "@/components/app-shell";
 import styles from "@/components/app-page.module.css";
 import { supabase } from "@/lib/supabase/client";
@@ -54,11 +55,12 @@ type InviteDetailResponse = {
 };
 
 type TripInvitesManagerProps = {
+  filterHost: HTMLDivElement | null;
   userId: string | null;
   loading: boolean;
 };
 
-function TripInvitesManager({ userId, loading }: TripInvitesManagerProps) {
+function TripInvitesManager({ userId, loading, filterHost }: TripInvitesManagerProps) {
   const [activeInviteTab, setActiveInviteTab] = useState<"received" | "sent">("received");
   const [trips, setTrips] = useState<TripOption[]>([]);
   const [participants, setParticipants] = useState<TripParticipant[]>([]);
@@ -384,7 +386,6 @@ function TripInvitesManager({ userId, loading }: TripInvitesManagerProps) {
   const hasSentInvites = participants.length > 0;
   const hasReceivedInvites = receivedInvites.length > 0;
   const hasNoInvites = !loadingInvites && !hasSentInvites && !hasReceivedInvites && !inviteError;
-  const pendingReceivedInvites = receivedInvites.filter((invite) => invite.status === "pending");
   const showingReceived = activeInviteTab === "received";
 
   return (
@@ -410,35 +411,27 @@ function TripInvitesManager({ userId, loading }: TripInvitesManagerProps) {
         </section>
       ) : null}
 
-      <section className={styles.panel}>
-        <div className={styles.sectionTop}>
-          <div>
-            <p className={styles.eyebrow}>Trip invites</p>
-            <h2>{showingReceived ? "Invites for you to review" : "Invites you’ve sent"}</h2>
-          </div>
-          <span className={showingReceived ? styles.badgeSoft : styles.badge}>
-            {showingReceived ? receivedInvites.length : participants.length} total
-          </span>
-        </div>
-
-        <div className={styles.inviteTabs}>
+      <section>
+        {filterHost ? createPortal(<div className={`${styles.inviteTabs} ${styles.compactInviteFilter}`} role="group" aria-label="Filter invites">
           <button
             type="button"
             className={showingReceived ? styles.inviteTabActive : styles.inviteTab}
+            aria-pressed={showingReceived}
             onClick={() => setActiveInviteTab("received")}
           >
             For you
-            <span className={styles.badgeSoft}>{pendingReceivedInvites.length}</span>
+            <span className={styles.inviteFilterCount}>{loadingInvites || inviteError ? "—" : receivedInvites.length}</span>
           </button>
           <button
             type="button"
             className={!showingReceived ? styles.inviteTabActive : styles.inviteTab}
+            aria-pressed={!showingReceived}
             onClick={() => setActiveInviteTab("sent")}
           >
             Sent by you
-            <span className={styles.badge}>{participants.length}</span>
+            <span className={styles.inviteFilterCount}>{loadingInvites || inviteError ? "—" : participants.length}</span>
           </button>
-        </div>
+        </div>, filterHost) : null}
 
         {showingReceived ? (
           hasReceivedInvites ? (
@@ -732,13 +725,14 @@ function TripInvitesManager({ userId, loading }: TripInvitesManagerProps) {
 }
 
 export default function TripInvitesPage() {
+  const [filterHost, setFilterHost] = useState<HTMLDivElement | null>(null);
   return (
     <AppShell
-      kicker="Trip invites"
       title="Trip invites."
-      intro="See invites you have sent as an organiser and trips you have been invited to as a traveller."
+      headerActionInline
+      headerAction={<div ref={setFilterHost} />}
     >
-      {(state) => <TripInvitesManager {...state} />}
+      {(state) => <TripInvitesManager {...state} filterHost={filterHost} />}
     </AppShell>
   );
 }

@@ -1,4 +1,6 @@
+import { connectionProfile } from "@/lib/connection-profile";
 import { NextRequest, NextResponse } from "next/server";
+import { isMissingTripDateMode } from "@/lib/trips/invite-schema";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 type TripRow = {
@@ -15,6 +17,7 @@ type TripRow = {
 };
 
 type ParticipantRow = {
+  user_id?: string | null;
   id: string;
   trip_id: string;
   email: string;
@@ -87,11 +90,19 @@ export async function GET(request: NextRequest) {
 
   const userEmail = (user.email ?? "").toLowerCase();
 
-  const { data: ownedTrips, error: ownedTripsError } = await supabaseAdmin
+  let { data: ownedTrips, error: ownedTripsError } = await supabaseAdmin
     .from("trips")
     .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
+
+  if (isMissingTripDateMode(ownedTripsError)) {
+    const fallback = await supabaseAdmin.from("trips")
+      .select("id, title, destination, description, status, starts_at, ends_at, voting_deadline, cover_image_url")
+      .eq("owner_id", user.id).order("created_at", { ascending: false });
+    ownedTrips = fallback.data?.map((trip) => ({ ...trip, date_mode: null })) ?? null;
+    ownedTripsError = fallback.error;
+  }
 
   if (ownedTripsError) {
     return NextResponse.json({ error: schemaError(ownedTripsError.message) }, { status: 400 });
@@ -105,7 +116,7 @@ export async function GET(request: NextRequest) {
   if (tripIds.length > 0) {
     const { data: sentRows, error: sentError } = await supabaseAdmin
       .from("trip_participants")
-      .select("id, trip_id, email, full_name, role, status, invited_at, response_reason, responded_at")
+      .select("id, trip_id, user_id, email, full_name, role, status, invited_at, response_reason, responded_at")
       .in("trip_id", tripIds)
       .order("invited_at", { ascending: false });
 
@@ -118,7 +129,7 @@ export async function GET(request: NextRequest) {
 
   const { data: receivedByUserRows, error: receivedByUserError } = await supabaseAdmin
     .from("trip_participants")
-    .select("id, trip_id, email, full_name, role, status, invited_at, response_reason, responded_at")
+    .select("id, trip_id, user_id, email, full_name, role, status, invited_at, response_reason, responded_at")
     .eq("user_id", user.id)
     .order("invited_at", { ascending: false });
 
@@ -128,7 +139,7 @@ export async function GET(request: NextRequest) {
 
   const { data: receivedByEmailRows, error: receivedByEmailError } = await supabaseAdmin
     .from("trip_participants")
-    .select("id, trip_id, email, full_name, role, status, invited_at, response_reason, responded_at")
+    .select("id, trip_id, user_id, email, full_name, role, status, invited_at, response_reason, responded_at")
     .eq("email", userEmail)
     .order("invited_at", { ascending: false });
 
@@ -158,12 +169,21 @@ export async function GET(request: NextRequest) {
   const receivedTripIds = Array.from(new Set(receivedInvites.map((invite) => invite.trip_id)));
   let receivedTrips: TripRow[] = [];
   let receivedOrganisers: OrganiserConnection[] = [];
+  let profileUsers: Awaited<ReturnType<typeof listAllUsers>> | null = null;
 
   if (receivedTripIds.length > 0) {
-    const { data: receivedTripRows, error: receivedTripsError } = await supabaseAdmin
+    let { data: receivedTripRows, error: receivedTripsError } = await supabaseAdmin
       .from("trips")
       .select("id, title, destination, description, status, date_mode, starts_at, ends_at, voting_deadline, cover_image_url, owner_id")
       .in("id", receivedTripIds);
+
+    if (isMissingTripDateMode(receivedTripsError)) {
+      const fallback = await supabaseAdmin.from("trips")
+        .select("id, title, destination, description, status, starts_at, ends_at, voting_deadline, cover_image_url, owner_id")
+        .in("id", receivedTripIds);
+      receivedTripRows = fallback.data?.map((trip) => ({ ...trip, date_mode: null })) ?? null;
+      receivedTripsError = fallback.error;
+    }
 
     if (receivedTripsError) {
       return NextResponse.json(
@@ -198,6 +218,7 @@ export async function GET(request: NextRequest) {
 
     if (ownerIds.length > 0) {
       const users = await listAllUsers();
+      profileUsers = users;
       const userById = new Map(users.map((profile) => [profile.id, profile]));
 
       receivedOrganisers = ownerIds
@@ -221,7 +242,18 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  let connectionProfiles;
+  if (request.nextUrl.searchParams.get("profiles") === "1") {
+    const organiserIds = new Set(receivedOrganisers.map((organiser) => organiser.user_id));
+    const linkedIds = new Set(sentInvites.map((invite) => invite.user_id).filter(Boolean));
+    const invitedEmails = new Set(sentInvites.filter((invite) => !invite.user_id).map((invite) => invite.email.toLowerCase()));
+    const users = profileUsers ?? (sentInvites.length ? await listAllUsers() : []);
+    connectionProfiles = users.filter((profile) => profile.id !== user.id && (organiserIds.has(profile.id) || linkedIds.has(profile.id) || invitedEmails.has((profile.email || "").toLowerCase())))
+      .map(connectionProfile).filter((profile) => profile !== null);
+  }
+
   return NextResponse.json({
+    connectionProfiles,
     trips,
     sentInvites,
     receivedInvites,

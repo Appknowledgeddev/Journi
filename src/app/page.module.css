@@ -49,6 +49,18 @@
   text-transform: uppercase;
 }
 
+.sectionCopy {
+  margin: -4px 0 14px;
+  color: rgba(24, 49, 83, 0.62);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.sectionCopy strong {
+  color: #183153;
+  font-weight: 900;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
