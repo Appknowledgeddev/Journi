@@ -9521,3 +9521,117 @@
 @media (pointer: coarse) {
   .compactInviteFilter .inviteTab, .compactInviteFilter .inviteTabActive { min-height: 44px; height: 44px; }
 }
+
+@media (max-width: 640px) {
+  .stack {
+    gap: 14px;
+  }
+
+  .panel,
+  .card,
+  .metricCard,
+  .listCard,
+  .timelineCard,
+  .featureCard,
+  .tripCard,
+  .tripCardCreate {
+    border-radius: 16px;
+  }
+
+  .panel,
+  .card,
+  .listCard,
+  .timelineCard,
+  .featureCard,
+  .tripCard,
+  .tripCardCreate {
+    padding: 16px;
+  }
+
+  .metricCard {
+    padding: 14px;
+  }
+
+  .sectionTop,
+  .headerActions,
+  .selectionSummaryHeader,
+  .tripReadinessHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .headerActions {
+    gap: 8px;
+  }
+
+  .headerActions > a,
+  .headerActions > button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .tripOwnerRail {
+    max-width: 100%;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .tripOwnerRail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tripOwnerRailButton {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .tripBuilderCard,
+  .tripBasicStartView,
+  .tripWorkspaceSectionCard {
+    max-width: 100%;
+    border-radius: 16px;
+  }
+
+  .tripBasicStepGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tripViewDrawerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .slidePanel,
+  .expensesSlidePanel,
+  .expensesSlidePanel:has([data-expense-creation-open="true"]) {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+  }
+
+  .slidePanelHeader {
+    gap: 10px;
+    padding: max(14px, env(safe-area-inset-top)) 14px 12px;
+  }
+
+  .slidePanelBody {
+    padding: 14px 14px max(20px, env(safe-area-inset-bottom));
+  }
+
+  .publicTripDateFields {
+    grid-template-columns: 1fr;
+  }
+
+  .publicTripFilterPanel {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-height: calc(100dvh - 24px);
+  }
+
+  .connectionProfileGrid .profileCardPreview {
+    max-width: 100%;
+  }
+}

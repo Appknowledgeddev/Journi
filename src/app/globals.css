@@ -51,6 +51,21 @@ a {
   text-decoration: none;
 }
 
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 .journiIntroTooltip {
   min-width: min(92vw, 360px) !important;
   border: 1px solid rgba(44, 148, 245, 0.14) !important;

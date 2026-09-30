@@ -2752,6 +2752,108 @@ a.navButtonActive {
 }
 
 @media (max-width: 720px) {
+  .rail {
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .identity {
+    width: 84px;
+    flex: 0 0 84px;
+  }
+
+  .identityMark {
+    height: 44px;
+  }
+
+  .railExitLink {
+    min-width: max-content;
+  }
+
+  .nav {
+    gap: 6px;
+  }
+
+  .navButton,
+  .navButtonActive {
+    min-width: max-content;
+    min-height: 44px;
+  }
+
+  .workspace {
+    padding: 10px;
+  }
+
+  .header h1 {
+    font-size: 1.45rem;
+    overflow-wrap: anywhere;
+  }
+
+  .statsGrid,
+  .objectGrid,
+  .detailGrid,
+  .builderStepRail {
+    grid-template-columns: 1fr;
+  }
+
+  .header > *,
+  .toolbar > *,
+  .dashboardHero > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .header a,
+  .header button,
+  .toolbar button,
+  .dashboardHeroActions a,
+  .dashboardHeroActions button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .tableShell {
+    max-width: calc(100vw - 20px);
+    overscroll-behavior-x: contain;
+  }
+
+  .actionCardHeader,
+  .actionCardFooter,
+  .notificationChannelHeader,
+  .auditModal > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notificationChannelTabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .notificationChannelTab,
+  .notificationChannelTabActive {
+    flex: 0 0 auto;
+    min-height: 44px;
+  }
+
+  .auditModalBackdrop {
+    padding: 8px;
+  }
+
+  .auditModal {
+    max-height: calc(100dvh - 16px);
+    padding: 14px;
+  }
+
+  .auditPeopleList article,
+  .deliveryList > div {
+    grid-template-columns: 1fr;
+  }
+
+  .deliveryList {
+    overflow-x: visible;
+  }
+
   .notificationSettingsGrid { grid-template-columns: 1fr; }
   .emailTemplateWorkspace { grid-template-columns: 1fr; }
   .aiChatComposer { grid-template-columns: 1fr; }

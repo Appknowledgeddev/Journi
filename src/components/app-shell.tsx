@@ -110,6 +110,7 @@ export function AppShell({
   const [loading, setLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -148,6 +149,21 @@ export function AppShell({
   useEffect(() => {
     setAssumedSession(isAssumedSession());
   }, [pathname]);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMobileNavOpen(false);
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [mobileNavOpen]);
 
   useEffect(() => {
     function replaceBrokenImage(event: Event) {
@@ -1086,16 +1102,28 @@ export function AppShell({
 
           <section className={styles.mainPanel}>
             <header className={styles.topNav}>
-            <Link href="/dashboard" className={styles.topLogo}>
-              <Image
-                src="/journi-logo-current.webp"
-                alt="Journi"
-                width={256}
-                height={256}
-                className={styles.topLogoImage}
-                priority
-              />
-            </Link>
+            <div className={styles.mobileBrandRow}>
+              <button
+                type="button"
+                className={styles.mobileNavTrigger}
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open navigation"
+                aria-expanded={mobileNavOpen}
+                aria-controls="journi-mobile-navigation"
+              >
+                <FiMenu aria-hidden="true" />
+              </button>
+              <Link href="/dashboard" className={styles.topLogo}>
+                <Image
+                  src="/journi-logo-current.webp"
+                  alt="Journi"
+                  width={256}
+                  height={256}
+                  className={styles.topLogoImage}
+                  priority
+                />
+              </Link>
+            </div>
 
             <div className={styles.topActions}>
               <AccountNotifications
@@ -1227,7 +1255,61 @@ export function AppShell({
                 ) : null}
               </div>
             </div>
-          </header>
+            </header>
+
+            {mobileNavOpen ? (
+              <div
+                className={styles.mobileNavBackdrop}
+                onMouseDown={(event) => {
+                  if (event.target === event.currentTarget) setMobileNavOpen(false);
+                }}
+              >
+                <nav
+                  id="journi-mobile-navigation"
+                  className={styles.mobileNavDrawer}
+                  aria-label="Main navigation"
+                >
+                  <div className={styles.mobileNavHeader}>
+                    <span>Menu</span>
+                    <button
+                      type="button"
+                      className={styles.mobileNavClose}
+                      onClick={() => setMobileNavOpen(false)}
+                      aria-label="Close navigation"
+                    >
+                      <FiX aria-hidden="true" />
+                    </button>
+                  </div>
+                  <div className={styles.mobileNavProfile}>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className={styles.mobileNavAvatarImage} />
+                    ) : (
+                      <span className={styles.mobileNavAvatar}>{loading ? "…" : avatarLetter}</span>
+                    )}
+                    <div>
+                      <strong>{loading ? "Loading..." : fullName || "Journi organiser"}</strong>
+                      <span>{loading ? "" : planLabel}</span>
+                    </div>
+                  </div>
+                  <div className={styles.mobileNavLinks}>
+                    {visibleNavLinks.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={pathname === item.href ? styles.mobileNavLinkActive : styles.mobileNavLink}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                  <button type="button" className={styles.mobileNavLogout} onClick={handleLogout}>
+                    <FiLogOut aria-hidden="true" />
+                    <span>Log out</span>
+                  </button>
+                </nav>
+              </div>
+            ) : null}
 
             <div className={styles.contentScroll}>
             {hasPageHeader ? (
