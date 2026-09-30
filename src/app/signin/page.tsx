@@ -78,15 +78,13 @@ export default function SignInPage() {
       </Link>
 
       <section className={`${styles.card} ${isBackofficeSignIn ? styles.backofficeCard : ""}`}>
-        <div className={styles.heading}>
-          <p className={styles.formEyebrow}>{isBackofficeSignIn ? "Backoffice" : "Welcome back"}</p>
-          <h1>{isBackofficeSignIn ? "Sign in to admin" : "Sign in"}</h1>
-          <p>
-            {isBackofficeSignIn
-              ? "Use your authorised Journi team account to continue."
-              : "Enter your email and password to access your account."}
-          </p>
-        </div>
+        {!isBackofficeSignIn ? (
+          <div className={styles.heading}>
+            <p className={styles.formEyebrow}>Welcome back</p>
+            <h1>Sign in</h1>
+            <p>Enter your email and password to access your account.</p>
+          </div>
+        ) : null}
 
         {isBackofficeSignIn && wasSignedOutForInactivity ? (
           <p className={styles.sessionNotice}>You were signed out after 5 minutes of inactivity.</p>
@@ -117,15 +115,17 @@ export default function SignInPage() {
             />
           </label>
 
-          <div className={styles.row}>
-            <label className={styles.checkbox}>
-              <input type="checkbox" defaultChecked />
-              <span>Remember me</span>
-            </label>
-            <Link href="/forgot-password" className={styles.link}>
-              Forgot password?
-            </Link>
-          </div>
+          {!isBackofficeSignIn ? (
+            <div className={styles.row}>
+              <label className={styles.checkbox}>
+                <input type="checkbox" defaultChecked />
+                <span>Remember me</span>
+              </label>
+              <Link href="/forgot-password" className={styles.link}>
+                Forgot password?
+              </Link>
+            </div>
+          ) : null}
 
           {error ? <p className={styles.error}>{error}</p> : null}
 
@@ -135,18 +135,14 @@ export default function SignInPage() {
           </button>
         </form>
 
-        {isBackofficeSignIn ? (
-          <div className={styles.adminFooter}>
-            <span>Restricted to authorised Journi administrators</span>
-          </div>
-        ) : (
+        {!isBackofficeSignIn ? (
           <p className={styles.footer}>
             Don&apos;t have an account?{" "}
             <Link href="/signup/free" className={styles.link}>
               Start with free plan
             </Link>
           </p>
-        )}
+        ) : null}
       </section>
     </main>
   );

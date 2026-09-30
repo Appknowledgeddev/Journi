@@ -177,7 +177,7 @@
 }
 
 .backofficePage {
-  background: #f3f4f6;
+  background: #000000;
   background-image: none;
 }
 
@@ -194,12 +194,12 @@
   width: 138px;
   height: auto;
   object-fit: contain;
-  filter: brightness(0) saturate(100%) invert(14%) sepia(18%) saturate(1617%) hue-rotate(172deg) brightness(92%) contrast(92%);
+  filter: none;
 }
 
 .backofficeCard {
   width: min(100%, 420px);
-  padding: 32px;
+  padding: 28px;
   border: 1px solid #d9dee5;
   border-radius: 8px;
   background: #ffffff;
@@ -224,14 +224,6 @@
   border-radius: 5px;
   background: #183153;
   box-shadow: none;
-}
-
-.adminFooter {
-  margin-top: 22px;
-  padding-top: 16px;
-  border-top: 1px solid #e2e6eb;
-  color: #6b7280;
-  font-size: 0.8rem;
 }
 
 .sessionNotice {
