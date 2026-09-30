@@ -14,6 +14,7 @@ export default function SignInPage() {
   const nextPath = searchParams.get("next");
   const safeNextPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : null;
   const isBackofficeSignIn = safeNextPath === "/backoffice";
+  const wasSignedOutForInactivity = searchParams.get("reason") === "inactive";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -76,34 +77,7 @@ export default function SignInPage() {
         />
       </Link>
 
-      {isBackofficeSignIn ? (
-        <section className={styles.adminIntro} aria-label="Journi backoffice">
-          <div className={styles.adminEyebrow}>
-            <span className={styles.statusDot} />
-            Journi operations
-          </div>
-          <h1>Everything behind the journey.</h1>
-          <p>
-            Secure access for the team managing travellers, trips, payments and
-            platform operations.
-          </p>
-          <div className={styles.adminFeatures}>
-            <span>Live oversight</span>
-            <span>Protected access</span>
-            <span>Full audit history</span>
-          </div>
-        </section>
-      ) : null}
-
       <section className={`${styles.card} ${isBackofficeSignIn ? styles.backofficeCard : ""}`}>
-        {isBackofficeSignIn ? (
-          <div className={styles.adminMark} aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M12 3 5 6v5c0 4.8 2.9 8.4 7 10 4.1-1.6 7-5.2 7-10V6l-7-3Z" />
-              <path d="m9 12 2 2 4-4" />
-            </svg>
-          </div>
-        ) : null}
         <div className={styles.heading}>
           <p className={styles.formEyebrow}>{isBackofficeSignIn ? "Backoffice" : "Welcome back"}</p>
           <h1>{isBackofficeSignIn ? "Sign in to admin" : "Sign in"}</h1>
@@ -113,6 +87,10 @@ export default function SignInPage() {
               : "Enter your email and password to access your account."}
           </p>
         </div>
+
+        {isBackofficeSignIn && wasSignedOutForInactivity ? (
+          <p className={styles.sessionNotice}>You were signed out after 5 minutes of inactivity.</p>
+        ) : null}
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
@@ -159,10 +137,6 @@ export default function SignInPage() {
 
         {isBackofficeSignIn ? (
           <div className={styles.adminFooter}>
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="5" y="10" width="14" height="10" rx="2" />
-              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-            </svg>
             <span>Restricted to authorised Journi administrators</span>
           </div>
         ) : (

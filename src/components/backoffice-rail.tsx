@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BackofficeExitLink } from "@/components/backoffice-exit-link";
 import styles from "@/app/backoffice/backoffice.module.css";
 
 const sections = [
@@ -22,7 +23,7 @@ export function BackofficeRail({ active }: { active: (typeof sections)[number][0
         <span className={styles.identityMark}><img src="/journi-backoffice-logo.png" alt="Journi" /></span>
         <div><strong>Journi Admin</strong><span>Backoffice</span></div>
       </div>
-      <Link href="/dashboard" className={styles.railExitLink}>Return to app</Link>
+      <BackofficeExitLink className={styles.railExitLink} />
       <nav className={styles.nav} aria-label="Backoffice sections">
         {sections.map(([id, label]) => (
           <Link key={id} href={`/backoffice#${id}`} className={active === id ? styles.navButtonActive : styles.navButton}>

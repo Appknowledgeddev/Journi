@@ -1,0 +1,61 @@
+.overlay {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.46);
+}
+
+.warning {
+  width: min(100%, 390px);
+  padding: 28px;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #17243a;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.warning h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.warning > p:not(.eyebrow) {
+  margin: 10px 0 18px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.countdown {
+  display: block;
+  margin-bottom: 20px;
+  color: #0f62a8;
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.warning button {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  color: #ffffff;
+  background: #183153;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+

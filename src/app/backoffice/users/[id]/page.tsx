@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { BackofficeExitLink } from "@/components/backoffice-exit-link";
 import styles from "../../backoffice.module.css";
 
 type AdminRow = Record<string, unknown>;
@@ -284,9 +285,7 @@ export default function BackofficeUserDetailPage() {
             <span>Backoffice</span>
           </div>
         </div>
-        <Link href="/dashboard" className={styles.railExitLink}>
-          Return to app
-        </Link>
+        <BackofficeExitLink className={styles.railExitLink} />
         <nav className={styles.nav} aria-label="Backoffice sections">
           <Link href="/backoffice" className={styles.navButton}>
             Dashboard

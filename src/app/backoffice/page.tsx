@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { BackofficeExitLink } from "@/components/backoffice-exit-link";
 import styles from "./backoffice.module.css";
 
 type BackofficeStats = {
@@ -1447,9 +1448,7 @@ export default function BackofficePage() {
           </div>
         </div>
 
-        <Link href="/dashboard" className={styles.railExitLink}>
-          Return to app
-        </Link>
+        <BackofficeExitLink className={styles.railExitLink} />
 
         <nav className={styles.nav} aria-label="Backoffice sections">
           <button

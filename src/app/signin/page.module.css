@@ -177,195 +177,72 @@
 }
 
 .backofficePage {
-  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
-  place-items: stretch;
-  padding: 0;
-  overflow: hidden;
-  background: #0d223e;
-}
-
-.backofficePage::before,
-.backofficePage::after {
-  position: absolute;
-  content: "";
-  border-radius: 999px;
-  pointer-events: none;
-}
-
-.backofficePage::before {
-  width: 520px;
-  height: 520px;
-  left: -170px;
-  bottom: -250px;
-  border: 1px solid rgba(104, 183, 255, 0.18);
-  box-shadow: 0 0 0 80px rgba(104, 183, 255, 0.035), 0 0 0 160px rgba(104, 183, 255, 0.025);
-}
-
-.backofficePage::after {
-  width: 340px;
-  height: 340px;
-  top: -160px;
-  left: 43%;
-  background: rgba(30, 140, 238, 0.12);
-  filter: blur(16px);
+  background: #f3f4f6;
+  background-image: none;
 }
 
 .backofficePage .backdrop {
-  background:
-    linear-gradient(125deg, rgba(13, 34, 62, 0.98) 0%, rgba(17, 48, 82, 0.96) 50%, #f4f7fb 50.1%, #ffffff 100%);
+  display: none;
 }
 
 .backofficePageLogo {
-  top: 38px;
-  left: 52px;
+  top: 28px;
+  left: 32px;
 }
 
 .backofficePageLogo .pageLogoImage {
-  width: 190px;
+  width: 138px;
   height: auto;
   object-fit: contain;
-}
-
-.adminIntro {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-self: center;
-  flex-direction: column;
-  align-items: flex-start;
-  width: min(650px, 78%);
-  margin: 80px auto 0;
-  color: #ffffff;
-}
-
-.adminEyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
-  color: #99cfff;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #58d7a5;
-  box-shadow: 0 0 0 6px rgba(88, 215, 165, 0.12);
-}
-
-.adminIntro h1 {
-  max-width: 620px;
-  margin: 0;
-  font-size: clamp(3rem, 5vw, 5.8rem);
-  letter-spacing: -0.055em;
-  line-height: 0.98;
-}
-
-.adminIntro > p {
-  max-width: 540px;
-  margin: 28px 0 36px;
-  color: rgba(225, 238, 252, 0.72);
-  font-size: clamp(1rem, 1.4vw, 1.18rem);
-  line-height: 1.7;
-}
-
-.adminFeatures {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.adminFeatures span {
-  padding: 10px 14px;
-  border: 1px solid rgba(178, 216, 249, 0.16);
-  border-radius: 999px;
-  color: rgba(231, 242, 252, 0.82);
-  background: rgba(255, 255, 255, 0.045);
-  font-size: 0.78rem;
-  font-weight: 700;
+  filter: brightness(0) saturate(100%) invert(14%) sepia(18%) saturate(1617%) hue-rotate(172deg) brightness(92%) contrast(92%);
 }
 
 .backofficeCard {
-  align-self: center;
-  justify-self: center;
-  width: min(calc(100% - 64px), 480px);
-  padding: 48px;
-  border: 1px solid rgba(19, 57, 94, 0.08);
-  border-radius: 24px;
+  width: min(100%, 420px);
+  padding: 32px;
+  border: 1px solid #d9dee5;
+  border-radius: 8px;
   background: #ffffff;
-  box-shadow: 0 28px 80px rgba(15, 37, 62, 0.12);
-}
-
-.adminMark {
-  display: grid;
-  width: 48px;
-  height: 48px;
-  margin-bottom: 28px;
-  place-items: center;
-  border-radius: 15px;
-  color: #0877ce;
-  background: #e9f4ff;
-}
-
-.adminMark svg {
-  width: 25px;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .backofficeCard .heading h1 {
-  font-size: 2rem;
-  letter-spacing: -0.035em;
+  font-size: 1.8rem;
 }
 
 .backofficeCard .field input {
-  min-height: 56px;
-  padding: 0 17px;
-  border-color: #dbe4ed;
-  border-radius: 12px;
-  background: #f9fbfd;
+  min-height: 48px;
+  border-color: #cfd6df;
+  border-radius: 5px;
+  background: #ffffff;
 }
 
 .backofficeCard .primaryButton {
-  min-height: 56px;
+  min-height: 48px;
   margin-top: 4px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #126fbe, #0c8de8);
-  box-shadow: 0 12px 28px rgba(12, 125, 207, 0.22);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.backofficeCard .primaryButton:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 34px rgba(12, 125, 207, 0.28);
+  border-radius: 5px;
+  background: #183153;
+  box-shadow: none;
 }
 
 .adminFooter {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid #e8edf3;
-  color: #738298;
-  font-size: 0.78rem;
-  font-weight: 650;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e6eb;
+  color: #6b7280;
+  font-size: 0.8rem;
 }
 
-.adminFooter svg {
-  flex: 0 0 auto;
-  width: 17px;
-  stroke: #1373c8;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.sessionNotice {
+  margin: -6px 0 18px;
+  padding: 10px 12px;
+  border: 1px solid #f0d48b;
+  border-radius: 5px;
+  color: #78570d;
+  background: #fffbea;
+  font-size: 0.86rem;
+  line-height: 1.45;
 }
 
 .primaryButton:disabled {
@@ -400,15 +277,7 @@
 
 @media (max-width: 940px) {
   .backofficePage {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 112px 24px 32px;
-    background: #f5f8fc;
-  }
-
-  .backofficePage .backdrop {
-    background: linear-gradient(180deg, #102b4d 0, #102b4d 260px, #f5f8fc 260px);
+    padding-top: 104px;
   }
 
   .backofficePageLogo {
@@ -418,15 +287,7 @@
   }
 
   .backofficePageLogo .pageLogoImage {
-    width: 164px;
-  }
-
-  .adminIntro {
-    display: none;
-  }
-
-  .backofficeCard {
-    width: min(100%, 480px);
+    width: 128px;
   }
 }
 
@@ -436,8 +297,8 @@
   }
 
   .backofficeCard {
-    padding: 30px 24px;
-    border-radius: 20px;
+    padding: 24px;
+    border-radius: 8px;
   }
 
   .backofficeCard .row {
