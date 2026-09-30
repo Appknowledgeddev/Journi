@@ -13,6 +13,7 @@ export default function SignInPage() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next");
   const safeNextPath = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : null;
+  const isBackofficeSignIn = safeNextPath === "/backoffice";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -62,23 +63,55 @@ export default function SignInPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} ${isBackofficeSignIn ? styles.backofficePage : ""}`}>
       <div className={styles.backdrop} />
-      <Link href="/" className={styles.pageLogo}>
+      <Link href="/" className={`${styles.pageLogo} ${isBackofficeSignIn ? styles.backofficePageLogo : ""}`}>
         <Image
-          src="/journi-logo-current.webp"
+          src={isBackofficeSignIn ? "/journi-backoffice-logo.png" : "/journi-logo-current.webp"}
           alt="Journi"
-          width={256}
-          height={256}
+          width={isBackofficeSignIn ? 360 : 256}
+          height={isBackofficeSignIn ? 120 : 256}
           className={styles.pageLogoImage}
           priority
         />
       </Link>
 
-      <section className={styles.card}>
+      {isBackofficeSignIn ? (
+        <section className={styles.adminIntro} aria-label="Journi backoffice">
+          <div className={styles.adminEyebrow}>
+            <span className={styles.statusDot} />
+            Journi operations
+          </div>
+          <h1>Everything behind the journey.</h1>
+          <p>
+            Secure access for the team managing travellers, trips, payments and
+            platform operations.
+          </p>
+          <div className={styles.adminFeatures}>
+            <span>Live oversight</span>
+            <span>Protected access</span>
+            <span>Full audit history</span>
+          </div>
+        </section>
+      ) : null}
+
+      <section className={`${styles.card} ${isBackofficeSignIn ? styles.backofficeCard : ""}`}>
+        {isBackofficeSignIn ? (
+          <div className={styles.adminMark} aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 3 5 6v5c0 4.8 2.9 8.4 7 10 4.1-1.6 7-5.2 7-10V6l-7-3Z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+          </div>
+        ) : null}
         <div className={styles.heading}>
-          <h1>Sign in</h1>
-          <p>Enter your email and password to access your account.</p>
+          <p className={styles.formEyebrow}>{isBackofficeSignIn ? "Backoffice" : "Welcome back"}</p>
+          <h1>{isBackofficeSignIn ? "Sign in to admin" : "Sign in"}</h1>
+          <p>
+            {isBackofficeSignIn
+              ? "Use your authorised Journi team account to continue."
+              : "Enter your email and password to access your account."}
+          </p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
@@ -86,7 +119,7 @@ export default function SignInPage() {
             <span>Email</span>
             <input
               type="email"
-              placeholder="you@example.com"
+              placeholder={isBackofficeSignIn ? "name@company.com" : "you@example.com"}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
@@ -119,16 +152,27 @@ export default function SignInPage() {
           {error ? <p className={styles.error}>{error}</p> : null}
 
           <button type="submit" className={styles.primaryButton} disabled={isSubmitting}>
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            <span>{isSubmitting ? "Signing in..." : isBackofficeSignIn ? "Continue to backoffice" : "Sign in"}</span>
+            {!isSubmitting && isBackofficeSignIn ? <span aria-hidden="true">→</span> : null}
           </button>
         </form>
 
-        <p className={styles.footer}>
-          Don&apos;t have an account?{" "}
-          <Link href="/signup/free" className={styles.link}>
-            Start with free plan
-          </Link>
-        </p>
+        {isBackofficeSignIn ? (
+          <div className={styles.adminFooter}>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="5" y="10" width="14" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <span>Restricted to authorised Journi administrators</span>
+          </div>
+        ) : (
+          <p className={styles.footer}>
+            Don&apos;t have an account?{" "}
+            <Link href="/signup/free" className={styles.link}>
+              Start with free plan
+            </Link>
+          </p>
+        )}
       </section>
     </main>
   );
