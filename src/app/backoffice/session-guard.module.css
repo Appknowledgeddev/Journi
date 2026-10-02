@@ -11,17 +11,17 @@
 .warning {
   width: min(100%, 390px);
   padding: 28px;
-  border: 1px solid #d8dee8;
+  border: 1px solid light-dark(#d8dee8, rgba(136, 158, 190, 0.3));
   border-radius: 10px;
-  background: #ffffff;
-  color: #17243a;
+  background: light-dark(#ffffff, var(--theme-surface));
+  color: light-dark(#17243a, rgba(231, 238, 249, 1));
   box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
   text-align: center;
 }
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #64748b;
+  color: light-dark(#64748b, rgba(168, 185, 208, 1));
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.09em;
@@ -35,14 +35,14 @@
 
 .warning > p:not(.eyebrow) {
   margin: 10px 0 18px;
-  color: #64748b;
+  color: light-dark(#64748b, rgba(168, 185, 208, 1));
   line-height: 1.5;
 }
 
 .countdown {
   display: block;
   margin-bottom: 20px;
-  color: #0f62a8;
+  color: light-dark(#0f62a8, color-mix(in srgb, #0f62a8 30%, #d4e7ff));
   font-size: 2rem;
   font-variant-numeric: tabular-nums;
 }

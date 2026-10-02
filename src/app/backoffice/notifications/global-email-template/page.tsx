@@ -1,5 +1,7 @@
 "use client";
 
+import { JourniLoader } from "@/components/journi-loader";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -115,7 +117,7 @@ export default function GlobalEmailTemplatePage() {
     <BackofficeRail active="notifications" />
     <section className={styles.workspace}>
       <header className={styles.header}><div><p className={styles.kicker}>Email design system</p><h1>Global email template</h1><span>The shared wrapper used across Journi emails.</span></div><Link href="/backoffice#notifications" className={styles.exitLink}>Back to notifications</Link></header>
-      {loading ? <section className={styles.loadingState}><span className={styles.spinner} /><div><strong>Loading global template</strong><p>Collecting the shared email design.</p></div></section> : null}
+      {loading ? <JourniLoader fullscreen title="Loading email template…" /> : null}
       {error ? <section className={styles.errorState}><strong>Template unavailable</strong><p>{error}</p></section> : null}
       {template ? <div className={styles.notificationPageLayout}>
         {message ? <p className={styles.inlineNotice}>{message}</p> : null}

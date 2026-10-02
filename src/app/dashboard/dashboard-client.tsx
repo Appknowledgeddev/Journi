@@ -349,6 +349,7 @@ export function DashboardClient() {
 
   return (
     <AppShell
+      pageLoading={dashboardLoading}
       title="Dashboard"
     >
       {({ plan, subscriptionStatus }) => (

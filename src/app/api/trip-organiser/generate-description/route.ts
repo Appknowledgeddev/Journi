@@ -19,7 +19,7 @@ type GenerateDescriptionPayload = {
 };
 
 type OpenAIResponsesPayload = {
-  error?: { message?: string };
+  error?: { message?: string; code?: string; type?: string };
   output_text?: string;
   output?: Array<{
     content?: Array<{
@@ -28,6 +28,8 @@ type OpenAIResponsesPayload = {
     }>;
   }>;
 };
+
+const unavailableMessage = "AI writing is temporarily unavailable. You can still create your trip: write a description and select Save story to continue.";
 
 function extractResponseText(payload: OpenAIResponsesPayload) {
   if (payload.output_text?.trim()) {
@@ -59,8 +61,7 @@ export async function POST(request: NextRequest) {
   if (!apiKey) {
     return NextResponse.json(
       {
-        error:
-          "OPENAI_API_KEY is not configured yet. Add it to your environment before using AI trip descriptions.",
+        error: unavailableMessage,
       },
       { status: 503 },
     );
@@ -121,12 +122,15 @@ export async function POST(request: NextRequest) {
       }
 
       const errorMessage = payload?.error?.message || "";
-      const shouldRetry = attempt === 0 && isRetryableOpenAIError(response.status, errorMessage);
+      const billingError = payload?.error?.type === "insufficient_quota" ||
+        ["insufficient_quota", "credit_balance_exhausted", "billing_hard_limit_reached", "spend_limit_reached", "usage_limit_reached"].includes(payload?.error?.code || "") ||
+        /no credits remaining|quota|billing|credit balance/i.test(errorMessage);
+      const shouldRetry = !billingError && attempt === 0 && isRetryableOpenAIError(response.status, errorMessage);
 
       if (!shouldRetry) {
         return NextResponse.json(
-          { error: errorMessage || "Unable to generate a trip description right now." },
-          { status: 400 },
+          { error: unavailableMessage },
+          { status: 503 },
         );
       }
 
@@ -135,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     if (!payload) {
       return NextResponse.json(
-        { error: "Unable to generate a trip description right now." },
+        { error: unavailableMessage },
         { status: openAIStatus },
       );
     }
@@ -144,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     if (!outputText) {
       return NextResponse.json(
-        { error: "OpenAI returned an empty description. Please try again." },
+        { error: unavailableMessage },
         { status: 502 },
       );
     }
@@ -164,11 +168,10 @@ export async function POST(request: NextRequest) {
       title,
       description,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Unable to generate a trip description right now.",
+        error: unavailableMessage,
       },
       { status: 500 },
     );

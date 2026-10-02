@@ -29,6 +29,8 @@ import {
   resolveProfileBackgroundStyle,
 } from "@/lib/profile-card";
 import { supabase } from "@/lib/supabase/client";
+import { AppLoadingProvider, AppLoadingOverlay, AppLoadingContent } from "./app-loading";
+import { ThemeControl } from "./theme-control";
 import { AccountNotifications } from "./account-notifications";
 import { UpgradePlanModal } from "./upgrade-plan-modal";
 import styles from "./app-shell.module.css";
@@ -63,6 +65,8 @@ type AppShellProps = {
   headerAction?: ReactNode;
   headerActionInline?: boolean;
   compactTitle?: boolean;
+  pageLoading?: boolean;
+  loadingLabel?: string;
   dockPanel?: ReactNode;
   dockPanelOpen?: boolean;
 };
@@ -89,6 +93,8 @@ export function AppShell({
   headerAction,
   headerActionInline = false,
   compactTitle = false,
+  pageLoading = false,
+  loadingLabel = "Getting things ready…",
   dockPanel,
   dockPanelOpen = false,
 }: AppShellProps) {
@@ -111,6 +117,7 @@ export function AppShell({
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileNavigation = useRef<HTMLDialogElement>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -156,13 +163,12 @@ export function AppShell({
 
   useEffect(() => {
     if (!mobileNavOpen) return;
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setMobileNavOpen(false);
-    }
-
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
+    const dialog = mobileNavigation.current;
+    dialog?.showModal();
+    const desktop = window.matchMedia("(min-width: 1101px)");
+    const closeOnDesktop = () => { if (desktop.matches) setMobileNavOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => { dialog?.close(); desktop.removeEventListener("change", closeOnDesktop); };
   }, [mobileNavOpen]);
 
   useEffect(() => {
@@ -945,6 +951,7 @@ export function AppShell({
   }
 
   return (
+    <AppLoadingProvider>
     <main className={styles.page}>
       <div className={dockPanelOpen ? styles.shellDevToolsFrameOpen : styles.shellDevToolsFrame}>
         <div className={styles.shellFrame}>
@@ -1048,10 +1055,18 @@ export function AppShell({
                   marginBottom: sidebarCollapsed ? 12 : 10,
                   marginInline: sidebarCollapsed ? "auto" : "0",
                   paddingInline: sidebarCollapsed ? 0 : 14,
-                  color: active ? "#0f4e8a" : "rgba(255,255,255,0.96)",
-                  backgroundColor: active ? "rgba(255,255,255,0.96)" : "rgba(255,255,255,0.08)",
+                  color: active ? "light-dark(#0f4e8a, #e4efff)" : "rgba(255,255,255,0.96)",
+                  backgroundColor: active ? "light-dark(rgba(255,255,255,0.96), #2d496a)" : "rgba(255,255,255,0.08)",
                   justifyContent: sidebarCollapsed ? "center" : "flex-start",
                   transition: "all 180ms ease",
+                  "&:hover, &:focus-visible": {
+                    color: active ? "light-dark(#0f4e8a, #ffffff)" : "#ffffff",
+                    backgroundColor: active ? "light-dark(#e5f1ff, #385c82)" : "rgba(255,255,255,0.18)",
+                  },
+                  "&:focus-visible": {
+                    outline: "2px solid #91c9ff",
+                    outlineOffset: -2,
+                  },
                 }),
                 icon: {
                   color: "currentColor",
@@ -1126,6 +1141,7 @@ export function AppShell({
             </div>
 
             <div className={styles.topActions}>
+              <ThemeControl inline />
               <AccountNotifications
                 key={userId || "signed-out"}
                 userId={userId}
@@ -1258,7 +1274,10 @@ export function AppShell({
             </header>
 
             {mobileNavOpen ? (
-              <div
+              <dialog
+                ref={mobileNavigation}
+                aria-label="Navigation menu"
+                onCancel={(event) => { event.preventDefault(); setMobileNavOpen(false); }}
                 className={styles.mobileNavBackdrop}
                 onMouseDown={(event) => {
                   if (event.target === event.currentTarget) setMobileNavOpen(false);
@@ -1308,10 +1327,11 @@ export function AppShell({
                     <span>Log out</span>
                   </button>
                 </nav>
-              </div>
+              </dialog>
             ) : null}
 
-            <div className={styles.contentScroll}>
+            <AppLoadingOverlay active={loading || pageLoading} label={pageLoading ? loadingLabel : undefined} />
+            <AppLoadingContent active={loading || pageLoading}>
             {hasPageHeader ? (
               <header className={`${styles.pageHeader} ${headerActionInline ? styles.pageHeaderInline : ""} ${compactTitle ? styles.compactPageTitle : ""}`}>
                 <div className={styles.pageHeaderLeft}>
@@ -1621,7 +1641,7 @@ export function AppShell({
             ) : null}
 
             {children(shellState)}
-            </div>
+            </AppLoadingContent>
           </section>
         </div>
         </div>
@@ -1634,5 +1654,6 @@ export function AppShell({
         onClose={() => setUpgradeOpen(false)}
       />
     </main>
+    </AppLoadingProvider>
   );
 }

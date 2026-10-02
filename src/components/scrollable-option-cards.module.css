@@ -1,6 +1,6 @@
 .wrapper { position: relative; min-width: 0; }
-.arrow { position: absolute; top: calc(50% - 9px); transform: translateY(-50%); z-index: 2; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid #dce6f1; border-radius: 50%; background: #fff; color: #287edd; box-shadow: 0 3px 14px #18315324; cursor: pointer; transition: background 160ms ease, opacity 160ms ease; }
-.arrow:hover:not(:disabled) { background: #edf5ff; }
+.arrow { position: absolute; top: calc(50% - 9px); transform: translateY(-50%); z-index: 2; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid light-dark(#dce6f1, rgba(136, 158, 190, 0.3)); border-radius: 50%; background: light-dark(#fff, var(--theme-surface)); color: light-dark(#287edd, color-mix(in srgb, #287edd 30%, #d4e7ff)); box-shadow: 0 3px 14px #18315324; cursor: pointer; transition: background 160ms ease, opacity 160ms ease; }
+.arrow:hover:not(:disabled) { background: light-dark(#edf5ff, var(--theme-hover)); }
 .arrow:disabled { opacity: .4; cursor: default; }
 .arrow svg { width: 20px; height: 20px; }
 .left { left: -12px; }

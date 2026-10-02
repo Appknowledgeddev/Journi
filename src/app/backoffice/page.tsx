@@ -1,5 +1,7 @@
 "use client";
 
+import { JourniLoader } from "@/components/journi-loader";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -428,13 +430,13 @@ const documentationSections: DocumentationSection[] = [
   {
     title: "Payments And Subscriptions",
     summary:
-      "Billing information is split between Stripe metadata on accounts and payment rows linked to users or trips.",
+      "Free includes one trip per account. A Trip Pass costs £39; Pro costs £19 monthly or £179 yearly. The billing guide explains verification, renewals and current limitations.",
     steps: [
-      "Subscription status and Stripe customer/subscription IDs can be read from user metadata.",
-      "Payment rows show trip, user, status, amount, currency, and paid date where available.",
-      "The Backoffice Payments and Subscriptions tabs are operational views for billing support.",
-      "Payment rows can be edited by admins for supported fields, but Stripe should remain the source of truth for live billing.",
-      "Billing-related changes are visible in the activity log when database rows change.",
+      "Stripe verifies paid trip-creation access; the trip creation ledger records free and paid allowances.",
+      "Deleting a trip does not restore a used free allowance or Trip Pass.",
+      "Backoffice payment and subscription records are database views, not a live Stripe invoice export.",
+      "Recorded expense payments are separate from purchases of Journi plans.",
+      "Read the full billing guide for cancellation, support checks and differences between older and newer billing flows.",
     ],
   },
   {
@@ -443,7 +445,7 @@ const documentationSections: DocumentationSection[] = [
       "Notification rules define what message should be sent, who should receive it, and whether it goes by email, in-app, or both.",
     steps: [
       "Rules have a trigger key, audience, destination, send timing, subject, and message body.",
-      "Enabled rules are intended to be used by future notification sending workflows.",
+      "Action-based delivery and database-triggered expense/reminder delivery follow separate paths; see the detailed guide.",
       "Admins can edit notification rules from the Notifications tab.",
       "Changing a notification rule creates activity log entries.",
       "The destination field separates Email, In-app, and Email + In-app delivery.",
@@ -1538,15 +1540,7 @@ export default function BackofficePage() {
       </aside>
 
       <section className={styles.workspace}>
-        {loading ? (
-          <section className={styles.loadingState} role="status" aria-live="polite">
-            <span className={styles.spinner} />
-            <div>
-              <strong>Loading records</strong>
-              <p>Checking admin access and pulling the latest operational data.</p>
-            </div>
-          </section>
-        ) : null}
+        {loading ? <JourniLoader fullscreen title="Loading your backoffice…" /> : null}
 
         {error ? (
           <section className={styles.errorState}>
@@ -2651,6 +2645,16 @@ export default function BackofficePage() {
                     public participation, notifications, billing, editing, and audit activity.
                   </span>
                 </div>
+
+                <Link className={styles.rowAction} href="/backoffice/documentation/billing">
+                  Billing guide · Prices, allowances and subscriptions →
+                </Link>
+                <Link className={styles.rowAction} href="/backoffice/documentation/trip-visibility">
+                  Trip visibility guide · Public, private and participant access →
+                </Link>
+                <Link className={styles.rowAction} href="/backoffice/documentation/notifications">
+                  Emails and notifications guide · Recipients, delivery and reminders →
+                </Link>
 
                 {filteredParticipantLifecycle.length > 0 ? (
                   <section className={styles.lifecyclePanel}>

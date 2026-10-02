@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { freeTripLimitMessage, getTripCreationAccess } from "@/lib/trip-creation-access";
 import {
   databaseSetupError,
   friendlyDatabaseError,
@@ -93,6 +94,7 @@ type TripOrganiserFinalisePayload = {
     }>;
   };
   origin?: string;
+  checkoutSessionId?: string;
 };
 
 function getBearerToken(request: NextRequest) {
@@ -295,31 +297,31 @@ export async function POST(request: NextRequest) {
     ai_description_generated: tripForm.aiDescriptionGenerated === true,
   };
 
-  let { data: tripData, error: tripError } = await supabaseAdmin
-    .from("trips")
-    .insert(tripInsertWithMetadata)
-    .select("id")
-    .single();
-
-  if (tripError && isDatabaseSchemaError(tripError.message)) {
-    const fallbackResult = await supabaseAdmin
-      .from("trips")
-      .insert(baseTripInsert)
-      .select("id")
-      .single();
-
-    tripData = fallbackResult.data;
-    tripError = fallbackResult.error;
+  let access;
+  try {
+    access = await getTripCreationAccess(user, body.checkoutSessionId);
+  } catch {
+    return NextResponse.json({ error: "Unable to verify your trip allowance. Please try again." }, { status: 503 });
   }
-
-  if (tripError || !tripData?.id) {
-    return NextResponse.json(
-      { error: friendlyDatabaseError(tripError?.message || "Unable to create trip.", "save this trip") },
-      { status: 400 },
-    );
+  if (!access.canCreate) {
+    return NextResponse.json({ error: freeTripLimitMessage, code: "TRIP_LIMIT_REACHED" }, { status: 402 });
   }
-
-  const tripId = tripData.id as string;
+  const { data: tripId, error: tripError } = await supabaseAdmin.rpc("create_trip_with_access", {
+    p_owner_id: user.id,
+    p_trip: tripInsertWithMetadata,
+    p_access: access.hasSubscription ? "subscription" : access.hasTripPass ? "trip_pass" : "free",
+    p_checkout_session_id: access.hasTripPass && !access.hasSubscription ? body.checkoutSessionId : null,
+  });
+  if (tripError || !tripId) {
+    const limitReached = /FREE_TRIP_LIMIT|TRIP_PASS_ALREADY_USED/.test(tripError?.message ?? "");
+    return NextResponse.json({ error: limitReached ? freeTripLimitMessage : "Unable to save this trip. Please try again.", ...(limitReached ? { code: "TRIP_LIMIT_REACHED" } : {}) }, { status: limitReached ? 402 : 400 });
+  }
+  const ownerId = user.id;
+  async function failedCreation(message: string) {
+    const { error } = await supabaseAdmin.rpc("rollback_trip_creation", { p_trip_id: tripId, p_owner_id: ownerId });
+    if (error) return NextResponse.json({ error: "Your trip was created but some details could not be saved. Open it from My trips before trying again.", tripId }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
   const cachedCoverImageUrl = await cacheRemoteImageForTrip({
     sourceUrl: tripForm.coverImageUrl,
@@ -372,10 +374,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabaseAdmin.from("hotels").insert(hotelRows);
 
     if (error) {
-      return NextResponse.json(
-        { error: friendlyDatabaseError(error.message, "save the selected hotels") },
-        { status: 400 },
-      );
+      return failedCreation(friendlyDatabaseError(error.message, "save the selected hotels"));
     }
   }
 
@@ -402,10 +401,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabaseAdmin.from("activities").insert(activityRows);
 
     if (error) {
-      return NextResponse.json(
-        { error: friendlyDatabaseError(error.message, "save the selected activities") },
-        { status: 400 },
-      );
+      return failedCreation(friendlyDatabaseError(error.message, "save the selected activities"));
     }
   }
 
@@ -433,10 +429,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabaseAdmin.from("transport").insert(transportRows);
 
     if (error) {
-      return NextResponse.json(
-        { error: friendlyDatabaseError(error.message, "save the selected transport") },
-        { status: 400 },
-      );
+      return failedCreation(friendlyDatabaseError(error.message, "save the selected transport"));
     }
   }
 
@@ -464,10 +457,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabaseAdmin.from("dining").insert(diningRows);
 
     if (error) {
-      return NextResponse.json(
-        { error: friendlyDatabaseError(error.message, "save the selected dining") },
-        { status: 400 },
-      );
+      return failedCreation(friendlyDatabaseError(error.message, "save the selected dining"));
     }
   }
 
@@ -501,10 +491,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (error) {
-      return NextResponse.json(
-        { error: friendlyDatabaseError(error.message, "save the traveller invites") },
-        { status: 400 },
-      );
+      return failedCreation(friendlyDatabaseError(error.message, "save the traveller invites"));
     }
   }
 

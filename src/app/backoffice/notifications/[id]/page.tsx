@@ -1,5 +1,7 @@
 "use client";
 
+import { JourniLoader } from "@/components/journi-loader";
+
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -174,7 +176,7 @@ export default function NotificationDetailPage() {
           <div><p className={styles.kicker}>Notification template</p><h1>{rule?.title || "Notification details"}</h1><span>{rule?.triggerKey || "Loading notification rule"}</span></div>
           <Link href="/backoffice#notifications" className={styles.exitLink}>Back to notifications</Link>
         </header>
-        {loading ? <section className={styles.loadingState}><span className={styles.spinner} /><div><strong>Loading notification</strong><p>Collecting the current delivery settings and template.</p></div></section> : null}
+        {loading ? <JourniLoader fullscreen title="Loading notification…" /> : null}
         {error ? <section className={styles.errorState}><strong>Notification unavailable</strong><p>{error}</p></section> : null}
         {rule ? (
           <div className={styles.notificationPageLayout}>

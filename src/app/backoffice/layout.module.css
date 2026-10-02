@@ -1,0 +1,19 @@
+.lightTheme {
+  color-scheme: only light;
+  --background: #eef1f4;
+  --foreground: #111827;
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+:global(html[data-theme="dark"]) .lightTheme img[src*="journi-logo-current"],
+:global(html[data-theme="dark"]) .lightTheme img[src*="journi-backoffice-logo"] {
+  filter: none;
+}
+
+:global(html[data-theme="dark"]) .lightTheme img[data-journi-fallback-applied="true"],
+:global(html[data-theme="dark"]) .lightTheme img[src$="journi-image-placeholder-pale.svg"],
+:global(html[data-theme="dark"]) .lightTheme img[src$="journi-image-placeholder-light.svg"] {
+  content: normal;
+}

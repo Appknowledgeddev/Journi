@@ -4,9 +4,9 @@
   min-height: 100vh;
   background:
     radial-gradient(circle at top left, rgba(86, 141, 255, 0.3), transparent 28%),
-    radial-gradient(circle at 80% 10%, rgba(2, 209, 255, 0.22), transparent 22%),
-    linear-gradient(180deg, #f5f8ff 0%, #eef3ff 38%, #f7f9fc 100%);
-  color: #10203f;
+    radial-gradient(circle at 80% 10%, light-dark(rgba(2, 209, 255, 0.22), color-mix(in srgb, rgba(2, 209, 255, 0.22) 15%, #111c2e38)), transparent 22%),
+    linear-gradient(180deg, light-dark(#f5f8ff, var(--theme-surface)) 0%, light-dark(#eef3ff, var(--theme-surface)) 38%, light-dark(#f7f9fc, var(--theme-surface)) 100%);
+  color: light-dark(#10203f, rgba(231, 238, 249, 1));
 }
 .backgroundGlow {
   position: absolute;
@@ -61,7 +61,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #5b6f99;
+  color: light-dark(#5b6f99, rgba(168, 185, 208, 1));
 }
 
 .heroCopy h1,
@@ -84,7 +84,7 @@
 .layerCard p,
 .timelineCard p,
 .cta p {
-  color: rgba(16, 32, 63, 0.72);
+  color: light-dark(rgba(16, 32, 63, 0.72), rgba(231, 238, 249, 0.8));
   line-height: 1.8;
 }
 
@@ -124,8 +124,8 @@
 
 .secondaryCta {
   border: 1px solid rgba(16, 32, 63, 0.1);
-  background: rgba(255, 255, 255, 0.78);
-  color: #10203f;
+  background: light-dark(rgba(255, 255, 255, 0.78), color-mix(in srgb, var(--theme-surface) 78%, transparent));
+  color: light-dark(#10203f, rgba(231, 238, 249, 1));
 }
 
 .heroPanel,
@@ -133,8 +133,8 @@
 .layerCard,
 .timelineCard,
 .cta {
-  border: 1px solid rgba(121, 145, 204, 0.18);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid light-dark(rgba(121, 145, 204, 0.18), rgba(136, 158, 190, 0.18));
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-inset) 72%, transparent));
   box-shadow: 0 30px 60px rgba(23, 43, 99, 0.08);
   backdrop-filter: blur(18px);
 }
@@ -151,7 +151,7 @@
   min-height: 100%;
   padding: 1.2rem;
   border-radius: 1.5rem;
-  background: linear-gradient(180deg, rgba(245, 247, 255, 0.9) 0%, rgba(236, 241, 255, 0.9) 100%);
+  background: linear-gradient(180deg, light-dark(rgba(245, 247, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent)) 0%, light-dark(rgba(236, 241, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent)) 100%);
 }
 
 .panelLabel {
@@ -162,7 +162,7 @@
   padding: 0 0.75rem;
   border-radius: 999px;
   background: rgba(99, 91, 255, 0.12);
-  color: #4f46dd;
+  color: light-dark(#4f46dd, color-mix(in srgb, #4f46dd 30%, #d4e7ff));
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -186,7 +186,7 @@
 .metricStack div {
   padding: 1rem;
   border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.72);
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
 }
 
 .metricStack strong {
@@ -196,7 +196,7 @@
 }
 
 .metricStack span {
-  color: rgba(16, 32, 63, 0.68);
+  color: light-dark(rgba(16, 32, 63, 0.68), rgba(231, 238, 249, 0.8));
 }
 
 .section,
@@ -248,8 +248,8 @@
 .pointList li {
   padding: 0.55rem 0.8rem;
   border-radius: 999px;
-  background: rgba(240, 244, 255, 0.95);
-  color: #41547d;
+  background: light-dark(rgba(240, 244, 255, 0.95), color-mix(in srgb, var(--theme-surface) 95%, transparent));
+  color: light-dark(#41547d, color-mix(in srgb, #41547d 30%, #d4e7ff));
   font-size: 0.9rem;
   font-weight: 600;
 }
@@ -312,7 +312,7 @@
 
   .secondaryCta:hover {
     border-color: rgba(16, 32, 63, 0.22);
-    background: rgba(255, 255, 255, 0.92);
+    background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-hover) 92%, transparent));
   }
 }
 

@@ -2,8 +2,8 @@
 @import "intro.js/introjs.css";
 
 :root {
-  --background: #f7f9fc;
-  --foreground: #10203f;
+  --background: light-dark(#f7f9fc, var(--theme-surface));
+  --foreground: light-dark(#10203f, rgba(231, 238, 249, 1));
   --brand-accent: #2c94f5;
   --brand-accent-strong: #1d7fe0;
   --brand-accent-soft: rgba(44, 148, 245, 0.12);
@@ -70,10 +70,10 @@ svg {
   min-width: min(92vw, 360px) !important;
   border: 1px solid rgba(44, 148, 245, 0.14) !important;
   border-radius: 24px !important;
-  background: rgba(255, 255, 255, 0.96) !important;
+  background: light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-raised) 96%, transparent)) !important;
   box-shadow: 0 24px 80px rgba(16, 32, 63, 0.18) !important;
   backdrop-filter: blur(18px) !important;
-  color: #10203f !important;
+  color: light-dark(#10203f, rgba(231, 238, 249, 1)) !important;
   font-family: var(--font-manrope), "Manrope", sans-serif !important;
   animation: journiIntroTooltipIn 260ms cubic-bezier(0.2, 0.9, 0.2, 1) both !important;
 }
@@ -83,7 +83,7 @@ svg {
 }
 
 .journiIntroTooltip .introjs-tooltip-title {
-  color: #10203f !important;
+  color: light-dark(#10203f, rgba(231, 238, 249, 1)) !important;
   font-size: 1.05rem !important;
   font-weight: 800 !important;
   letter-spacing: -0.02em !important;
@@ -91,7 +91,7 @@ svg {
 
 .journiIntroTooltip .introjs-tooltiptext {
   padding: 12px 20px 8px !important;
-  color: rgba(16, 32, 63, 0.76) !important;
+  color: light-dark(rgba(16, 32, 63, 0.76), rgba(231, 238, 249, 0.8)) !important;
   font-size: 0.96rem !important;
   line-height: 1.65 !important;
 }
@@ -117,7 +117,7 @@ svg {
   border-radius: 999px !important;
   background: rgba(44, 148, 245, 0.1) !important;
   box-shadow: none !important;
-  color: #10203f !important;
+  color: light-dark(#10203f, rgba(231, 238, 249, 1)) !important;
   font-size: 0.92rem !important;
   font-weight: 800 !important;
   line-height: 42px !important;
@@ -132,7 +132,7 @@ svg {
 .journiIntroTooltip .introjs-skipbutton {
   margin-left: auto !important;
   background: rgba(16, 32, 63, 0.06) !important;
-  color: rgba(16, 32, 63, 0.72) !important;
+  color: light-dark(rgba(16, 32, 63, 0.72), rgba(231, 238, 249, 0.8)) !important;
 }
 
 .journiIntroTooltip .introjs-button:hover,
@@ -140,7 +140,7 @@ svg {
 .journiIntroTooltip .introjs-skipbutton:hover,
 .journiIntroTooltip .introjs-skipbutton:focus {
   background: rgba(44, 148, 245, 0.16) !important;
-  color: #0f4e8a !important;
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1)) !important;
   transform: translateY(-1px);
 }
 
@@ -164,7 +164,7 @@ svg {
 .journiIntroTooltip .introjs-disabled:focus {
   opacity: 0.45 !important;
   background: rgba(16, 32, 63, 0.06) !important;
-  color: rgba(16, 32, 63, 0.48) !important;
+  color: light-dark(rgba(16, 32, 63, 0.48), rgba(231, 238, 249, 0.8)) !important;
   transform: none !important;
 }
 
@@ -185,7 +185,7 @@ svg {
 }
 
 .journiIntroTooltip .introjs-arrow {
-  border-top-color: rgba(255, 255, 255, 0.96) !important;
+  border-top-color: light-dark(rgba(255, 255, 255, 0.96), rgba(136, 158, 190, 0.96)) !important;
 }
 
 .journiIntroHighlight {
@@ -222,5 +222,70 @@ svg {
 
   to {
     opacity: 1;
+  }
+}
+
+/* Native controls and CSS light-dark() share the same resolved theme. */
+:root { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; --background: #0e1726; --foreground: #e7eef9; }
+:root[data-theme="light"] { color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme]) { color-scheme: dark; --background: #0e1726; --foreground: #e7eef9; } }
+@media print { :root { color-scheme: light !important; --background: #fff !important; --foreground: #10203f !important; } }
+input::placeholder, textarea::placeholder { color: light-dark(#66768b, #a1b0c6); opacity: 1; }
+
+/* Distinct dark surfaces: canvas → cards → popovers, with inset form fields. */
+:root {
+  --theme-canvas: #0c1422;
+  --theme-surface: #19283d;
+  --theme-raised: #263a53;
+  --theme-inset: #101d30;
+  --theme-hover: #314a69;
+  --theme-border: #425a78;
+}
+html.theme-reveal::view-transition-old(root),
+html.theme-reveal::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+html.theme-reveal::view-transition-old(root) { z-index: 1; }
+html.theme-reveal::view-transition-new(root) { z-index: 2; animation: journiThemeReveal 650ms cubic-bezier(.22,.7,.18,1) both; }
+html.theme-reveal::view-transition-group(root) { animation-duration: 650ms; }
+@keyframes journiThemeReveal {
+  from { clip-path: circle(0 at var(--theme-origin-x, 90%) var(--theme-origin-y, 5%)); }
+  to { clip-path: circle(150vmax at var(--theme-origin-x, 90%) var(--theme-origin-y, 5%)); }
+}
+html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after {
+  transition: background-color 450ms ease, color 450ms ease, border-color 450ms ease, box-shadow 450ms ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-reveal::view-transition-new(root) { animation: none; }
+  html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after { transition: none !important; }
+}
+html.theme-reveal::view-transition { pointer-events: none; }
+
+/* Brand and fallback artwork follow the selected theme, not the OS theme. */
+html[data-theme="dark"] img[src*="journi-logo-current"],
+html[data-theme="dark"] img[src*="journi-backoffice-logo"] { filter: brightness(0) invert(1); }
+html[data-theme="dark"] img[data-journi-fallback-applied="true"],
+html[data-theme="dark"] img[src$="journi-image-placeholder-pale.svg"],
+html[data-theme="dark"] img[src$="journi-image-placeholder-light.svg"] { content: url("/images/journi-image-placeholder-dark.svg"); }
+
+/* Shared liquid-glass material, with an opaque fallback. */
+:root {
+  --glass-fill: light-dark(#f4f8fe, #263a53);
+  --glass-edge: light-dark(#ffffffcc, #b7d5ff38);
+  --glass-sheen: linear-gradient(135deg, light-dark(#ffffffb3, #d5eaff16), transparent 48%, light-dark(#b6d8ff18, #67c4ff0a));
+  --glass-shadow: inset 0 1px 0 light-dark(#ffffff, #dbeaff26), inset 0 -1px 0 light-dark(#aac8e533, #00000026), 0 8px 26px light-dark(#24476b0d, #00000029);
+  --glass-blur: none;
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-fill: light-dark(#f5f9ffcc, #263a53d9);
+    --glass-blur: blur(18px) saturate(145%);
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root {
+    --glass-fill: light-dark(#f4f8fe, #263a53);
+    --glass-edge: light-dark(#b7c9df, #6c88aa);
+    --glass-sheen: none;
+    --glass-blur: none;
   }
 }

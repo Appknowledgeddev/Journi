@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { supabaseServerPublic } from "@/lib/supabase/server";
+import { requireBillingEnvironment } from "@/lib/stripe/environment";
 import { stripe } from "@/lib/stripe/server";
 
 type Interval = "monthly" | "yearly";
@@ -36,32 +38,50 @@ function getStripeSecretMode() {
 }
 
 export async function POST(request: NextRequest) {
+  const token = request.headers.get("authorization")?.replace(/^Bearer /, "");
+  if (!token) return NextResponse.json({ error: "Please sign in before paying." }, { status: 401 });
+  const { data: { user }, error: authError } = await supabaseServerPublic.auth.getUser(token);
+  if (authError || !user?.email) return NextResponse.json({ error: "Please sign in before paying." }, { status: 401 });
   const body = (await request.json()) as {
     product?: Product;
+    publishableMode?: "test" | "live";
     interval?: Interval;
     email?: string;
     origin?: string;
     returnPath?: string;
   };
+  let billingMode;
+  try {
+    // Require the mode from the browser build as well as matching server keys.
+    billingMode = requireBillingEnvironment(body.publishableMode ?? null);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Payments unavailable." }, { status: 503 });
+  }
   const product = body.product === "trip_pass" ? "trip_pass" : "pro_organiser";
   const interval = body.interval === "yearly" ? "yearly" : "monthly";
-  const origin = body.origin || request.nextUrl.origin;
+  const origin = request.nextUrl.origin;
   const returnPath =
-    body.returnPath && body.returnPath.startsWith("/")
+    body.returnPath && body.returnPath.startsWith("/") && !body.returnPath.startsWith("//")
       ? body.returnPath
       : product === "trip_pass"
         ? "/dashboard?checkout=complete&product=trip_pass"
         : "/dashboard?checkout=complete&product=pro_organiser";
-  const email = typeof body.email === "string" ? body.email.trim() : "";
+  const email = user.email;
+  const destination = new URL(returnPath, origin);
+  if (destination.origin !== origin) return NextResponse.json({ error: "Invalid checkout return path." }, { status: 400 });
+  destination.searchParams.set("checkout_session_id", "{CHECKOUT_SESSION_ID}");
+  const returnUrl = destination.toString().replace("%7BCHECKOUT_SESSION_ID%7D", "{CHECKOUT_SESSION_ID}");
+  const identity = { client_reference_id: user.id, metadata: { user_id: user.id, product, billing_mode: billingMode } };
 
   try {
     const session =
       product === "trip_pass"
         ? await stripe.checkout.sessions.create({
-            customer_email: email || undefined,
+            ...identity,
+            customer_email: email,
             mode: "payment",
             ui_mode: "embedded",
-            return_url: `${origin}${returnPath}`,
+            return_url: returnUrl,
             line_items: [
               {
                 quantity: 1,
@@ -77,10 +97,12 @@ export async function POST(request: NextRequest) {
             ],
           })
         : await stripe.checkout.sessions.create({
-            customer_email: email || undefined,
+            ...identity,
+            customer_email: email,
             mode: "subscription",
+            subscription_data: { metadata: { user_id: user.id, product: "pro_organiser", billing_mode: billingMode } },
             ui_mode: "embedded",
-            return_url: `${origin}${returnPath}`,
+            return_url: returnUrl,
             line_items: [
               {
                 quantity: 1,
@@ -100,7 +122,7 @@ export async function POST(request: NextRequest) {
             ],
           });
 
-    return NextResponse.json({ clientSecret: session.client_secret });
+    return NextResponse.json({ clientSecret: session.client_secret, billingMode });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to create embedded Stripe checkout.";

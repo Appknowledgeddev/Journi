@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { CheckoutFrame } from "./checkout-frame";
 import styles from "./upgrade-plan-modal.module.css";
 
 export function UpgradePlanModal({
@@ -12,6 +14,7 @@ export function UpgradePlanModal({
   email: string;
   onClose: () => void;
 }) {
+  const dialog = useRef<HTMLDialogElement>(null);
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const iframeSrc = useMemo(() => {
     const params = new URLSearchParams({
@@ -25,39 +28,29 @@ export function UpgradePlanModal({
     return `/signup/pro-organiser/payment?${params.toString()}`;
   }, [billing, email]);
 
+  function close() {
+    setBilling("monthly");
+    onClose();
+  }
+
   useEffect(() => {
     if (!open) {
-      setBilling("monthly");
       return;
     }
+
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
   }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, [open, onClose]);
 
   if (!open) {
     return null;
   }
 
-  return (
-    <div className={styles.backdrop} onClick={onClose}>
+  return createPortal(
+    <dialog ref={dialog} className={styles.backdrop} aria-label="Update plan" onCancel={(event) => { event.preventDefault(); close(); }} onClick={(event) => { if (event.target === event.currentTarget) close(); }}>
       <div
         className={styles.modal}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Update plan"
         onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.header}>
@@ -66,7 +59,7 @@ export function UpgradePlanModal({
             <h2>Start your Pro organiser subscription</h2>
             <p className={styles.lead}>Upgrade this account without leaving the app.</p>
           </div>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">
+          <button type="button" className={styles.closeButton} onClick={close} aria-label="Close">
             Close
           </button>
         </div>
@@ -109,7 +102,7 @@ export function UpgradePlanModal({
           </div>
 
           <div className={styles.paymentColumn}>
-            <iframe
+            <CheckoutFrame
               key={iframeSrc}
               src={iframeSrc}
               title="Journi Pro organiser checkout"
@@ -118,6 +111,6 @@ export function UpgradePlanModal({
           </div>
         </div>
       </div>
-    </div>
+    </dialog>, document.body
   );
 }

@@ -3224,6 +3224,7 @@ export default function TripDetailPage() {
   return (
     <>
       <AppShell
+      pageLoading={loadingTrip}
         kicker=""
         title=""
         intro=""

@@ -1,21 +1,21 @@
 .page {
   height: 100vh;
   overflow: hidden;
-  background: #f5f7fb;
+  background: light-dark(#f5f7fb, var(--theme-surface));
 }
 
 .appShell {
   display: grid;
   grid-template-columns: 290px minmax(0, 1fr);
   height: 100vh;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--theme-surface));
 }
 
 .appShellCollapsed {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);
   height: 100vh;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--theme-surface));
 }
 
 .sidebar,
@@ -102,8 +102,8 @@
   overflow: hidden;
   padding: 0 24px 24px;
   background:
-    radial-gradient(circle at top right, rgba(255, 208, 168, 0.18), transparent 26%),
-    linear-gradient(180deg, #f8fafc, #f3f6fb);
+    radial-gradient(circle at top right, light-dark(rgba(255, 208, 168, 0.18), color-mix(in srgb, rgba(255, 208, 168, 0.18) 15%, #111c2e2e)), transparent 26%),
+    linear-gradient(180deg, light-dark(#f8fafc, var(--theme-surface)), light-dark(#f3f6fb, var(--theme-surface)));
 }
 
 .topNav {
@@ -207,7 +207,7 @@
 .kicker,
 .sectionLabel,
 .accountLabel {
-  color: #cf6d2e;
+  color: light-dark(#cf6d2e, color-mix(in srgb, #cf6d2e 30%, #d4e7ff));
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -216,7 +216,7 @@
 
 .topBar h1 {
   margin: 8px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: clamp(1.9rem, 3.2vw, 3rem);
   line-height: 1;
   letter-spacing: -0.05em;
@@ -226,7 +226,7 @@
   border: 0;
   padding: 0;
   background: transparent;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.96rem;
   font-weight: 700;
@@ -236,7 +236,7 @@
 .lead {
   margin: 0 0 2px;
   max-width: 62rem;
-  color: rgba(24, 49, 83, 0.76);
+  color: light-dark(rgba(24, 49, 83, 0.76), rgba(231, 238, 249, 0.8));
   font-size: 0.96rem;
   line-height: 1.65;
 }
@@ -256,7 +256,7 @@
   border: 1px solid rgba(207, 109, 46, 0.16);
   border-radius: 16px;
   background: rgba(207, 109, 46, 0.08);
-  color: #8d4b1d;
+  color: light-dark(#8d4b1d, color-mix(in srgb, #8d4b1d 30%, #d4e7ff));
   font-weight: 700;
 }
 
@@ -264,7 +264,7 @@
 .quickActionCard p,
 .featureCardUnlocked p,
 .featureCardLocked p {
-  color: rgba(24, 49, 83, 0.74);
+  color: light-dark(rgba(24, 49, 83, 0.74), rgba(231, 238, 249, 0.8));
   line-height: 1.6;
 }
 
@@ -273,7 +273,7 @@
   padding: 22px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.72);
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
 }
 
 .workspaceHeader {
@@ -286,7 +286,7 @@
 
 .workspaceHeader h2 {
   margin: 6px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.25rem;
   letter-spacing: -0.03em;
 }
@@ -299,7 +299,7 @@
   padding: 0 12px;
   border-radius: 999px;
   background: rgba(24, 49, 83, 0.08);
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-weight: 800;
 }
 
@@ -316,12 +316,12 @@
   padding: 20px;
   border-radius: 20px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 249, 253, 0.92));
+    linear-gradient(180deg, light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-surface) 94%, transparent)), light-dark(rgba(246, 249, 253, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent)));
   border: 1px solid rgba(24, 49, 83, 0.08);
 }
 
 .quickActionCard strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.98rem;
 }
 
@@ -337,7 +337,7 @@
   padding: 18px 20px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
+  background: light-dark(rgba(255, 255, 255, 0.82), color-mix(in srgb, var(--theme-surface) 82%, transparent));
 }
 
 .chartHeader {
@@ -349,13 +349,13 @@
 
 .chartHeader h2 {
   margin: 6px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.1rem;
   letter-spacing: -0.02em;
 }
 
 .chartHeader strong {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 1.15rem;
 }
 
@@ -377,7 +377,7 @@
 }
 
 .chartCopy {
-  color: rgba(24, 49, 83, 0.74);
+  color: light-dark(rgba(24, 49, 83, 0.74), rgba(231, 238, 249, 0.8));
   font-size: 0.92rem;
   line-height: 1.6;
 }
@@ -393,7 +393,7 @@
 }
 
 .progressRow span {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -424,7 +424,7 @@
   padding: 18px;
   border-radius: 18px;
   border: 1px solid rgba(24, 49, 83, 0.08);
-  background: rgba(255, 255, 255, 0.88);
+  background: light-dark(rgba(255, 255, 255, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
 }
 
 .featureCardLocked {
@@ -441,7 +441,7 @@
 
 .featureHeader h3 {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
 }
 
@@ -458,13 +458,13 @@
 }
 
 .statusUnlocked {
-  color: #14532d;
-  background: rgba(187, 247, 208, 0.8);
+  color: light-dark(#14532d, color-mix(in srgb, #14532d 30%, #d4e7ff));
+  background: light-dark(rgba(187, 247, 208, 0.8), color-mix(in srgb, rgba(187, 247, 208, 0.8) 15%, #111c2ecc));
 }
 
 .statusLocked {
-  color: #7c2d12;
-  background: rgba(254, 215, 170, 0.76);
+  color: light-dark(#7c2d12, color-mix(in srgb, #7c2d12 30%, #d4e7ff));
+  background: light-dark(rgba(254, 215, 170, 0.76), color-mix(in srgb, rgba(254, 215, 170, 0.76) 15%, #111c2ec2));
 }
 
 @media (max-width: 1100px) {

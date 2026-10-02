@@ -28,8 +28,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.2), transparent 28%),
-    linear-gradient(180deg, rgba(245, 238, 228, 0.08), rgba(238, 245, 252, 0.04));
+    radial-gradient(circle at top right, light-dark(rgba(255, 255, 255, 0.2), color-mix(in srgb, var(--theme-surface) 20%, transparent)), transparent 28%),
+    linear-gradient(180deg, light-dark(rgba(245, 238, 228, 0.08), rgb(29, 43, 63, 0.08)), light-dark(rgba(238, 245, 252, 0.04), color-mix(in srgb, var(--theme-surface) 4%, transparent)));
   pointer-events: none;
 }
 
@@ -38,16 +38,16 @@
   z-index: 1;
   width: min(100%, 460px);
   padding: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
+  border: 1px solid light-dark(rgba(255, 255, 255, 0.34), rgba(136, 158, 190, 0.34));
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.9);
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
   backdrop-filter: blur(16px);
   box-shadow: 0 24px 64px rgba(17, 38, 64, 0.16);
 }
 
 .kicker {
   margin: 0 0 12px;
-  color: #cf6d2e;
+  color: light-dark(#cf6d2e, color-mix(in srgb, #cf6d2e 30%, #d4e7ff));
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -56,7 +56,7 @@
 
 .card h1 {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 2.3rem;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -65,7 +65,7 @@
 .lead,
 .field span,
 .footer {
-  color: rgba(24, 49, 83, 0.76);
+  color: light-dark(rgba(24, 49, 83, 0.76), rgba(231, 238, 249, 0.8));
 }
 
 .lead,
@@ -100,8 +100,8 @@
   padding: 0 14px;
   border: 1px solid rgba(24, 49, 83, 0.14);
   border-radius: 14px;
-  background: #ffffff;
-  color: #112640;
+  background: light-dark(#ffffff, var(--theme-inset));
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font: inherit;
   outline: none;
 }
@@ -115,8 +115,8 @@
   padding: 12px 14px;
   border: 1px solid rgba(190, 24, 93, 0.18);
   border-radius: 14px;
-  color: #9f1239;
-  background: rgba(255, 241, 242, 0.96);
+  color: light-dark(#9f1239, color-mix(in srgb, #9f1239 30%, #d4e7ff));
+  background: light-dark(rgba(255, 241, 242, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
   font-size: 0.92rem;
   line-height: 1.5;
 }
@@ -127,12 +127,12 @@
   padding: 18px;
   border: 1px solid rgba(14, 116, 144, 0.18);
   border-radius: 18px;
-  background: rgba(236, 253, 255, 0.96);
+  background: light-dark(rgba(236, 253, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
 }
 
 .confirmationPanel p {
   margin: 0;
-  color: #0f4c5c;
+  color: light-dark(#0f4c5c, rgba(231, 238, 249, 1));
   line-height: 1.6;
 }
 
@@ -161,7 +161,7 @@
 }
 
 .link {
-  color: #3c6eaa;
+  color: light-dark(#3c6eaa, color-mix(in srgb, #3c6eaa 30%, #d4e7ff));
   font-weight: 700;
 }
 

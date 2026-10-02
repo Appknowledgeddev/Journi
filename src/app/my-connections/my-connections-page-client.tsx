@@ -1,5 +1,9 @@
 "use client";
 
+import { ListControls } from "@/components/list-controls";
+import { AppLoadingSignal } from "@/components/app-loading";
+import { ConnectionsEmptyState } from "@/components/connections-empty-state";
+
 import { useEffect, useState } from "react";
 import { type ConnectionProfile } from "@/lib/connection-profile";
 import { resolveProfileBackgroundStyle } from "@/lib/profile-card";
@@ -16,6 +20,9 @@ function MyConnectionsManager({
   userId: string | null;
   loading: boolean;
 }) {
+  const [search, setSearch] = useState("");
+  const [photoFilter, setPhotoFilter] = useState("all");
+  const [sort, setSort] = useState("az");
   const [profiles, setProfiles] = useState<ConnectionProfile[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(true);
   const [connectionsError, setConnectionsError] = useState<string | null>(null);
@@ -83,6 +90,11 @@ function MyConnectionsManager({
     };
   }, [loading, userId]);
 
+  const visibleProfiles = profiles.filter((profile) => {
+    if (search.trim() && !`${profile.fullName} ${profile.bio}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())) return false;
+    return photoFilter === "all" || (photoFilter === "photo" ? Boolean(profile.avatarUrl) : !profile.avatarUrl);
+  }).sort((a, b) => sort === "az" ? a.fullName.localeCompare(b.fullName) : b.fullName.localeCompare(a.fullName));
+
   return (
     <div className={styles.stack}>
       {connectionsError ? (
@@ -92,10 +104,17 @@ function MyConnectionsManager({
       ) : null}
 
       <section aria-label="Connection profiles">
-        {loadingConnections ? <p className={styles.muted}>Loading profile cards…</p> : null}
-        {!loadingConnections && !connectionsError && profiles.length === 0 ? <p className={styles.muted}>Your connections’ profile cards will appear here once they’ve completed their profiles.</p> : null}
+        <ListControls search={search} onSearch={setSearch} placeholder="Search names or bios" count={visibleProfiles.length} total={profiles.length}
+          active={Boolean(search || photoFilter !== "all" || sort !== "az")} onReset={() => { setSearch(""); setPhotoFilter("all"); setSort("az"); }}
+          filters={[
+            { label: "Photo", value: photoFilter, onChange: setPhotoFilter, options: [{ value: "all", label: "Everyone" }, { value: "photo", label: "With photo" }, { value: "no-photo", label: "Without photo" }] },
+            { label: "Sort", value: sort, onChange: setSort, options: [{ value: "az", label: "Name A–Z" }, { value: "za", label: "Name Z–A" }] },
+          ]} />
+        {!loadingConnections && profiles.length > 0 && visibleProfiles.length === 0 ? <p className={styles.muted}>No connections match your search and filters.</p> : null}
+        <AppLoadingSignal active={loadingConnections} />
+        {!loadingConnections && !connectionsError && profiles.length === 0 ? <ConnectionsEmptyState /> : null}
         <div className={styles.connectionProfileGrid}>
-          {profiles.map((profile) => <article key={profile.id} className={styles.profileCardPreview} style={resolveProfileBackgroundStyle(profile)}>
+          {visibleProfiles.map((profile) => <article key={profile.id} className={styles.profileCardPreview} style={resolveProfileBackgroundStyle(profile)}>
             <div className={styles.profileCardPreviewBody}>
               {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" className={styles.profileCardPreviewAvatar} style={{ objectPosition: `${profile.avatarPositionX}% ${profile.avatarPositionY}%` }} /> : <span className={styles.profileCardPreviewAvatarPlaceholder}>{profile.fullName.charAt(0).toUpperCase()}</span>}
               <h3>{profile.fullName}</h3>

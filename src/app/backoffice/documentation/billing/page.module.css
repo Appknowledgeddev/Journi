@@ -1,0 +1,30 @@
+.document { width: 100%; max-width: 1000px; margin: 0 auto; padding: 24px 28px 64px; }
+.intro { max-width: 760px; line-height: 1.8; color: light-dark(#526174, #b6c5d9); }
+.contents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 28px 0; }
+.contents a { padding: 14px 16px; border: 1px solid light-dark(#dce3ec, #384c66); border-radius: 12px; color: light-dark(#2469a9, #9bcfff); text-decoration: none; line-height: 1.5; }
+.contents a:hover { background: light-dark(#e2eefa, #233a52); }
+.contents a:focus-visible { outline: 2px solid #409bfa; outline-offset: 3px; }
+.section { padding: 26px 0; border-top: 1px solid light-dark(#d8e0e9, #384c66); scroll-margin-top: 24px; }
+.section h2 { margin: 0 0 18px; font-size: 1.3rem; letter-spacing: -.025em; }
+.section p { line-height: 1.85; margin: 0 0 16px; font-size: .95rem; }
+.section details { margin-top: 22px; color: light-dark(#607087, #a8bdd5); font-size: .8rem; }
+.section summary { cursor: pointer; padding: 8px 0; }
+.section ul { padding-left: 20px; line-height: 1.9; }
+.section code { overflow-wrap: anywhere; }
+@media (max-width: 700px) { .document { padding: 16px 16px 44px; } .contents { grid-template-columns: 1fr; } }
+
+.scenarioControls { display: flex; flex-wrap: wrap; gap: 16px; margin: 24px 0 14px; }
+.scenarioControls label { flex: 1 1 220px; display: grid; gap: 8px; font-size: .85rem; font-weight: 700; }
+.scenarioControls input, .scenarioControls select { width: 100%; min-height: 44px; border: 1px solid light-dark(#ccd8e5, #405772); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 16px; color: inherit; background: light-dark(#fff, #172638); }
+.scenarioGroup { margin-top: 32px; }
+.scenarioGroup h3 { margin: 0 0 8px; }
+.referenceLink { display: inline-block; color: light-dark(#2469a9, #9bcfff); font-size: .8rem; margin-bottom: 12px; }
+.section .scenario { border: 1px solid light-dark(#d8e0e9, #384c66); border-radius: 12px; margin: 8px 0; color: inherit; }
+.scenario summary { padding: 16px; line-height: 1.6; }
+.scenario summary strong { font-weight: 650; font-size: .9rem; }
+.scenarioId { margin-right: 10px; color: light-dark(#64768d, #b1c2d7); }
+.scenarioBadge { display: inline-block; margin-left: 12px; font-size: .7rem; padding: 2px 9px; border-radius: 999px; background: light-dark(#e3ebf5, #2c4058); vertical-align: middle; }
+.scenario > div { padding: 0 20px 8px; }
+.scenario h4 { margin: 12px 0 6px; font-size: .82rem; }
+.scenario summary:focus-visible { outline: 2px solid #409bfa; outline-offset: 3px; border-radius: 12px; }
+@media (max-width: 700px) { .scenarioBadge { margin: 8px 0 0; display: table; } }

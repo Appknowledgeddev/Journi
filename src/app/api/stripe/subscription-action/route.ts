@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
+import { requireBillingEnvironment } from "@/lib/stripe/environment";
 import { stripe } from "@/lib/stripe/server";
 
 type SubscriptionAction = "cancel_at_period_end" | "reactivate";
@@ -8,6 +9,9 @@ type SubscriptionItemWithPeriod = Stripe.SubscriptionItem & {
 };
 
 export async function POST(request: NextRequest) {
+  try { requireBillingEnvironment(); } catch {
+    return NextResponse.json({ error: "Payments are unavailable because the Stripe test/live configuration needs attention." }, { status: 503 });
+  }
   const body = (await request.json()) as {
     subscriptionId?: string;
     action?: SubscriptionAction;

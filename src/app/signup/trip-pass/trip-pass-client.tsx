@@ -1,6 +1,8 @@
 "use client";
 
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+import { stripeKeyMode, type StripeMode } from "@/lib/stripe/environment";
+import modeStyles from "@/components/billing-mode-indicator.module.css";
 import { loadStripe } from "@stripe/stripe-js";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,6 +40,7 @@ export function TripPassClient({
   returnPath: string;
 }) {
   const router = useRouter();
+  const [billingMode, setBillingMode] = useState<StripeMode | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState("");
   const [accountEmail, setAccountEmail] = useState("");
@@ -68,12 +71,15 @@ export function TripPassClient({
 
       setAccountEmail(email);
 
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch("/api/stripe/checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
         },
         body: JSON.stringify({
+          publishableMode: stripeKeyMode(stripePublishableKey, "publishable"),
           product: "trip_pass",
           email,
           origin: window.location.origin,
@@ -83,6 +89,7 @@ export function TripPassClient({
 
       const data = (await response.json()) as {
         clientSecret?: string;
+        billingMode?: StripeMode;
         error?: string;
         debug?: {
           serverStripeMode?: string;
@@ -99,6 +106,11 @@ export function TripPassClient({
         return;
       }
 
+      if (!data.billingMode || data.billingMode !== stripeKeyMode(stripePublishableKey, "publishable")) {
+        setCheckoutError("The payment environment has changed. Refresh the page before trying again.");
+        return;
+      }
+      setBillingMode(data.billingMode);
       setClientSecret(data.clientSecret);
     }
 
@@ -116,7 +128,7 @@ export function TripPassClient({
   }
 
   return (
-    <main className={compact ? styles.compactPage : styles.page}>
+    <main data-embedded-checkout={compact ? "true" : undefined} className={compact ? styles.compactPage : styles.page}>
       {!compact ? <div className={styles.overlay} /> : null}
       {!compact ? (
         <Link href="/" className={styles.pageLogo}>
@@ -132,6 +144,9 @@ export function TripPassClient({
       ) : null}
 
       <section className={compact ? styles.compactCard : styles.card}>
+        {billingMode ? <div className={modeStyles.notice} data-mode={billingMode} role="status">
+          {billingMode === "test" ? "Test checkout — no real money will be charged. Use Stripe test payment details." : "Live checkout — this payment uses real money."}
+        </div> : null}
         {compact ? (
           <div className={styles.paymentShellCompact}>
             {stripePromise && clientSecret ? (

@@ -1,10 +1,11 @@
 "use client";
 
+import { TripListControls, filterTripList, initialTripListFilters } from "@/components/trip-list-controls";
+import { TripsEmptyState } from "@/components/trips-empty-state";
 import Link from "next/link";
 import { FiCalendar, FiUsers } from "react-icons/fi";
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { JourniLoader } from "@/components/journi-loader";
 import { supabase } from "@/lib/supabase/client";
 import { readTripOrganiserDraft } from "@/lib/trip-organiser/draft";
 import styles from "@/components/app-page.module.css";
@@ -123,6 +124,7 @@ function getTripRoleLabel(trip: TripCard) {
 }
 
 export default function TripsPage() {
+  const [listFilters, setListFilters] = useState(initialTripListFilters);
   const [trips, setTrips] = useState<TripCard[]>([]);
   const [draftResume, setDraftResume] = useState<ReturnType<typeof readTripOrganiserDraft>>(null);
   const [loadingTrips, setLoadingTrips] = useState(true);
@@ -243,43 +245,26 @@ export default function TripsPage() {
       visibility: tripForm.visibility,
     };
 
-    let { data, error } = (await supabase
-      .from("trips")
-      .insert(payload)
-      .select(
-        "id, title, destination, description, status, visibility, starts_at, ends_at, cover_image_url",
-      )
-      .single()) as {
-      data: TripCard | null;
-      error: { message: string } | null;
-    };
-
-    if (error && error.message.includes("visibility")) {
-      const fallbackResult = await supabase
-        .from("trips")
-        .insert(basePayload)
-        .select(
-          "id, title, destination, description, status, starts_at, ends_at, cover_image_url",
-        )
-        .single();
-
-      data = fallbackResult.data as TripCard | null;
-      error = fallbackResult.error;
-
-      if (!error) {
-        setCreateError(
-          "Trip created, but Supabase needs the latest visibility update before private/public can be saved.",
-        );
+    const { data: { session } } = await supabase.auth.getSession();
+    try {
+      const response = await fetch("/api/trip-organiser/finalise", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token ?? ""}` },
+        body: JSON.stringify({ draft: { tripForm }, checkoutSessionId: sessionStorage.getItem(`journi-trip-checkout:${userId}`) }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.tripId) {
+        setCreateError(result.error || "Unable to create this trip.");
+        setIsCreating(false);
+        return;
       }
-    }
-
-    if (error) {
-      setCreateError(error.message);
+      const data = { ...payload, id: result.tripId } as TripCard;
+      setTrips((current) => [{ ...data, roleView: "organiser" }, ...current]);
+    } catch {
+      setCreateError("Unable to create this trip. Please try again.");
       setIsCreating(false);
       return;
     }
-
-    setTrips((current) => [{ ...(data as TripCard), roleView: "organiser" }, ...current]);
     setTripForm(initialTripForm);
     setShowCreateForm(false);
     setIsCreating(false);
@@ -345,7 +330,7 @@ export default function TripsPage() {
     await uploadTripImage(file);
   }
 
-  const filteredTrips = trips.filter((trip) => {
+  const scopedTrips = trips.filter((trip) => {
     if (tripFilter === "all") {
       return true;
     }
@@ -353,8 +338,13 @@ export default function TripsPage() {
     return trip.roleView === tripFilter;
   });
 
+  const today = new Date().toLocaleDateString("en-CA");
+  const filteredTrips = filterTripList(scopedTrips, listFilters, today);
+
   return (
     <AppShell
+      pageLoading={loadingTrips}
+      loadingLabel="Loading your trips…"
       title="Your trips"
       headerActionInline
       headerAction={
@@ -399,6 +389,7 @@ export default function TripsPage() {
       {() => (
         <div className={styles.stack}>
           <section className={styles.tripListSection}>
+            <TripListControls value={listFilters} onChange={setListFilters} statuses={[...new Set(trips.map((trip) => trip.status))].sort()} count={filteredTrips.length} total={scopedTrips.length} privateTrips />
             {draftResume ? (
               <div className={styles.optionFormCard}>
                 <div className={styles.rowTop}>
@@ -432,17 +423,10 @@ export default function TripsPage() {
 
             {tripError ? <p className={styles.formError}>{tripError}</p> : null}
 
-            {loadingTrips ? (
-              <JourniLoader
-                title="Loading your trips"
-                detail="Gathering the trips you organise and the trips you have joined."
-              />
-            ) : null}
+
 
             {!loadingTrips && !tripError && filteredTrips.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p>No trips in this view yet.</p>
-              </div>
+              <TripsEmptyState filtered={trips.length > 0} onReset={() => { setTripFilter("all"); setListFilters(initialTripListFilters); }} />
             ) : null}
 
             {!tripError ? (

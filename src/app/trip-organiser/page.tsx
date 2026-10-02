@@ -4,6 +4,7 @@ import { ScrollableOptionCards } from "@/components/scrollable-option-cards";
 import { DateRange, DayPicker } from "react-day-picker";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   FiCalendar,
   FiCheck,
@@ -11,12 +12,15 @@ import {
   FiChevronRight,
   FiEdit3,
   FiImage,
+  FiUpload,
+  FiLoader,
   FiMapPin,
   FiStar,
   FiX,
 } from "react-icons/fi";
 import { AppShell } from "@/components/app-shell";
 import { TripUpgradeModal } from "@/components/trip-upgrade-modal";
+import { FirstTripPlanPrompt } from "@/components/first-trip-plan-prompt";
 import styles from "@/components/app-page.module.css";
 import { supabase } from "@/lib/supabase/client";
 import {
@@ -453,6 +457,7 @@ export default function TripOrganiserPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const coverSelectionInProgress = useRef(false);
   const destinationBlurTimeoutRef = useRef<number | null>(null);
   const hotelLoadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
   const hotelCarouselRef = useRef<HTMLDivElement | null>(null);
@@ -510,6 +515,7 @@ export default function TripOrganiserPage() {
   const [showAllDiningPanel, setShowAllDiningPanel] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [validationStep, setValidationStep] = useState<StepKey | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [hasHydrated, setHasHydrated] = useState(false);
   const [draftOwnerId, setDraftOwnerId] = useState<string | null>(null);
@@ -528,7 +534,10 @@ export default function TripOrganiserPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeChoice, setUpgradeChoice] = useState<"trip_pass" | "pro_organiser">("trip_pass");
+  const [upgradeStep, setUpgradeStep] = useState<StepKey>("finalise");
   const [tripPassUnlocked, setTripPassUnlocked] = useState(false);
+  const [checkoutSessionId, setCheckoutSessionId] = useState<string | null>(null);
 
   const activeStep = steps[activeStepIndex];
   const hasDestination = Boolean(tripForm.destination.trim());
@@ -563,6 +572,40 @@ export default function TripOrganiserPage() {
   const mainSectionClassName = styles.tripWorkspace;
   const showHotelsInline =
     activeStep.key === "details" && Boolean(tripForm.description.trim()) && !isEditingDescription;
+
+  const requirements: Record<StepKey, { field: string; label: string; done: boolean }[]> = {
+    details: [
+      { field: "destination", label: "Choose a destination", done: hasSelectedDestination },
+      { field: "photo", label: "Add a cover photo", done: hasCoverImage },
+      { field: "title", label: "Add a trip name", done: hasTripName },
+      { field: "type", label: "Add a trip type", done: hasTripType },
+      { field: "description", label: "Write and save your trip story", done: hasTripDescription },
+      { field: "dates", label: "Choose dates or select flexible dates", done: hasDatePlan },
+      { field: "budget", label: "Set your budget", done: hasBudgetPlan },
+    ],
+    hotels: [{ field: "hotels", label: "Select a hotel with a name and location", done: hasSelectedHotels }],
+    activities: [{ field: "activities", label: "Select an activity with a name and location", done: hasSelectedActivities }],
+    transport: [{ field: "transport", label: "Select transport with a provider, type and destination", done: hasSelectedTransport }],
+    dining: [{ field: "dining", label: "Select dining with a name and location", done: hasSelectedDining }],
+    finalise: [],
+  };
+  const missingRequirements = validationStep ? requirements[validationStep].filter(item => !item.done) : [];
+  function fieldNeedsAttention(field: string) { return validationStep === activeStep.key && missingRequirements.some(item => item.field === field); }
+  function focusRequiredField(field: string) {
+    if (validationStep && validationStep !== activeStep.key) goToStep(validationStep);
+    if (field === "title") setIsEditingTripTitle(true);
+    if (field === "type") setIsEditingTripType(true);
+    if (field === "description") setIsEditingDescription(true);
+    if (field === "photo") setDestinationGalleryOpen(true);
+    requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(`[data-trip-field="${field}"]`);
+      const fallback = tripBuilderTopRef.current?.querySelector<HTMLElement>('[data-trip-field="photo"]');
+      const element = target || fallback;
+      element?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+      const input = element?.matches("input, textarea, button, select") ? element : element?.querySelector<HTMLElement>("input, textarea, button, select");
+      input?.focus({ preventScroll: true });
+    });
+  }
 
   function isStepComplete(stepKey: StepKey) {
     switch (stepKey) {
@@ -650,12 +693,13 @@ export default function TripOrganiserPage() {
       const validationError = getStepValidationError(step.key);
 
       if (validationError) {
-        setCreateError(validationError);
-        goToStep(step.key, { scrollToTop: true });
+        setValidationStep(step.key);
+        setCreateError(null);
         return false;
       }
     }
 
+    setValidationStep(null);
     setCreateError(null);
     return true;
   }
@@ -703,14 +747,14 @@ export default function TripOrganiserPage() {
       return;
     }
 
-    goToStep(stepKey);
+    goToStep(stepKey, { scrollToTop: true });
   }
 
   function renderContinuationButton(
     nextStepKey: StepKey | null,
     options?: { onContinue?: () => void },
   ) {
-    if (!nextStepKey || !isStepComplete(activeStep.key)) {
+    if (!nextStepKey) {
       return null;
     }
 
@@ -883,6 +927,45 @@ export default function TripOrganiserPage() {
 
     setDestinationPhotos(data.photos ?? []);
     setIsLoadingDestinationPhotos(false);
+  }
+
+  async function selectCoverPhoto(photo: DestinationPhoto, button: HTMLButtonElement) {
+    if (coverSelectionInProgress.current) return;
+    const frame = button.closest<HTMLElement>("[data-cover-frame]");
+    const thumbnail = button.querySelector("img");
+    const applyPhoto = () => {
+      setTripForm((current) => ({ ...current, coverImageUrl: photo.url }));
+      setDestinationGalleryOpen(false);
+    };
+    if (!frame || !thumbnail || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      applyPhoto();
+      return;
+    }
+    coverSelectionInProgress.current = true;
+    const target = frame.getBoundingClientRect();
+    const origin = thumbnail.getBoundingClientRect();
+    const expandingPhoto = thumbnail.cloneNode(true) as HTMLImageElement;
+    expandingPhoto.alt = "";
+    expandingPhoto.setAttribute("aria-hidden", "true");
+    Object.assign(expandingPhoto.style, {
+      position: "absolute", zIndex: "6", pointerEvents: "none",
+      objectFit: "cover", maxWidth: "none", left: "0", top: "0",
+      width: "100%", height: "100%", borderRadius: "24px 24px 0 0",
+    });
+    frame.appendChild(expandingPhoto);
+    try {
+      await expandingPhoto.animate([
+        { left: `${origin.left - target.left}px`, top: `${origin.top - target.top}px`, width: `${origin.width}px`, height: `${origin.height}px`, borderRadius: "16px" },
+        { left: "0px", top: "0px", width: `${target.width}px`, height: `${target.height}px`, borderRadius: "24px 24px 0 0" },
+      ], { duration: 520, easing: "cubic-bezier(.22,.8,.22,1)", fill: "forwards" }).finished;
+      if (frame.isConnected) {
+        applyPhoto();
+        await expandingPhoto.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }).finished;
+      }
+    } finally {
+      expandingPhoto.remove();
+      coverSelectionInProgress.current = false;
+    }
   }
 
   function applyDestinationSelection(nextDestination: string) {
@@ -1655,23 +1738,30 @@ export default function TripOrganiserPage() {
   }, [draftOwnerId, hasResolvedDraftOwner, searchParams]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
+    if (!draftOwnerId) return;
+    let cancelled = false;
+    const storageKey = `journi-trip-checkout:${draftOwnerId}`;
+    const sessionId = searchParams.get("checkout_session_id") || window.sessionStorage.getItem(storageKey);
+    async function verifyCheckout() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+      try {
+        const response = await fetch(`/api/trip-access${sessionId ? `?checkout_session_id=${encodeURIComponent(sessionId)}` : ""}`, { headers: { Authorization: `Bearer ${session.access_token}` } });
+        const access = await response.json();
+        if (cancelled || !response.ok) return;
+        setTripPassUnlocked(access.hasTripPass === true);
+        if (sessionId && (access.hasTripPass || access.hasSubscription)) {
+          setCheckoutSessionId(sessionId);
+          window.sessionStorage.setItem(storageKey, sessionId);
+        } else {
+          setCheckoutSessionId(null);
+          window.sessionStorage.removeItem(storageKey);
+        }
+      } catch { /* The save endpoint also verifies access and will show any error. */ }
     }
-
-    const checkoutComplete = searchParams.get("checkout") === "complete";
-    const checkoutProduct = searchParams.get("product");
-    const storedUnlock = window.sessionStorage.getItem("journi-trip-pass-unlock") === "true";
-
-    if (checkoutComplete && checkoutProduct === "trip_pass") {
-      window.sessionStorage.setItem("journi-trip-pass-unlock", "true");
-      setTripPassUnlocked(true);
-      goToStep("finalise", { scrollToTop: true });
-      return;
-    }
-
-    setTripPassUnlocked(storedUnlock);
-  }, [searchParams]);
+    void verifyCheckout();
+    return () => { cancelled = true; };
+  }, [searchParams, draftOwnerId]);
 
   useEffect(() => {
     if (!hasHydrated || !hasResolvedDraftOwner || !hasRestoredDraftRef.current) {
@@ -1937,7 +2027,7 @@ export default function TripOrganiserPage() {
 
   function renderHotelsSection() {
     return (
-      <div className={`${styles.optionStack} ${styles.tripStepBody}`}>
+      <div className={`${styles.optionStack} ${styles.tripStepBody}`} data-trip-field="hotels" data-needs-attention={fieldNeedsAttention("hotels")}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Hotels</p>
@@ -2090,7 +2180,7 @@ export default function TripOrganiserPage() {
 
   function renderActivitiesSection() {
     return (
-      <div className={`${styles.optionStack} ${styles.tripStepBody}`}>
+      <div className={`${styles.optionStack} ${styles.tripStepBody}`} data-trip-field="activities" data-needs-attention={fieldNeedsAttention("activities")}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Activities</p>
@@ -2168,27 +2258,6 @@ export default function TripOrganiserPage() {
       behavior: "smooth",
       block: "start",
     });
-  }
-
-  function scrollToCompletedSummary(stepKey: StepKey) {
-    const summaryByStep: Partial<Record<StepKey, HTMLDivElement | null>> = {
-      hotels: selectedHotelsSummaryRef.current,
-      activities: selectedActivitiesSummaryRef.current,
-      transport: selectedTransportSummaryRef.current,
-      dining: selectedDiningSummaryRef.current,
-    };
-    const target = summaryByStep[stepKey];
-
-    if (!target) {
-      return false;
-    }
-
-    target.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-
-    return true;
   }
 
   function renderSelectedHotelsSummary() {
@@ -2674,7 +2743,7 @@ export default function TripOrganiserPage() {
 
   function renderTransportSection() {
     return (
-      <div className={`${styles.optionStack} ${styles.tripStepBody}`}>
+      <div className={`${styles.optionStack} ${styles.tripStepBody}`} data-trip-field="transport" data-needs-attention={fieldNeedsAttention("transport")}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Transport</p>
@@ -2792,7 +2861,7 @@ export default function TripOrganiserPage() {
 
   function renderDiningSection() {
     return (
-      <div className={`${styles.optionStack} ${styles.tripStepBody}`}>
+      <div className={`${styles.optionStack} ${styles.tripStepBody}`} data-trip-field="dining" data-needs-attention={fieldNeedsAttention("dining")}>
         <div className={styles.rowTop}>
           <div>
             <p className={styles.eyebrow}>Dining</p>
@@ -2869,7 +2938,7 @@ export default function TripOrganiserPage() {
     <AppShell
       title=""
     >
-      {({ userId, loading, email, isPro }) => {
+      {({ userId, loading, email, isPro, plan }) => {
         const freeInviteLimit = 5;
         const canInviteTravellers = isPro || tripPassUnlocked || invites.length < freeInviteLimit;
 
@@ -2900,6 +2969,8 @@ export default function TripOrganiserPage() {
             setParticipantError(
               "Free plan organisers can invite up to 5 travellers per trip. Upgrade to Pro organiser or use a Trip Pass to invite more.",
             );
+            persistCurrentDraft("finalise");
+            setUpgradeStep("finalise");
             setShowUpgradeModal(true);
             return;
           }
@@ -2982,16 +3053,22 @@ export default function TripOrganiserPage() {
             },
             body: JSON.stringify({
               draft,
+              checkoutSessionId: checkoutSessionId || searchParams.get("checkout_session_id"),
               origin: window.location.origin,
             }),
           });
 
           const result = (await response.json().catch(() => null)) as
-            | { error?: string; tripId?: string; warning?: string }
+            | { error?: string; tripId?: string; warning?: string; code?: string }
             | null;
 
           if (!response.ok || !result?.tripId) {
             setSaveError(result?.error || "Unable to save this trip right now.");
+            if (result?.code === "TRIP_LIMIT_REACHED") {
+              persistCurrentDraft("finalise");
+              setUpgradeStep("finalise");
+              setShowUpgradeModal(true);
+            }
             setIsSaving(false);
             return;
           }
@@ -2999,6 +3076,7 @@ export default function TripOrganiserPage() {
           clearTripOrganiserDraft(draftOwnerId);
           if (typeof window !== "undefined") {
             window.sessionStorage.removeItem("journi-trip-pass-unlock");
+            window.sessionStorage.removeItem(`journi-trip-checkout:${userId}`);
           }
           setIsSaving(false);
           router.push(
@@ -3010,6 +3088,12 @@ export default function TripOrganiserPage() {
 
         async function handleImageSelected(event: React.ChangeEvent<HTMLInputElement>) {
           const file = event.target.files?.[0];
+          if (isUploadingImage) return;
+          if (file && !file.type.startsWith("image/")) {
+            setCreateError("Please choose an image file.");
+            event.target.value = "";
+            return;
+          }
           if (!file || !userId) {
             if (!userId) {
               setCreateError("You need to be signed in before uploading an image.");
@@ -3025,7 +3109,12 @@ export default function TripOrganiserPage() {
           event.preventDefault();
           setIsDraggingImage(false);
 
+          if (isUploadingImage) return;
           const file = event.dataTransfer.files?.[0];
+          if (file && !file.type.startsWith("image/")) {
+            setCreateError("Please drop an image file.");
+            return;
+          }
           if (!file || !userId) {
             if (!userId) {
               setCreateError("You need to be signed in before uploading an image.");
@@ -3157,15 +3246,6 @@ export default function TripOrganiserPage() {
                     You have used the {freeInviteLimit} free traveller invites for this trip. Use a
                     Trip Pass or upgrade the account to Pro organiser to invite more.
                   </p>
-                  <div className={styles.headerActions}>
-                    <button
-                      type="button"
-                      className={styles.secondaryAction}
-                      onClick={() => setShowUpgradeModal(true)}
-                    >
-                      Unlock invites
-                    </button>
-                  </div>
                 </div>
               ) : null}
 
@@ -3196,6 +3276,7 @@ export default function TripOrganiserPage() {
                   <button type="submit" className={styles.primaryAction}>
                     Add traveller
                   </button>
+                  {!isPro && !tripPassUnlocked ? <button type="button" className={styles.secondaryAction} onClick={() => { persistCurrentDraft("finalise"); setUpgradeStep("finalise"); setShowUpgradeModal(true); }}>Unlock more invites</button> : null}
                 </div>
               </form>
 
@@ -3257,8 +3338,28 @@ export default function TripOrganiserPage() {
 
         return (
           <div className={pageStackClassName}>
+            <nav className={styles.mobileTripSteps} aria-label="Trip creation steps">
+              <label>
+                <span>Step {activeStepIndex + 1} of {steps.length}</span>
+                <select aria-label="Current trip step" value={activeStep.key} onChange={(event) => {
+                  const step = event.target.value as StepKey;
+                  if (!validateBeforeStep(step)) return;
+                  goToStep(step, { scrollToTop: true });
+                  persistCurrentDraft(step);
+                }}>
+                  {steps.map((step, index) => <option key={step.key} value={step.key}>{index + 1}. {step.label}{isStepComplete(step.key) ? " ✓" : ""}</option>)}
+                </select>
+              </label>
+              <button type="button" className={styles.secondaryAction} onClick={handleSaveAndExit}>Save for later</button>
+            </nav>
             <section className={mainSectionClassName}>
               <div className={styles.tripPanel} ref={tripBuilderTopRef}>
+                {createError ? <p className={styles.formError} role="alert">{createError}</p> : null}
+                {missingRequirements.length > 0 ? createPortal(<div className={styles.tripRequirements} role="alert">
+                  <button className={styles.tripRequirementsDismiss} type="button" aria-label="Dismiss reminder" onClick={() => setValidationStep(null)}><FiX /></button>
+                  <strong>Before moving on, finish {missingRequirements.length === 1 ? "this detail" : `these ${missingRequirements.length} details`}:</strong>
+                  <div>{missingRequirements.map(item => <button key={item.field} type="button" onClick={() => focusRequiredField(item.field)}><FiChevronRight aria-hidden="true" />{item.label}</button>)}</div>
+                </div>, document.body) : null}
                 {activeStep.key === "details" ? (
                   <div className={styles.tripForm}>
                     <div className={styles.tripBuilderCard}>
@@ -3267,7 +3368,19 @@ export default function TripOrganiserPage() {
                           <div className={styles.tripImagePlaceholder} />
                         </div>
                       ) : (
-                        <div className={styles.tripImageHeaderButton}>
+                        <div className={`${styles.tripImageHeaderButton} ${isDraggingImage ? styles.coverPhotoDragActive : ""}`} data-cover-frame data-trip-field="photo" data-needs-attention={fieldNeedsAttention("photo")}
+                          onDragOver={(event) => {
+                            if (!event.dataTransfer.types.includes("Files")) return;
+                            event.preventDefault();
+                            event.dataTransfer.dropEffect = isUploadingImage ? "none" : "copy";
+                            if (!isUploadingImage) setIsDraggingImage(true);
+                          }}
+                          onDragLeave={(event) => {
+                            if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+                            setIsDraggingImage(false);
+                          }}
+                          onDrop={handleImageDrop}
+                        >
                           {tripForm.coverImageUrl ? (
                           <div className={styles.tripImagePreviewWrap}>
                             <img
@@ -3306,7 +3419,7 @@ export default function TripOrganiserPage() {
                                     }, 140);
                                   }}
                                   placeholder="Choose your destination"
-                                  className={styles.tripInlineTitleInput}
+                                  className={styles.tripInlineTitleInput} data-trip-field="destination" data-needs-attention={fieldNeedsAttention("destination")} aria-invalid={fieldNeedsAttention("destination")}
                                 />
                               ) : (
                                 <button
@@ -3336,13 +3449,14 @@ export default function TripOrganiserPage() {
                                     }))
                                   }
                                   placeholder={`${tripForm.destination} getaway`}
-                                  className={styles.tripInlineSubtitleInput}
+                                  className={styles.tripInlineSubtitleInput} data-trip-field="title" data-needs-attention={fieldNeedsAttention("title")} aria-invalid={fieldNeedsAttention("title")}
                                 />
                               ) : null}
                             </div>
                             <button
                               type="button"
                               className={styles.tripImageActionChip}
+                              style={destinationGalleryOpen ? { display: "none" } : undefined}
                               onClick={() => setDestinationGalleryOpen(true)}
                             >
                               {tripForm.coverImageUrl ? "Change photo" : "Add photo"}
@@ -3365,7 +3479,7 @@ export default function TripOrganiserPage() {
                             >
                               {showSelectedDestination ? (
                                 <>
-                                  <p className={styles.tripImageMetaPlaceholder}>Add photo</p>
+                                  <p className={styles.tripImageMetaPlaceholder}>Your destination</p>
                                   {isEditingDestination ? (
                                     <input
                                       value={tripForm.destination}
@@ -3396,7 +3510,7 @@ export default function TripOrganiserPage() {
                                         }, 140);
                                       }}
                                       placeholder="Choose your destination"
-                                      className={styles.tripInlineTitleInput}
+                                      className={styles.tripInlineTitleInput} data-trip-field="destination" data-needs-attention={fieldNeedsAttention("destination")} aria-invalid={fieldNeedsAttention("destination")}
                                     />
                                   ) : (
                                     <button
@@ -3422,27 +3536,45 @@ export default function TripOrganiserPage() {
                                         }))
                                       }
                                       placeholder={`${tripForm.destination} getaway`}
-                                      className={styles.tripInlineSubtitleInput}
+                                      className={styles.tripInlineSubtitleInput} data-trip-field="title" data-needs-attention={fieldNeedsAttention("title")} aria-invalid={fieldNeedsAttention("title")}
                                     />
                                   ) : (
                                     <p className={styles.tripImagePlaceholderBody}>
-                                      Tap add photo to bring this trip to life.
+                                      Choose a photo above to bring this trip to life.
                                     </p>
                                   )}
                                 </>
                               ) : null}
                             </div>
-                            {showSelectedDestination ? (
-                              <button
-                                type="button"
-                                className={styles.tripImageActionChip}
-                                onClick={() => setDestinationGalleryOpen(true)}
-                              >
-                                Add photo
-                              </button>
-                            ) : null}
+
                           </div>
                           )}
+                          {showSelectedDestination && (!tripForm.coverImageUrl || destinationGalleryOpen) ? (
+                            <div className={styles.coverPhotoCarousel}>
+                              <div className={styles.coverPhotoCarouselHeading}>
+                                <span role="status">{isUploadingImage ? "Uploading photo…" : isDraggingImage ? "Drop your photo here" : "Choose a cover photo"}</span>
+                                <button type="button" className={styles.coverPhotoUpload} disabled={isUploadingImage} aria-label={isUploadingImage ? "Uploading photo" : "Upload photo"} title="Upload a photo, or drag one onto the cover" onClick={() => imageInputRef.current?.click()}>
+                                  {isUploadingImage ? <FiLoader className={styles.coverPhotoSpinner} /> : <FiUpload />}
+                                </button>
+                                {tripForm.coverImageUrl ? <button type="button" className={styles.coverPhotoClose} aria-label="Close photo chooser" onClick={() => setDestinationGalleryOpen(false)}><FiX /></button> : null}
+                              </div>
+                              <div className={styles.coverPhotoChoices}>
+
+                              <ScrollableOptionCards className={styles.coverPhotoRail} aria-label="Cover photo choices">
+                                {destinationPhotos.map((photo) => (
+                                  <button type="button" key={photo.id} className={styles.coverPhotoChoice}
+                                    aria-label={`Use ${photo.placeName} as cover photo`}
+                                    aria-pressed={tripForm.coverImageUrl === photo.url}
+                                    onClick={(event) => void selectCoverPhoto(photo, event.currentTarget)}>
+                                    <img src={photo.url} alt={photo.placeName} />
+                                  </button>
+                                ))}
+                                {destinationPhotos.length === 0 ? <span className={styles.coverPhotoStatus} role="status">{isLoadingDestinationPhotos ? "Finding photos…" : "Add your own favourite photo"}</span> : null}
+                              </ScrollableOptionCards>
+                              </div>
+                              <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageSelected} className={styles.hiddenFileInput} />
+                            </div>
+                          ) : null}
                         </div>
                       )}
 
@@ -3479,13 +3611,12 @@ export default function TripOrganiserPage() {
                                 }, 140);
                               }}
                               placeholder="Where are you going?"
-                              className={styles.displayPromptInput}
+                              className={styles.displayPromptInput} data-trip-field="destination" data-needs-attention={fieldNeedsAttention("destination")} aria-invalid={fieldNeedsAttention("destination")}
                               style={{
                                 display: "block",
                                 width: "100%",
                                 border: "0",
                                 background: "transparent",
-                                color: "#112640",
                                 fontSize: "clamp(1.9rem, 4vw, 3.1rem)",
                                 fontWeight: 800,
                                 letterSpacing: "-0.04em",
@@ -3538,10 +3669,12 @@ export default function TripOrganiserPage() {
 
                         {hasCoverImage ? (
                           <>
-                            <section className={styles.tripStoryCard}>
+                            <section className={styles.tripStoryCard} data-trip-field="description" data-needs-attention={fieldNeedsAttention("description")}>
+                              <span className={styles.tripSetupLabel}>Trip story</span>
                               {isEditingDescription ? (
                                 <>
                                   <textarea
+                                    aria-label="Trip description"
                                     value={pendingDescription}
                                     onChange={(event) => setPendingDescription(event.target.value)}
                                     placeholder="Add a short description for this trip."
@@ -3576,7 +3709,7 @@ export default function TripOrganiserPage() {
                                     </button>
                                   </div>
                                   {aiDescriptionError ? (
-                                    <p className={styles.formError}>{aiDescriptionError}</p>
+                                    <p className={styles.formError} role="alert">{aiDescriptionError}</p>
                                   ) : null}
                                   {tripForm.aiDescriptionGenerated ? (
                                     <small className={styles.fieldHint}>
@@ -3610,7 +3743,7 @@ export default function TripOrganiserPage() {
                             </section>
 
                             <div className={styles.tripSetupGrid}>
-                              <section className={styles.tripSetupCard}>
+                              <section className={styles.tripSetupCard} data-trip-field="type" data-needs-attention={fieldNeedsAttention("type")}>
                                 <div className={styles.rowTop}>
                                   <span className={styles.tripSetupLabel}>Trip type</span>
                                   {tripForm.tripType.trim() && !isEditingTripType ? (
@@ -3738,7 +3871,9 @@ export default function TripOrganiserPage() {
                               </div>
                             </div>
 
-                            <div className={styles.field}>
+                            <div className={styles.tripPlanningGrid}>
+                            <section className={styles.tripPlanningCard}>
+                            <div className={styles.field} data-trip-field="dates" data-needs-attention={fieldNeedsAttention("dates")}>
                               <div className={styles.rowTop}>
                                 <span>Date planning</span>
                               </div>
@@ -3902,23 +4037,11 @@ export default function TripOrganiserPage() {
                                 ) : null}
                               </div>
                             ) : (
-                              <div className={styles.optionFormCard}>
-                                <div className={styles.rowTop}>
-                                  <div>
-                                    <p className={styles.eyebrow}>Date reminder</p>
-                                    <h3 className={styles.sectionHeading}>Dates can be confirmed later</h3>
-                                    <p className={styles.muted}>
-                                      This trip can continue with open dates for now. Journi will keep
-                                      surfacing a reminder in the organiser flow until the final date
-                                      window is locked in.
-                                    </p>
-                                  </div>
-                                  <span className={styles.badgeSoft}>Open dates</span>
-                                </div>
-                              </div>
+                              <p className={styles.fieldHint}>Dates are flexible. You can agree the final dates with your group later.</p>
                             )}
 
-                            <div className={styles.field}>
+                            </section>
+                            <div className={`${styles.field} ${styles.tripPlanningCard}`} data-trip-field="budget" data-needs-attention={fieldNeedsAttention("budget")}>
                               <div className={styles.rowTop}>
                                 <span>Budget</span>
                               </div>
@@ -3992,115 +4115,17 @@ export default function TripOrganiserPage() {
                                 </>
                               )}
                             </div>
+                            </div>
                           </>
                         ) : null}
 
                         {showHotelsInline ? renderHotelsSection() : null}
                       </div>
-                      {renderContinuationButton(getNextStepKey(activeStep.key))}
+                      {renderContinuationButton(hasSelectedHotels ? "activities" : "hotels")}
                     </div>
                   </div>
                 ) : null}
 
-              {destinationGalleryOpen ? (
-                <div
-                  className={styles.modalOverlay}
-                  onClick={() => setDestinationGalleryOpen(false)}
-                >
-                  <div className={styles.modalCard} onClick={(event) => event.stopPropagation()}>
-                    <div className={styles.sectionTop}>
-                      <div>
-                        <p className={styles.eyebrow}>Destination gallery</p>
-                        <h2>{tripForm.destination || "Choose a cover image"}</h2>
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.secondaryAction}
-                        onClick={() => setDestinationGalleryOpen(false)}
-                      >
-                        Close
-                      </button>
-                    </div>
-
-                    {destinationPhotos.length > 0 ? (
-                      <div className={styles.stack}>
-                        <div className={styles.formActions}>
-                          <button
-                            type="button"
-                            className={styles.secondaryAction}
-                            onClick={() => imageInputRef.current?.click()}
-                          >
-                            Upload your own image
-                          </button>
-                          <input
-                            ref={imageInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageSelected}
-                            className={styles.hiddenFileInput}
-                          />
-                        </div>
-                        <div className={styles.destinationPhotoGrid}>
-                          {destinationPhotos.map((photo) => (
-                            <button
-                              key={photo.id}
-                              type="button"
-                              className={
-                                tripForm.coverImageUrl === photo.url
-                                  ? styles.destinationPhotoButtonActive
-                                  : styles.destinationPhotoButton
-                              }
-                              onClick={() => {
-                                setTripForm((current) => ({
-                                  ...current,
-                                  coverImageUrl: photo.url,
-                                }));
-                                setDestinationGalleryOpen(false);
-                              }}
-                            >
-                              <img
-                                src={photo.url}
-                                alt={photo.placeName}
-                                className={styles.destinationPhotoImage}
-                              />
-                              <span>{photo.placeName}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className={styles.emptyState}>
-                        <h3>
-                          {isLoadingDestinationPhotos
-                            ? "Loading cover ideas..."
-                            : "No Google cover ideas yet."}
-                        </h3>
-                        <p>
-                          {isLoadingDestinationPhotos
-                            ? "Pulling destination imagery from Google."
-                            : "Try another destination or upload your own image."}
-                        </p>
-                        <div className={styles.formActions}>
-                          <button
-                            type="button"
-                            className={styles.secondaryAction}
-                            onClick={() => imageInputRef.current?.click()}
-                          >
-                            Upload your own image
-                          </button>
-                          <input
-                            ref={imageInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageSelected}
-                            className={styles.hiddenFileInput}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
               </div>
 
               {activeStep.key === "hotels" ? (
@@ -4131,7 +4156,6 @@ export default function TripOrganiserPage() {
 
               {activeStep.key === "finalise" ? finaliseSection : null}
 
-              {createError ? <p className={styles.formError}>{createError}</p> : null}
             </section>
 
             {showDockedStepper ? (
@@ -4155,15 +4179,7 @@ export default function TripOrganiserPage() {
 
                         setCreateError(null);
                         setHotelSearchQuery((current) => current || tripForm.destination.trim());
-                        if (
-                          step.key !== activeStep.key &&
-                          isStepComplete(step.key) &&
-                          scrollToCompletedSummary(step.key)
-                        ) {
-                          return;
-                        }
-
-                        setActiveStepIndex(index);
+                        goToStep(step.key, { scrollToTop: true });
                         persistCurrentDraft(step.key);
                       }}
                     >
@@ -4189,7 +4205,13 @@ export default function TripOrganiserPage() {
                     </button>
                   ))}
                 </div>
-                {activeStep.key === "hotels" ? (
+                {activeStep.key === "details" ? (
+                  <div className={styles.stepperDockAction}>
+                    <button type="button" className={styles.primaryAction} onClick={() => continueToStep(hasSelectedHotels ? "activities" : "hotels")}>
+                      Continue to {hasSelectedHotels ? "activities" : "hotels"}
+                    </button>
+                  </div>
+                ) : activeStep.key === "hotels" ? (
                   <div className={styles.stepperDockAction}>
                     <button
                       type="button"
@@ -4729,12 +4751,26 @@ export default function TripOrganiserPage() {
               </div>
             ) : null}
             <TripUpgradeModal
+              key={`${upgradeChoice}-${upgradeStep}`}
+              initialMode={upgradeChoice}
               open={showUpgradeModal}
               email={email}
               tripId="finalise"
-              returnPath="/trip-organiser?step=finalise&checkout=complete&product=trip_pass"
+              returnPath={`/trip-organiser?resume=1&step=${upgradeStep}&checkout=complete`}
               onClose={() => setShowUpgradeModal(false)}
             />
+            {userId && !loading && hasHydrated && plan === "free" && searchParams.get("checkout") !== "complete" ? <FirstTripPlanPrompt
+              key={`${userId}-${searchParams.toString()}`}
+              eligible={!showUpgradeModal}
+              resuming={searchParams.get("resume") === "1"}
+              userId={userId}
+              onUpgrade={(mode) => {
+                persistCurrentDraft(activeStep.key);
+                setUpgradeChoice(mode);
+                setUpgradeStep(activeStep.key);
+                setShowUpgradeModal(true);
+              }}
+            /> : null}
           </div>
         );
       }}

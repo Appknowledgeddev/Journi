@@ -1,0 +1,3 @@
+Mode: Built-in image generation
+
+Use case: stylized-concept. Asset type: decorative empty expenses list illustration for Journi travel planning app. Create a small elegant 3D clay-style composition of an ivory receipt with simple blue abstract lines, a softly rounded blue wallet, and two small apricot coins. Muted sky blue and ivory palette with a restrained warm apricot accent, smooth matte surfaces, soft ambient lighting, gentle shading. Centered compact composition in a landscape 3:2 canvas, generous transparent negative space around objects. Friendly premium app illustration, legible at 200–250 pixels wide. Genuine transparent background with alpha, no solid backdrop, no frame, no text, no letters, no numbers, no currency symbols, no watermark.

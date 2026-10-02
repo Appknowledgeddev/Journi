@@ -1,5 +1,7 @@
 "use client";
 
+import { AppLoadingSignal } from "@/components/app-loading";
+
 import { useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import sectionStyles from "@/components/app-page.module.css";
@@ -191,6 +193,7 @@ function SubscriptionManager({
 
   return (
     <div className={sectionStyles.stack}>
+      <AppLoadingSignal active={loadingSubscription} />
       <section className={sectionStyles.panel}>
         <div className={sectionStyles.sectionTop}>
           <div>

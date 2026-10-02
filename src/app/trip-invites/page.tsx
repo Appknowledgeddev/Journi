@@ -1,5 +1,8 @@
 "use client";
 
+import { AppLoadingSignal } from "@/components/app-loading";
+import { InvitesEmptyState } from "@/components/invites-empty-state";
+
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AppShell } from "@/components/app-shell";
@@ -385,29 +388,15 @@ function TripInvitesManager({ userId, loading, filterHost }: TripInvitesManagerP
 
   const hasSentInvites = participants.length > 0;
   const hasReceivedInvites = receivedInvites.length > 0;
-  const hasNoInvites = !loadingInvites && !hasSentInvites && !hasReceivedInvites && !inviteError;
   const showingReceived = activeInviteTab === "received";
 
   return (
     <div className={styles.stack}>
-      {loadingInvites ? (
-        <section className={styles.panel}>
-          <p className={styles.muted}>Loading trip invites...</p>
-        </section>
-      ) : null}
+      <AppLoadingSignal active={loadingInvites} />
 
       {inviteError ? (
         <section className={styles.panel}>
           <p className={styles.formError}>{inviteError}</p>
-        </section>
-      ) : null}
-
-      {hasNoInvites ? (
-        <section className={styles.panel}>
-          <div className={styles.emptyState}>
-            <h3>No trip invites yet.</h3>
-            <p>When you send a traveller invite or receive one, it will appear here.</p>
-          </div>
         </section>
       ) : null}
 
@@ -433,7 +422,7 @@ function TripInvitesManager({ userId, loading, filterHost }: TripInvitesManagerP
           </button>
         </div>, filterHost) : null}
 
-        {showingReceived ? (
+        {!loadingInvites && !inviteError ? (showingReceived ? (
           hasReceivedInvites ? (
             <div className={styles.participantsList}>
               {receivedInvites.map((invite) => {
@@ -480,10 +469,7 @@ function TripInvitesManager({ userId, loading, filterHost }: TripInvitesManagerP
               })}
             </div>
           ) : (
-            <div className={styles.emptyState}>
-              <h3>No invites waiting on you.</h3>
-              <p>Any trip you’re invited to will show up here for you to open, review, and respond to.</p>
-            </div>
+            <InvitesEmptyState />
           )
         ) : hasSentInvites ? (
           <div className={styles.participantsList}>
@@ -506,11 +492,8 @@ function TripInvitesManager({ userId, loading, filterHost }: TripInvitesManagerP
             })}
           </div>
         ) : (
-          <div className={styles.emptyState}>
-            <h3>No invites sent yet.</h3>
-            <p>Once you invite travellers to one of your trips, they’ll appear here so you can track who has been invited.</p>
-          </div>
-        )}
+          <InvitesEmptyState sent />
+        )) : null}
       </section>
 
       {selectedInvite ? (

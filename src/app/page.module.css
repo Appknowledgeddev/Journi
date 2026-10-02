@@ -6,8 +6,8 @@
   padding: 24px;
   background:
     radial-gradient(circle at top left, rgba(44, 148, 245, 0.14), transparent 30%),
-    linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
-  color: #112640;
+    linear-gradient(180deg, light-dark(#f8fbff, var(--theme-surface)) 0%, light-dark(#eef4fb, var(--theme-surface)) 100%);
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
 }
 
 .hero {
@@ -15,14 +15,14 @@
   padding: 34px 34px 30px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 32px;
-  background: rgba(255, 255, 255, 0.92);
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent));
   box-shadow: 0 28px 80px rgba(17, 38, 64, 0.1);
   backdrop-filter: blur(12px);
 }
 
 .kicker {
   margin: 0 0 12px;
-  color: #2c94f5;
+  color: light-dark(#2c94f5, color-mix(in srgb, #2c94f5 30%, #d4e7ff));
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -32,7 +32,7 @@
 .notice {
   max-width: 44ch;
   margin: 0 0 24px;
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   line-height: 1.7;
 }
 
@@ -42,7 +42,7 @@
 
 .sectionTitle {
   margin: 0 0 12px;
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -51,13 +51,13 @@
 
 .sectionCopy {
   margin: -4px 0 14px;
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.94rem;
   line-height: 1.6;
 }
 
 .sectionCopy strong {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-weight: 900;
 }
 
@@ -95,9 +95,9 @@
 }
 
 .secondaryButton {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   border: 1px solid rgba(44, 148, 245, 0.18);
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-raised));
   box-shadow: 0 10px 24px rgba(17, 38, 64, 0.06);
 }
 

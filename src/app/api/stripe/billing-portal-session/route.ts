@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireBillingEnvironment } from "@/lib/stripe/environment";
 import { stripe } from "@/lib/stripe/server";
 
 export async function POST(request: NextRequest) {
+  try { requireBillingEnvironment(); } catch {
+    return NextResponse.json({ error: "Payments are unavailable because the Stripe test/live configuration needs attention." }, { status: 503 });
+  }
   const body = (await request.json()) as {
     email?: string;
     origin?: string;

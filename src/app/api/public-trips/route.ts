@@ -1,3 +1,4 @@
+import { locatePublicTrips } from "@/lib/public-trip-locations";
 import { NextRequest, NextResponse } from "next/server";
 import { databaseSetupError, friendlyDatabaseError, isDatabaseSchemaError } from "@/lib/api/errors";
 import { missingSupabaseServerVariables, supabaseAdmin } from "@/lib/supabase/server";
@@ -91,6 +92,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Missing user session." }, { status: 401 });
   }
 
+  async function respond(trips: PublicTripRow[]) {
+    if (request.nextUrl.searchParams.get("locations") === "1") {
+      try { return NextResponse.json({ trips: await locatePublicTrips(trips) }); }
+      catch { return NextResponse.json({ error: "Unable to check trip locations. Please try again or use a country filter." }, { status: 502 }); }
+    }
+    return NextResponse.json({ trips: await withCardDetails(trips) });
+  }
+
   const {
     data: { user },
     error: userError,
@@ -138,12 +147,7 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      return NextResponse.json({
-        trips: await withCardDetails((fallbackTrips ?? []).map((trip) => ({
-          ...trip,
-          visibility: "public",
-        }))),
-      });
+      return respond((fallbackTrips ?? []).map(trip => ({ ...trip, visibility: "public" })));
     }
 
     return NextResponse.json(
@@ -152,5 +156,5 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ trips: await withCardDetails(data ?? []) });
+  return respond(data ?? []);
 }

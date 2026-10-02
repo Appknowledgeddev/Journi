@@ -1,5 +1,8 @@
 "use client";
 
+import { AppLoadingSignal } from "@/components/app-loading";
+import { ExpensesEmptyState } from "@/components/expenses-empty-state";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
@@ -327,11 +330,7 @@ function MyExpensesManager({
         </article>
       </section>
 
-      {loadingExpenses ? (
-        <section className={styles.panel}>
-          <p className={styles.muted}>Loading your trip expenses...</p>
-        </section>
-      ) : null}
+      <AppLoadingSignal active={loadingExpenses} />
 
       {expensesError ? (
         <section className={styles.panel}>
@@ -349,39 +348,7 @@ function MyExpensesManager({
       ) : null}
 
       {!loadingExpenses && !expensesError && expenseItems.length === 0 ? (
-        <section className={styles.panel}>
-          <div className={styles.sectionTop}>
-            <div>
-              <p className={styles.eyebrow}>Connected trips</p>
-              <h2>Your expense view is ready</h2>
-            </div>
-          </div>
-
-          {trips.length > 0 ? (
-            <div className={styles.simpleList}>
-              {trips.map((trip) => (
-                <div key={trip.id} className={styles.listRow}>
-                  <div className={styles.rowTop}>
-                    <span className={styles.rowTitle}>{trip.title}</span>
-                    <span className={styles.badgeSoft}>{trip.status}</span>
-                  </div>
-                  <div className={styles.tripMetaRow}>
-                    <span>{trip.destination || "Destination to be confirmed"}</span>
-                    <span>No expenses added yet</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.emptyState}>
-              <h3>No trip expenses yet.</h3>
-              <p>
-                Once payments or trip costs are added to a trip you own or one you’ve been invited
-                into, they’ll appear here.
-              </p>
-            </div>
-          )}
-        </section>
+        <ExpensesEmptyState />
       ) : null}
 
       {!loadingExpenses && !expensesError && organiserExpenses.length > 0 ? (

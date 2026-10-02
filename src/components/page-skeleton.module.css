@@ -1,0 +1,15 @@
+.page { position: absolute; inset: 0; overflow: hidden; pointer-events: none; padding: 32px 28px; opacity: .8; mask-image: radial-gradient(ellipse 210px 160px at center, transparent 25%, #0008 80%, #000 100%); }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.heading > span:first-child { flex: 1; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.card { min-width: 0; display: grid; gap: 14px; padding: 16px; border-radius: 20px; border: 1px solid light-dark(#dce6f1, #2c4059); background: light-dark(#ffffff88, #19283d88); }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.list { display: grid; gap: 16px; }
+.row { display: flex; gap: 18px; align-items: center; padding: 20px; border-bottom: 1px solid light-dark(#dce6f1, #2c4059); }
+.row > div { display: grid; gap: 10px; flex: 1; }
+.form { display: grid; gap: 24px; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.field { display: grid; gap: 12px; }
+@media (max-width: 900px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .page { padding: 24px 16px; } .cards, .fields { grid-template-columns: 1fr; } .row { padding: 14px 0; gap: 12px; } }
+@media (prefers-reduced-motion: reduce) { .page :global(.react-loading-skeleton)::after { animation: none; display: none; } }

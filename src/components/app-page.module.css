@@ -22,7 +22,7 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #f5f7fb;
+  background: light-dark(#f5f7fb, var(--theme-surface));
 }
 
 .appWithTestingConsoleOpen {
@@ -69,7 +69,7 @@
 .tripCardCreate {
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.82);
+  background: light-dark(rgba(255, 255, 255, 0.82), color-mix(in srgb, var(--theme-surface) 82%, transparent));
 }
 
 .panel {
@@ -104,7 +104,7 @@
 }
 
 .eyebrow {
-  color: #cf6d2e;
+  color: light-dark(#cf6d2e, color-mix(in srgb, #cf6d2e 30%, #d4e7ff));
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -118,7 +118,7 @@
 .timelineCard h3,
 .listCard h3 {
   margin: 6px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   letter-spacing: -0.03em;
 }
 
@@ -132,7 +132,7 @@
 .featureCard p,
 .timelineCard p,
 .muted {
-  color: rgba(24, 49, 83, 0.74);
+  color: light-dark(rgba(24, 49, 83, 0.74), rgba(231, 238, 249, 0.8));
   line-height: 1.6;
 }
 
@@ -189,18 +189,18 @@
 }
 
 .badgeLocked {
-  background: rgba(254, 215, 170, 0.82);
-  color: #7c2d12;
+  background: light-dark(rgba(254, 215, 170, 0.82), color-mix(in srgb, rgba(254, 215, 170, 0.82) 15%, #111c2ed1));
+  color: light-dark(#7c2d12, color-mix(in srgb, #7c2d12 30%, #d4e7ff));
 }
 
 .badgeSuccess {
-  background: rgba(187, 247, 208, 0.82);
-  color: #14532d;
+  background: light-dark(rgba(187, 247, 208, 0.82), color-mix(in srgb, rgba(187, 247, 208, 0.82) 15%, #111c2ed1));
+  color: light-dark(#14532d, color-mix(in srgb, #14532d 30%, #d4e7ff));
 }
 
 .metricValue {
   margin-top: 10px;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.06em;
@@ -208,7 +208,7 @@
 
 .metricMeta {
   margin-top: 8px;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 0.92rem;
 }
 
@@ -220,7 +220,7 @@
   padding: 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 22px;
-  background: rgba(248, 250, 252, 0.86);
+  background: light-dark(rgba(248, 250, 252, 0.86), color-mix(in srgb, var(--theme-surface) 86%, transparent));
 }
 
 .profileImagePreview,
@@ -233,7 +233,7 @@
 .profileImagePreview {
   display: block;
   object-fit: cover;
-  background: #dbe5f0;
+  background: light-dark(#dbe5f0, var(--theme-inset));
 }
 
 .profileImagePlaceholder {
@@ -275,7 +275,7 @@
     linear-gradient(135deg, #2c94f5, #0f4e8a);
   background-size: cover;
   background-position: center;
-  outline: 3px dashed rgba(255, 255, 255, 0.75);
+  outline: 3px dashed light-dark(rgba(255, 255, 255, 0.75), rgba(136, 158, 190, 0.75));
   outline-offset: -10px;
 }
 
@@ -305,8 +305,8 @@
   border-radius: 28px;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.96) 38%
+    light-dark(rgba(255, 255, 255, 0.12), color-mix(in srgb, var(--theme-surface) 12%, transparent)),
+    light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent)) 38%
   );
   text-align: center;
 }
@@ -316,7 +316,7 @@
   width: 104px;
   height: 104px;
   margin-top: -96px;
-  border: 4px solid #ffffff;
+  border: 4px solid light-dark(#ffffff, rgba(136, 158, 190, 0.3));
   border-radius: 999px;
   box-shadow: 0 16px 32px rgba(17, 38, 64, 0.2);
 }
@@ -331,7 +331,7 @@
   height: 88px;
   margin-top: -80px;
   overflow: hidden;
-  border: 4px solid #ffffff;
+  border: 4px solid light-dark(#ffffff, rgba(136, 158, 190, 0.3));
   border-radius: 999px;
   box-shadow: 0 16px 32px rgba(17, 38, 64, 0.2);
   cursor: grab;
@@ -342,7 +342,7 @@
   height: 88px;
   margin-top: -80px;
   overflow: hidden;
-  border: 4px solid #ffffff;
+  border: 4px solid light-dark(#ffffff, rgba(136, 158, 190, 0.3));
   border-radius: 999px;
   box-shadow: 0 16px 32px rgba(17, 38, 64, 0.2);
   cursor: grab;
@@ -379,7 +379,7 @@
 
 .profileCardPreviewBody h3 {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.45rem;
   letter-spacing: -0.05em;
 }
@@ -387,7 +387,7 @@
 .profileCardPreviewBody p {
   max-width: 360px;
   margin: 0;
-  color: rgba(24, 49, 83, 0.76);
+  color: light-dark(rgba(24, 49, 83, 0.76), rgba(231, 238, 249, 0.8));
   line-height: 1.6;
 }
 
@@ -425,15 +425,15 @@
   bottom: 8px;
   padding: 4px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #112640;
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent));
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.72rem;
   font-weight: 700;
 }
 
 .profileImageMeta h3 {
   margin: 6px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   letter-spacing: -0.03em;
 }
 
@@ -446,7 +446,7 @@
 }
 
 .actionLink {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.9rem;
   font-weight: 700;
   text-decoration: none;
@@ -473,8 +473,8 @@
 .tripCardCreate {
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.96),
-    rgba(246, 249, 253, 0.92)
+    light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent)),
+    light-dark(rgba(246, 249, 253, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent))
   );
 }
 
@@ -482,7 +482,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  color: rgba(24, 49, 83, 0.64);
+  color: light-dark(rgba(24, 49, 83, 0.64), rgba(231, 238, 249, 0.8));
   font-size: 0.84rem;
   font-weight: 700;
 }
@@ -507,7 +507,7 @@
   padding: 6px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
+  background: light-dark(rgba(255, 255, 255, 0.82), color-mix(in srgb, var(--theme-raised) 82%, transparent));
   width: fit-content;
 }
 
@@ -532,11 +532,11 @@
 
 .tripFilterButton {
   background: transparent;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
 }
 
 .tripFilterButton:hover {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   background: rgba(24, 49, 83, 0.05);
 }
 
@@ -569,7 +569,7 @@
   overflow: hidden;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-surface));
   box-shadow: 0 14px 36px rgba(17, 38, 64, 0.08);
 }
 
@@ -578,7 +578,7 @@
   box-shadow: 0 18px 42px rgba(17, 38, 64, 0.12);
 }
 
-.tripCardRoleBadge { position: absolute; top: 10px; right: 10px; z-index: 1; padding: 4px 7px; border: 1px solid #ffffff80; border-radius: 999px; background: #fffffff0; color: #355875; font-size: .6rem; font-weight: 600; line-height: 1.2; box-shadow: 0 2px 8px #18315312; }
+.tripCardRoleBadge { position: absolute; top: 10px; right: 10px; z-index: 1; padding: 4px 7px; border: 1px solid light-dark(#ffffff80, rgba(136, 158, 190, 0.5019607843137255)); border-radius: 999px; background: light-dark(#fffffff0, color-mix(in srgb, var(--theme-raised) 94%, transparent)); color: light-dark(#355875, color-mix(in srgb, #355875 30%, #d4e7ff)); font-size: .6rem; font-weight: 600; line-height: 1.2; box-shadow: 0 2px 8px #18315312; }
 
 .tripListImage,
 .tripListImageFallback {
@@ -592,7 +592,7 @@
   mask-image: linear-gradient(to bottom, #000 20%, rgba(0, 0, 0, .8) 38%, rgba(0, 0, 0, .25) 60%, transparent 85%);
   background:
     linear-gradient(135deg, rgba(103, 171, 221, 0.42), rgba(24, 49, 83, 0.18)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .tripListBody {
@@ -611,7 +611,7 @@
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   font-size: .75rem;
   line-height: 1.4;
   -webkit-box-orient: vertical;
@@ -694,8 +694,8 @@
   overflow: hidden;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-raised) 92%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   text-decoration: none;
   box-shadow: 0 14px 34px rgba(17, 38, 64, 0.12);
   cursor: pointer;
@@ -710,7 +710,7 @@
 .tripOwnerRailButton:focus-visible {
   gap: 10px;
   width: 168px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-hover));
   box-shadow: 0 18px 42px rgba(17, 38, 64, 0.18);
 }
 
@@ -724,7 +724,7 @@
   min-width: 0;
   overflow: hidden;
   padding-right: 16px;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.82rem;
   font-weight: 900;
   opacity: 0;
@@ -760,14 +760,14 @@
   padding: 10px 12px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 14px;
-  background: rgba(248, 250, 252, 0.95);
-  color: rgba(24, 49, 83, 0.62);
+  background: light-dark(rgba(248, 250, 252, 0.95), color-mix(in srgb, var(--theme-raised) 95%, transparent));
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.74rem;
   font-weight: 800;
 }
 
 .ownerDrawerStats strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.05rem;
 }
 
@@ -789,15 +789,15 @@
   padding: 12px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 14px;
-  background: #ffffff;
-  color: rgba(24, 49, 83, 0.62);
+  background: light-dark(#ffffff, var(--theme-surface));
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 850;
   box-shadow: 0 10px 24px rgba(17, 38, 64, 0.05);
 }
 
 .ownerDashboardStats strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.25rem;
   line-height: 1;
 }
@@ -808,7 +808,7 @@
   padding: 14px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
   box-shadow: 0 12px 28px rgba(17, 38, 64, 0.05);
 }
 
@@ -822,7 +822,7 @@
 .ownerDashboardPanelHeader strong {
   display: block;
   margin-top: 4px;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.05rem;
 }
 
@@ -844,12 +844,12 @@
 }
 
 .ownerDashboardProgressRow strong {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.85rem;
 }
 
 .ownerDashboardProgressRow span {
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -881,7 +881,7 @@
 
 .ownerDashboardUserRow strong {
   display: block;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.88rem;
 }
 
@@ -889,14 +889,14 @@
 .ownerDashboardUserRow small {
   display: block;
   margin: 2px 0 0;
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.76rem;
   font-weight: 750;
   line-height: 1.35;
 }
 
 .ownerDashboardUserRow small {
-  color: rgba(24, 49, 83, 0.74);
+  color: light-dark(rgba(24, 49, 83, 0.74), rgba(231, 238, 249, 0.8));
 }
 
 .ownerDashboardUserRow .badge {
@@ -927,7 +927,7 @@
   padding: 4px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 14px;
-  background: rgba(241, 246, 252, 0.9);
+  background: light-dark(rgba(241, 246, 252, 0.9), color-mix(in srgb, var(--theme-raised) 90%, transparent));
 }
 
 .ownerDrawerTab,
@@ -941,7 +941,7 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: rgba(24, 49, 83, 0.64);
+  color: light-dark(rgba(24, 49, 83, 0.64), rgba(231, 238, 249, 0.8));
   font: inherit;
   font-size: 0.82rem;
   font-weight: 900;
@@ -949,8 +949,8 @@
 }
 
 .ownerDrawerTabActive {
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-raised));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   box-shadow: 0 8px 18px rgba(17, 38, 64, 0.08);
 }
 
@@ -964,7 +964,7 @@
   padding: 0 6px;
   border-radius: 999px;
   background: rgba(49, 141, 238, 0.12);
-  color: #1d73d8;
+  color: light-dark(#1d73d8, color-mix(in srgb, #1d73d8 30%, #d4e7ff));
   font-size: 0.72rem;
 }
 
@@ -974,12 +974,12 @@
   padding: 14px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
 }
 
 .ownerCompactPanel h3 {
   margin: 0 0 2px;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
 }
 
@@ -996,7 +996,7 @@
 }
 
 .compactField span {
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -1008,8 +1008,8 @@
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 12px;
   padding: 0 12px;
-  background: rgba(248, 250, 252, 0.92);
-  color: #183153;
+  background: light-dark(rgba(248, 250, 252, 0.92), color-mix(in srgb, var(--theme-inset) 92%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.9rem;
 }
@@ -1027,7 +1027,7 @@
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
   border-bottom: 1px solid rgba(24, 49, 83, 0.07);
 }
 
@@ -1037,7 +1037,7 @@
 
 .compactParticipantRow strong {
   display: block;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.9rem;
 }
 
@@ -1045,7 +1045,7 @@
 .compactParticipantRow small {
   display: block;
   margin: 2px 0 0;
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   line-height: 1.35;
 }
@@ -1076,7 +1076,7 @@
   min-height: 420px;
   overflow: hidden;
   border-radius: 0;
-  background: rgba(248, 250, 252, 0.96);
+  background: light-dark(rgba(248, 250, 252, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
 }
 
 .tripBasicImageWrap img,
@@ -1092,8 +1092,8 @@
   place-items: center;
   background:
     linear-gradient(135deg, rgba(44, 148, 245, 0.18), rgba(14, 165, 233, 0.1)),
-    #e8eef7;
-  color: #0f4e8a;
+    light-dark(#e8eef7, var(--theme-inset));
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
   font-size: 4rem;
   font-weight: 900;
 }
@@ -1107,8 +1107,8 @@
   min-height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-raised) 92%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.78rem;
   font-weight: 900;
 }
@@ -1123,7 +1123,7 @@
 
 .tripBasicHeroBody h1 {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: clamp(2rem, 5vw, 4.6rem);
   line-height: 0.96;
   letter-spacing: 0;
@@ -1132,7 +1132,7 @@
 .tripBasicHeroBody > p {
   margin: 0;
   max-width: 720px;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 1rem;
   font-weight: 650;
   line-height: 1.65;
@@ -1160,8 +1160,8 @@
   padding: 0 12px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 999px;
-  background: rgba(248, 250, 252, 0.9);
-  color: #183153;
+  background: light-dark(rgba(248, 250, 252, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -1181,7 +1181,7 @@
   padding: 12px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: rgba(248, 250, 252, 0.86);
+  background: light-dark(rgba(248, 250, 252, 0.86), color-mix(in srgb, var(--theme-surface) 86%, transparent));
 }
 
 .tripBasicStepComplete {
@@ -1197,8 +1197,8 @@
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: #ffffff;
-  color: rgba(24, 49, 83, 0.62);
+  background: light-dark(#ffffff, var(--theme-surface));
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.76rem;
   font-weight: 900;
 }
@@ -1223,14 +1223,14 @@
 
 .tripBasicStep strong,
 .tripBasicStepComplete strong {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.84rem;
 }
 
 .tripBasicStep small,
 .tripBasicStepComplete small {
   margin-top: 2px;
-  color: rgba(24, 49, 83, 0.6);
+  color: light-dark(rgba(24, 49, 83, 0.6), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -1238,7 +1238,7 @@
 .tripBasicStep em,
 .tripBasicStepComplete em {
   margin-top: 7px;
-  color: #0f4e8a;
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
   font-size: 0.72rem;
   font-style: normal;
   font-weight: 900;
@@ -1257,7 +1257,7 @@
   padding: 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(248, 250, 252, 0.82);
+  background: light-dark(rgba(248, 250, 252, 0.82), color-mix(in srgb, var(--theme-surface) 82%, transparent));
 }
 
 .tripBasicOptionList {
@@ -1273,7 +1273,7 @@
   overflow: hidden;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
 }
 
 .tripBasicOptionCard img,
@@ -1283,7 +1283,7 @@
   object-fit: cover;
   background:
     linear-gradient(135deg, rgba(44, 148, 245, 0.16), rgba(20, 184, 166, 0.12)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .tripBasicOptionCard div {
@@ -1297,7 +1297,7 @@
 .tripBasicOptionCard strong {
   min-width: 0;
   overflow: hidden;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.9rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1308,7 +1308,7 @@
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
-  color: rgba(24, 49, 83, 0.64);
+  color: light-dark(rgba(24, 49, 83, 0.64), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   font-weight: 750;
   line-height: 1.4;
@@ -1320,7 +1320,7 @@
 }
 
 .tripBasicOptionCard span {
-  color: #0f4e8a;
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
   -webkit-line-clamp: 1;
 }
 
@@ -1329,8 +1329,8 @@
   padding: 14px;
   border: 1px dashed rgba(24, 49, 83, 0.14);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
-  color: rgba(24, 49, 83, 0.62);
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -1355,9 +1355,9 @@
   padding: 18px 18px 16px;
   background: linear-gradient(
     180deg,
-    rgba(248, 250, 252, 0.98),
-    rgba(248, 250, 252, 0.92) 74%,
-    rgba(248, 250, 252, 0)
+    light-dark(rgba(248, 250, 252, 0.98), color-mix(in srgb, var(--theme-surface) 98%, transparent)),
+    light-dark(rgba(248, 250, 252, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent)) 74%,
+    light-dark(rgba(248, 250, 252, 0), color-mix(in srgb, var(--theme-surface) 0%, transparent))
   );
   backdrop-filter: blur(12px);
 }
@@ -1376,7 +1376,7 @@
 }
 
 .tripWorkspaceStickyBackLink {
-  color: #cf6d2e;
+  color: light-dark(#cf6d2e, color-mix(in srgb, #cf6d2e 30%, #d4e7ff));
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -1391,7 +1391,7 @@
 
 .tripWorkspaceStickyKicker {
   margin: 0;
-  color: #cf6d2e;
+  color: light-dark(#cf6d2e, color-mix(in srgb, #cf6d2e 30%, #d4e7ff));
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -1400,7 +1400,7 @@
 
 .tripWorkspaceStickyTitle {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: clamp(1.15rem, 2vw, 1.5rem);
   line-height: 1.05;
   letter-spacing: -0.04em;
@@ -1419,8 +1419,8 @@
   padding: 8px 10px 8px 12px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   cursor: pointer;
   transition:
@@ -1471,7 +1471,7 @@
   width: 18px;
   height: 18px;
   border-radius: 999px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
   box-shadow: 0 4px 10px rgba(17, 38, 64, 0.18);
   transition: transform 180ms ease;
 }
@@ -1492,8 +1492,8 @@
   padding: 12px 14px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: rgba(248, 250, 252, 0.82);
-  color: #183153;
+  background: light-dark(rgba(248, 250, 252, 0.82), color-mix(in srgb, var(--theme-surface) 82%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: -0.01em;
@@ -1509,18 +1509,18 @@
 .tripHeaderNavLink:focus-visible {
   border-color: rgba(44, 148, 245, 0.18);
   background: rgba(44, 148, 245, 0.12);
-  color: #0e2e57;
+  color: light-dark(#0e2e57, rgba(231, 238, 249, 1));
   transform: translateX(1px);
 }
 
 .tripHeaderNavLinkActive {
   border-color: rgba(44, 148, 245, 0.22);
   background: rgba(44, 148, 245, 0.14);
-  color: #0e2e57;
+  color: light-dark(#0e2e57, rgba(231, 238, 249, 1));
 }
 
 .tripHeaderNavIndex {
-  color: rgba(24, 49, 83, 0.56);
+  color: light-dark(rgba(24, 49, 83, 0.56), rgba(231, 238, 249, 0.8));
   font-size: 0.86rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -1539,7 +1539,7 @@
   margin: 0;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.88);
+  background: light-dark(rgba(255, 255, 255, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
   box-shadow: 0 18px 42px rgba(17, 38, 64, 0.06);
   overflow: hidden;
 }
@@ -1606,12 +1606,12 @@
   gap: 8px;
   padding: 16px 18px;
   border-radius: 18px;
-  background: rgba(246, 248, 252, 0.92);
+  background: light-dark(rgba(246, 248, 252, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent));
   border: 1px solid rgba(24, 49, 83, 0.08);
 }
 
 .tripQuestionCard strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
   line-height: 1.3;
 }
@@ -1621,7 +1621,7 @@
   gap: 10px;
   padding: 16px 18px;
   border-radius: 18px;
-  background: rgba(248, 251, 255, 0.88);
+  background: light-dark(rgba(248, 251, 255, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
   border: 1px solid rgba(44, 148, 245, 0.12);
 }
 
@@ -1656,7 +1656,7 @@
   padding: 2px 0;
   border: 0;
   background: transparent;
-  color: #2c94f5;
+  color: light-dark(#2c94f5, color-mix(in srgb, #2c94f5 30%, #d4e7ff));
   font: inherit;
   font-size: 0.95rem;
   font-weight: 900;
@@ -1669,7 +1669,7 @@
 
 .tripSectionToggle:hover,
 .tripSectionToggle:focus-visible {
-  color: #0f4e8a;
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
 }
 
 .tripMetricRow {
@@ -1686,7 +1686,7 @@
   padding: 0 10px;
   border-radius: 999px;
   background: rgba(44, 148, 245, 0.1);
-  color: #0f4e8a;
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.01em;
@@ -1705,7 +1705,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #2c94f5, #7dc5ff);
+  background: linear-gradient(90deg, #2c94f5, light-dark(#7dc5ff, color-mix(in srgb, #7dc5ff 15%, #111c2e)));
 }
 
 .tripReadinessList {
@@ -1718,7 +1718,7 @@
   gap: 14px;
   padding: 18px 20px;
   border-radius: 22px;
-  background: rgba(248, 250, 252, 0.9);
+  background: light-dark(rgba(248, 250, 252, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
   border: 1px solid rgba(24, 49, 83, 0.08);
 }
 
@@ -1746,7 +1746,7 @@
   padding: 14px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(248, 250, 252, 0.88);
+  background: light-dark(rgba(248, 250, 252, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
   animation: tripVotePieFloatIn 380ms ease both;
 }
 
@@ -1778,11 +1778,11 @@
   background:
     radial-gradient(
       circle at center,
-      rgba(255, 255, 255, 0.95) 0 34%,
+      light-dark(rgba(255, 255, 255, 0.95), color-mix(in srgb, var(--theme-surface) 95%, transparent)) 0 34%,
       transparent 35%
     ),
     conic-gradient(from 0deg, rgba(24, 49, 83, 0.08) 0deg 360deg);
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   font-size: 0.82rem;
   font-weight: 800;
   text-align: center;
@@ -1818,13 +1818,13 @@
 }
 
 .tripVotePieLegendCopy strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.88rem;
   font-weight: 800;
 }
 
 .tripVotePieLegendCopy span {
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -1878,7 +1878,7 @@
 }
 
 .tripOverviewBodyStrong .muted {
-  color: rgba(24, 49, 83, 0.82);
+  color: light-dark(rgba(24, 49, 83, 0.82), rgba(231, 238, 249, 0.82));
 }
 
 .tripOverviewBodyStrong .infoCard strong {
@@ -1902,7 +1902,7 @@
   object-fit: cover;
   background:
     linear-gradient(135deg, rgba(103, 171, 221, 0.42), rgba(24, 49, 83, 0.18)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .tripDetailBody {
@@ -1926,7 +1926,7 @@
   padding: 14px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(248, 250, 252, 0.88);
+  background: light-dark(rgba(248, 250, 252, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
 }
 
 .infoCardCompact {
@@ -1936,7 +1936,7 @@
 .tripFactLabel {
   display: block;
   margin-bottom: 6px;
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -1945,7 +1945,7 @@
 
 .tripFact strong,
 .infoCard strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.98rem;
 }
 
@@ -1988,7 +1988,7 @@
   height: 22px;
   overflow: hidden;
   border-radius: 999px;
-  background: #d7deea;
+  background: light-dark(#d7deea, var(--theme-inset));
 }
 
 .progressFill {
@@ -2005,22 +2005,22 @@
 
 .progressFillGreen {
   background: #50b065;
-  color: #50b065;
+  color: light-dark(#50b065, color-mix(in srgb, #50b065 30%, #d4e7ff));
 }
 
 .progressFillBlue {
   background: #3990e7;
-  color: #3990e7;
+  color: light-dark(#3990e7, color-mix(in srgb, #3990e7 30%, #d4e7ff));
 }
 
 .progressFillOrange {
   background: #f39a37;
-  color: #f39a37;
+  color: light-dark(#f39a37, color-mix(in srgb, #f39a37 30%, #d4e7ff));
 }
 
 .progressFillPurple {
   background: #9a3ec7;
-  color: #9a3ec7;
+  color: light-dark(#9a3ec7, color-mix(in srgb, #9a3ec7 30%, #d4e7ff));
 }
 
 .progressMeta {
@@ -2043,15 +2043,15 @@
 }
 
 .tripCardMiniItem { min-width: 0; }
-.tripCardOptionCount { display: grid; place-items: center; width: 32px; height: 32px; color: #287edd; font-size: .85rem; font-variant-numeric: tabular-nums; }
-.tripCardMiniTop { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #526d85; font-size: .62rem; font-weight: 600; }
+.tripCardOptionCount { display: grid; place-items: center; width: 32px; height: 32px; color: light-dark(#287edd, color-mix(in srgb, #287edd 30%, #d4e7ff)); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.tripCardMiniTop { display: flex; flex-direction: column; align-items: center; gap: 5px; color: light-dark(#526d85, rgba(168, 185, 208, 1)); font-size: .62rem; font-weight: 600; }
 .tripCardFacts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 4px 0; }
 .tripCardDate, .tripCardPeople { display: inline-flex; align-items: center; gap: 7px; font-size: .75rem; line-height: 1.4; }
-.tripCardDate { color: #246bb6; }
+.tripCardDate { color: light-dark(#246bb6, color-mix(in srgb, #246bb6 30%, #d4e7ff)); }
 .tripCardDate strong { font-weight: 700; }
-.tripCardPeople { color: #526d85; }
-.tripCardPeople strong { color: #213950; font-weight: 700; }
-.tripCardFacts svg { flex-shrink: 0; width: 16px; height: 16px; color: #4484c7; }
+.tripCardPeople { color: light-dark(#526d85, rgba(168, 185, 208, 1)); }
+.tripCardPeople strong { color: light-dark(#213950, rgba(231, 238, 249, 1)); font-weight: 700; }
+.tripCardFacts svg { flex-shrink: 0; width: 16px; height: 16px; color: light-dark(#4484c7, color-mix(in srgb, #4484c7 30%, #d4e7ff)); }
 
 .tripCardMiniCircle {
   --progress: 0%;
@@ -2083,7 +2083,7 @@
 .tripCardMiniCircle strong {
   position: relative;
   z-index: 1;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.56rem;
   font-weight: 800;
 }
@@ -2104,19 +2104,19 @@
 .nextActionCard {
   margin-top: 28px;
   padding: 18px 18px 20px;
-  border-left: 4px solid #f3c13a;
+  border-left: 4px solid light-dark(#f3c13a, rgba(136, 158, 190, 0.3));
   border-radius: 12px;
   background: linear-gradient(
     90deg,
-    rgba(244, 211, 94, 0.24),
-    rgba(255, 248, 220, 0.9)
+    light-dark(rgba(244, 211, 94, 0.24), color-mix(in srgb, rgba(244, 211, 94, 0.24) 15%, #111c2e3d)),
+    light-dark(rgba(255, 248, 220, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent))
   );
 }
 
 .nextActionText {
   margin: 8px 0 0;
   color: #f4f7fb;
-  color: rgba(24, 49, 83, 0.76);
+  color: light-dark(rgba(24, 49, 83, 0.76), rgba(231, 238, 249, 0.8));
   font-weight: 600;
 }
 
@@ -2124,42 +2124,34 @@
   padding: 26px;
   border: 1px dashed rgba(24, 49, 83, 0.16);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.62);
+  background: light-dark(rgba(255, 255, 255, 0.62), color-mix(in srgb, var(--theme-surface) 62%, transparent));
 }
 
 .emptyState h3 {
   margin: 0 0 8px;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
 }
 
 .journiLoader {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  min-height: 124px;
+  justify-content: center;
+  gap: 20px;
   padding: 24px;
-  border: 1px solid rgba(24, 49, 83, 0.08);
-  border-radius: 24px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.96),
-      rgba(240, 247, 255, 0.84)
-    ),
-    #ffffff;
-  box-shadow: 0 18px 46px rgba(17, 38, 64, 0.08);
+  text-align: center;
 }
 
 .journiLoader strong {
   display: block;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
   font-weight: 800;
 }
 
 .journiLoader p {
   margin: 5px 0 0;
-  color: rgba(24, 49, 83, 0.66);
+  color: light-dark(rgba(24, 49, 83, 0.66), rgba(231, 238, 249, 0.8));
   font-size: 0.95rem;
   line-height: 1.45;
 }
@@ -2204,14 +2196,14 @@
   width: 7px;
   height: 24px;
   border-radius: 999px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
   animation: journiPulse 900ms ease-in-out infinite;
 }
 
 .journiLoaderMark span:nth-child(2) {
   height: 34px;
   margin: 0 5px;
-  background: #f3c13a;
+  background: light-dark(#f3c13a, color-mix(in srgb, #f3c13a 15%, #111c2e));
   animation-delay: 120ms;
 }
 
@@ -2270,9 +2262,9 @@
   width: 150px;
   max-height: calc(100vh - 156px);
   padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.46);
+  border: 1px solid light-dark(rgba(255, 255, 255, 0.46), rgba(136, 158, 190, 0.46));
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.42);
+  background: light-dark(rgba(255, 255, 255, 0.42), color-mix(in srgb, var(--theme-surface) 42%, transparent));
   box-shadow:
     0 18px 48px rgba(17, 38, 64, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.42);
@@ -2295,8 +2287,8 @@
   padding: 0 12px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
@@ -2313,7 +2305,7 @@
   border-right: 1px solid rgba(24, 49, 83, 0.08);
   border-bottom: 0;
   border-radius: 24px 24px 0 0;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
   box-shadow: 0 22px 52px rgba(17, 38, 64, 0.14);
 }
 
@@ -2329,10 +2321,10 @@
   background:
     linear-gradient(
       180deg,
-      #ffffff 0%,
-      rgba(255, 255, 255, 0.96) 24%,
-      rgba(255, 255, 255, 0.58) 58%,
-      rgba(255, 255, 255, 0) 100%
+      light-dark(#ffffff, var(--theme-surface)) 0%,
+      light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent)) 24%,
+      light-dark(rgba(255, 255, 255, 0.58), color-mix(in srgb, var(--theme-surface) 58%, transparent)) 58%,
+      light-dark(rgba(255, 255, 255, 0), color-mix(in srgb, var(--theme-surface) 0%, transparent)) 100%
     ),
     radial-gradient(
       ellipse at 50% 0%,
@@ -2413,7 +2405,7 @@
 .tripImagePreviewWrap {
   position: relative;
   min-height: 312px;
-  background: rgba(248, 250, 252, 0.96);
+  background: light-dark(rgba(248, 250, 252, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
   border-radius: 24px 24px 0 0;
   overflow: hidden;
 }
@@ -2426,15 +2418,15 @@
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0) 18%,
-      rgba(255, 255, 255, 0.38) 58%,
-      rgba(255, 255, 255, 0.98) 100%
+      light-dark(rgba(255, 255, 255, 0), color-mix(in srgb, var(--theme-surface) 0%, transparent)) 18%,
+      light-dark(rgba(255, 255, 255, 0.38), color-mix(in srgb, var(--theme-surface) 38%, transparent)) 58%,
+      light-dark(rgba(255, 255, 255, 0.98), color-mix(in srgb, var(--theme-surface) 98%, transparent)) 100%
     ),
     radial-gradient(
       ellipse at 18% 72%,
-      rgba(255, 255, 255, 0.88) 0%,
-      rgba(255, 255, 255, 0.54) 34%,
-      rgba(255, 255, 255, 0) 68%
+      light-dark(rgba(255, 255, 255, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent)) 0%,
+      light-dark(rgba(255, 255, 255, 0.54), color-mix(in srgb, var(--theme-surface) 54%, transparent)) 34%,
+      light-dark(rgba(255, 255, 255, 0), color-mix(in srgb, var(--theme-surface) 0%, transparent)) 68%
     );
   pointer-events: none;
 }
@@ -2477,14 +2469,14 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  color: rgba(24, 49, 83, 0.7);
+  color: light-dark(rgba(24, 49, 83, 0.7), rgba(231, 238, 249, 0.8));
   font-size: 0.84rem;
   font-weight: 800;
 }
 
 .tripImageTitle {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: clamp(2.1rem, 4vw, 3.4rem);
   line-height: 0.94;
   letter-spacing: -0.06em;
@@ -2497,7 +2489,7 @@
   width: 100%;
   border: 0;
   background: transparent;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: clamp(2.1rem, 4vw, 3.4rem);
   font-weight: 800;
   line-height: 0.94;
@@ -2524,13 +2516,13 @@
 }
 
 .tripInlineTitleInput::placeholder {
-  color: rgba(24, 49, 83, 0.38);
+  color: light-dark(rgba(24, 49, 83, 0.38), rgba(231, 238, 249, 0.8));
 }
 
 .tripImageSubtitle {
   margin: 0;
   max-width: 38rem;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
@@ -2541,7 +2533,7 @@
   max-width: 38rem;
   border: 0;
   background: transparent;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
@@ -2554,7 +2546,7 @@
 }
 
 .tripInlineSubtitleInput::placeholder {
-  color: rgba(24, 49, 83, 0.42);
+  color: light-dark(rgba(24, 49, 83, 0.42), rgba(231, 238, 249, 0.8));
 }
 
 .tripImagePlaceholder {
@@ -2564,10 +2556,14 @@
   padding: 28px;
   background-image:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(17, 38, 64, 0.02)),
-    url("/images/journi-image-placeholder-pale.svg");
+    url("/images/journi-trip-empty-light.svg");
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  background-color: light-dark(#fbfbfb, #17263b);
+  width: 100%;
+  max-width: 100%;
+  border-radius: 24px 24px 0 0;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -2582,9 +2578,9 @@
   height: 52%;
   background: linear-gradient(
     180deg,
-    rgba(248, 250, 252, 0) 0%,
-    rgba(248, 250, 252, 0.62) 58%,
-    rgba(248, 250, 252, 0.96) 100%
+    light-dark(rgba(248, 250, 252, 0), color-mix(in srgb, var(--theme-surface) 0%, transparent)) 0%,
+    light-dark(rgba(248, 250, 252, 0.62), color-mix(in srgb, var(--theme-surface) 62%, transparent)) 58%,
+    light-dark(rgba(248, 250, 252, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent)) 100%
   );
 }
 
@@ -2607,8 +2603,8 @@
   width: 68px;
   height: 68px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.86);
-  color: #cf6d2e;
+  background: light-dark(rgba(255, 255, 255, 0.86), color-mix(in srgb, var(--theme-surface) 86%, transparent));
+  color: light-dark(#cf6d2e, color-mix(in srgb, #cf6d2e 30%, #d4e7ff));
   box-shadow: 0 18px 42px rgba(17, 38, 64, 0.08);
 }
 
@@ -2619,7 +2615,7 @@
 
 .tripImageMetaPlaceholder {
   margin: 0;
-  color: rgba(24, 49, 83, 0.54);
+  color: light-dark(rgba(24, 49, 83, 0.54), rgba(231, 238, 249, 0.8));
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -2628,7 +2624,7 @@
 
 .tripImagePlaceholderTitle {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: clamp(2.05rem, 4vw, 3.3rem);
   line-height: 0.94;
   letter-spacing: -0.06em;
@@ -2637,7 +2633,7 @@
 .tripImagePlaceholderBody {
   margin: 0;
   max-width: 36rem;
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   font-size: 0.98rem;
   font-weight: 600;
   line-height: 1.45;
@@ -2666,7 +2662,7 @@
   display: grid;
   gap: 20px;
   padding: 0 22px 22px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-surface));
 }
 
 .tripStoryCard {
@@ -2674,8 +2670,8 @@
   z-index: 2;
   display: grid;
   gap: 10px;
-  margin-top: -18px;
-  padding: 0 2px 8px;
+  margin-top: 0;
+  padding: 18px 0 4px;
   border: 0;
   background: transparent;
 }
@@ -2692,14 +2688,14 @@
 }
 
 .tripStoryText {
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   font-size: 0.98rem;
   font-weight: 600;
   line-height: 1.55;
 }
 
 .tripStoryPreview small {
-  color: rgba(24, 49, 83, 0.48);
+  color: light-dark(rgba(24, 49, 83, 0.48), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -2711,7 +2707,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font: inherit;
   font-size: 0.98rem;
   font-weight: 600;
@@ -2722,13 +2718,34 @@
 }
 
 .tripStoryTextarea::placeholder {
-  color: rgba(24, 49, 83, 0.38);
+  color: light-dark(rgba(24, 49, 83, 0.38), rgba(231, 238, 249, 0.8));
 }
 
 .tripSetupGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+  align-items: start;
+}
+
+.tripSetupGrid > .field,
+.tripSetupGrid > .tripSetupCard,
+.tripPlanningCard {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid light-dark(#e3eaf2, #344359);
+  border-radius: 16px;
+  background: light-dark(#f8fafc, var(--theme-inset));
+}
+
+.tripSetupGrid > :last-child { grid-column: 1 / -1; }
+.tripSetupGrid > .field { align-content: start; }
+.tripSetupGrid > .field > span { font-size: .82rem; font-weight: 800; }
+.tripPlanningGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+.tripPlanningCard { display: grid; gap: 14px; }
+.tripPlanningCard .tripFilter { flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .tripSetupGrid, .tripPlanningGrid { grid-template-columns: 1fr; }
 }
 
 .tripSetupCard {
@@ -2739,11 +2756,11 @@
   padding: 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(248, 250, 252, 0.78);
+  background: light-dark(rgba(248, 250, 252, 0.78), color-mix(in srgb, var(--theme-surface) 78%, transparent));
 }
 
 .tripSetupLabel {
-  color: rgba(24, 49, 83, 0.54);
+  color: light-dark(rgba(24, 49, 83, 0.54), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0.1em;
@@ -2757,7 +2774,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 1.05rem;
   font-weight: 850;
@@ -2778,7 +2795,7 @@
 }
 
 .tripSetupInlineInput::placeholder {
-  color: rgba(24, 49, 83, 0.38);
+  color: light-dark(rgba(24, 49, 83, 0.38), rgba(231, 238, 249, 0.8));
 }
 
 .displayPromptCard {
@@ -2786,13 +2803,13 @@
   gap: 10px;
   padding: 18px 18px 16px;
   border-radius: 20px;
-  background: rgba(248, 250, 252, 0.86);
+  background: light-dark(rgba(248, 250, 252, 0.86), color-mix(in srgb, var(--theme-surface) 86%, transparent));
   border: 1px solid rgba(24, 49, 83, 0.08);
 }
 
 .displayPromptLabel {
   margin: 0;
-  color: rgba(24, 49, 83, 0.54);
+  color: light-dark(rgba(24, 49, 83, 0.54), rgba(231, 238, 249, 0.8));
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -2804,7 +2821,7 @@
   width: 100%;
   border: 0;
   background: transparent;
-  color: #112640;
+  color: light-dark(#112640, #ffffff);
   font: inherit;
   padding: 0;
   outline: none;
@@ -2813,7 +2830,7 @@
 
 .displayPromptInput::placeholder,
 .displayPromptInputLarge::placeholder {
-  color: rgba(24, 49, 83, 0.38);
+  color: light-dark(rgba(24, 49, 83, 0.38), rgba(231, 238, 249, 0.8));
 }
 
 .displayPromptInput {
@@ -2842,7 +2859,7 @@
   padding: 18px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.78);
+  background: light-dark(rgba(255, 255, 255, 0.78), color-mix(in srgb, var(--theme-surface) 78%, transparent));
 }
 
 .dateRangeInline {
@@ -2865,7 +2882,7 @@
   padding: 12px 14px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
 }
 
 .dateOptionRow div {
@@ -2874,7 +2891,7 @@
 }
 
 .dateOptionRow strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.94rem;
 }
 
@@ -2885,7 +2902,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font: inherit;
   font-size: 0.92rem;
   font-weight: 700;
@@ -2895,7 +2912,7 @@
 }
 
 .inlineEditLink:hover {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   text-decoration: underline;
   text-underline-offset: 0.16em;
 }
@@ -2904,7 +2921,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.98rem;
 }
 
@@ -2917,7 +2934,7 @@
   padding: 0 12px;
   border-radius: 999px;
   background: rgba(24, 49, 83, 0.06);
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.84rem;
   font-weight: 700;
 }
@@ -2933,7 +2950,7 @@
 }
 
 .dateRangeDivider {
-  color: rgba(24, 49, 83, 0.48);
+  color: light-dark(rgba(24, 49, 83, 0.48), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   text-transform: uppercase;
 }
@@ -2942,7 +2959,7 @@
   padding: 8px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
+  background: light-dark(rgba(255, 255, 255, 0.82), color-mix(in srgb, var(--theme-surface) 82%, transparent));
 }
 
 .datePickerShell :global(.rdp-root) {
@@ -2957,19 +2974,19 @@
 }
 
 .datePickerShell :global(.rdp-month) {
-  background: rgba(248, 250, 252, 0.9);
+  background: light-dark(rgba(248, 250, 252, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
   border-radius: 16px;
   padding: 8px;
 }
 
 .datePickerShell :global(.rdp-caption_label) {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-weight: 800;
   font-size: 0.92rem;
 }
 
 .datePickerShell :global(.rdp-weekday) {
-  color: rgba(24, 49, 83, 0.52);
+  color: light-dark(rgba(24, 49, 83, 0.52), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -3027,8 +3044,8 @@
   padding: 8px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 14px;
-  background: rgba(248, 250, 252, 0.84);
-  color: #183153;
+  background: light-dark(rgba(248, 250, 252, 0.84), color-mix(in srgb, var(--theme-surface) 84%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   text-align: left;
   cursor: pointer;
   transition:
@@ -3052,7 +3069,7 @@
 }
 
 .stepperItemComplete {
-  background: rgba(187, 247, 208, 0.48);
+  background: light-dark(rgba(187, 247, 208, 0.48), color-mix(in srgb, rgba(187, 247, 208, 0.48) 15%, #111c2e7a));
 }
 
 .stepperItem span,
@@ -3077,7 +3094,7 @@
 }
 
 .stepperItemActive span {
-  background: rgba(255, 255, 255, 0.18);
+  background: light-dark(rgba(255, 255, 255, 0.18), color-mix(in srgb, var(--theme-surface) 18%, transparent));
 }
 
 .stepperItem strong,
@@ -3119,7 +3136,7 @@
 
 .sectionHeading {
   margin: 4px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -3131,7 +3148,7 @@
   padding: 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(248, 250, 252, 0.78);
+  background: light-dark(rgba(248, 250, 252, 0.78), color-mix(in srgb, var(--theme-surface) 78%, transparent));
   scroll-margin-top: 104px;
 }
 
@@ -3177,7 +3194,7 @@
   padding: 14px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
+  background: light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-inset) 94%, transparent));
   box-shadow: 0 12px 28px rgba(17, 38, 64, 0.06);
 }
 
@@ -3189,7 +3206,7 @@
   object-fit: cover;
   background:
     linear-gradient(135deg, rgba(103, 171, 221, 0.42), rgba(24, 49, 83, 0.18)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .selectionSummaryBody {
@@ -3199,13 +3216,13 @@
 }
 
 .selectionSummaryBody strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
 }
 
 .selectionSummaryBody small,
 .selectionSummaryBody p {
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   line-height: 1.5;
 }
 
@@ -3228,7 +3245,7 @@
 }
 
 .voteCount {
-  color: rgba(24, 49, 83, 0.74);
+  color: light-dark(rgba(24, 49, 83, 0.74), rgba(231, 238, 249, 0.8));
   font-size: 0.85rem;
   font-weight: 700;
 }
@@ -3247,7 +3264,7 @@
   border-radius: 38px;
   background: transparent;
   box-shadow: none;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   pointer-events: none;
   transform: translate(-50%, -50%);
   animation: tripVoteFeedbackIn 2200ms cubic-bezier(0.18, 0.9, 0.28, 1) both;
@@ -3287,7 +3304,7 @@
 }
 
 .tripVoteFeedbackUp {
-  background: linear-gradient(135deg, #3ed879, #13a85a);
+  background: linear-gradient(135deg, light-dark(#3ed879, color-mix(in srgb, #3ed879 15%, #111c2e)), #13a85a);
   box-shadow: 0 10px 24px rgba(19, 168, 90, 0.3);
 }
 
@@ -3302,7 +3319,7 @@
 }
 
 .tripVoteFeedback small {
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 0.98rem;
   font-weight: 750;
 }
@@ -3320,7 +3337,7 @@
   width: 22px;
   height: 22px;
   fill: #ffc43d;
-  color: #f5a623;
+  color: light-dark(#f5a623, color-mix(in srgb, #f5a623 30%, #d4e7ff));
   opacity: 0;
   animation: tripVoteStarBurst 1050ms cubic-bezier(0.17, 0.84, 0.3, 1) both;
   animation-delay: var(--star-delay, 100ms);
@@ -3404,7 +3421,7 @@
 }
 
 .carouselHeader span {
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.88rem;
   font-weight: 800;
 }
@@ -3423,8 +3440,8 @@
   height: 38px;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-raised) 92%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(17, 38, 64, 0.08);
   transition:
@@ -3433,7 +3450,7 @@
 }
 
 .carouselButton:hover {
-  background: #fffdf9;
+  background: light-dark(#fffdf9, var(--theme-hover));
   transform: translateY(-1px);
 }
 
@@ -3477,7 +3494,7 @@
   flex-wrap: wrap;
   min-height: 44px;
   margin-top: 4px;
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.9rem;
   font-weight: 700;
   text-align: center;
@@ -3492,21 +3509,21 @@
   padding: 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-inset) 92%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   text-align: left;
   box-shadow: 0 12px 30px rgba(17, 38, 64, 0.07);
   overflow: hidden;
 }
 
 .hotelResultCardSelected {
-  border-color: rgba(80, 176, 101, 0.45);
-  background: rgba(240, 255, 246, 0.96);
+  border-color: light-dark(rgba(80, 176, 101, 0.45), rgba(136, 158, 190, 0.45));
+  background: light-dark(rgba(240, 255, 246, 0.96), color-mix(in srgb, var(--theme-inset) 96%, transparent));
 }
 
 .hotelResultCard strong,
 .hotelResultCardSelected strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
 }
 
@@ -3514,7 +3531,7 @@
 .hotelResultCardSelected small,
 .hotelResultCard p,
 .hotelResultCardSelected p {
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   line-height: 1.5;
 }
 
@@ -3537,13 +3554,13 @@
 }
 
 .hotelRateBadge {
-  background: rgba(187, 247, 208, 0.82);
-  color: #14532d;
+  background: light-dark(rgba(187, 247, 208, 0.82), color-mix(in srgb, rgba(187, 247, 208, 0.82) 15%, #111c2ed1));
+  color: light-dark(#14532d, color-mix(in srgb, #14532d 30%, #d4e7ff));
 }
 
 .hotelRateBadgeMuted {
-  background: rgba(226, 232, 240, 0.9);
-  color: rgba(24, 49, 83, 0.72);
+  background: light-dark(rgba(226, 232, 240, 0.9), rgb(29, 43, 63, 0.9));
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
 }
 
 .hotelRatingBadge {
@@ -3555,8 +3572,8 @@
   padding: 5px 10px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.86);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.86), color-mix(in srgb, var(--theme-raised) 86%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.78rem;
   font-weight: 850;
   box-shadow: 0 8px 18px rgba(17, 38, 64, 0.05);
@@ -3566,16 +3583,16 @@
   width: 13px;
   height: 13px;
   fill: #f5a623;
-  color: #f5a623;
+  color: light-dark(#f5a623, color-mix(in srgb, #f5a623 30%, #d4e7ff));
 }
 
 .hotelRatingBadge strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.82rem;
 }
 
 .hotelRatingBadge small {
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -3583,13 +3600,14 @@
 .hotelResultImage,
 .hotelResultImageFallback {
   width: calc(100% + 32px);
+  max-width: none;
   height: 180px;
   margin: -16px -16px 2px;
   border-radius: 20px 20px 0 0;
   object-fit: cover;
   background:
     linear-gradient(135deg, rgba(103, 171, 221, 0.42), rgba(24, 49, 83, 0.18)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .tripOptionRankBadge {
@@ -3619,7 +3637,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-size: 1rem;
   font-weight: 950;
   line-height: 1;
@@ -3694,7 +3712,7 @@
 }
 
 .tripOptionRankBadge button:last-of-type svg {
-  color: #ff9b7a;
+  color: light-dark(#ff9b7a, color-mix(in srgb, #ff9b7a 30%, #d4e7ff));
 }
 
 .hotelCardActions {
@@ -3725,7 +3743,7 @@
   width: min(1040px, calc(100vw - 48px));
   height: 100%;
   overflow: hidden;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--theme-surface));
   box-shadow: -28px 0 60px rgba(17, 38, 64, 0.18);
   animation: slidePanelIn 380ms cubic-bezier(0.2, 0.8, 0.25, 1);
   transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -3744,12 +3762,12 @@
   gap: 16px;
   padding: 24px;
   border-bottom: 1px solid rgba(24, 49, 83, 0.08);
-  background: rgba(255, 255, 255, 0.88);
+  background: light-dark(rgba(255, 255, 255, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
 }
 
 .slidePanelHeader h2 {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.35rem;
 }
 
@@ -3769,8 +3787,8 @@
   height: 38px;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 999px;
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-raised));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   box-shadow: 0 10px 22px rgba(17, 38, 64, 0.08);
   cursor: pointer;
   transition:
@@ -3793,7 +3811,7 @@
 .slidePanelIconButton:focus-visible {
   border-color: rgba(44, 148, 245, 0.24);
   background: rgba(44, 148, 245, 0.1);
-  color: #0f4e8a;
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
 }
 
 .slidePanelCloseButton {
@@ -3825,7 +3843,7 @@
   display: block;
   overflow: hidden;
   border-radius: 18px 0 0 18px;
-  background: #e9e3d8;
+  background: light-dark(#e9e3d8, var(--theme-inset));
 }
 
 .chatSlidePanel::before {
@@ -3835,10 +3853,10 @@
   height: 132px;
   background: linear-gradient(
     to bottom,
-    #ffffff 0,
-    rgba(255, 255, 255, 0.98) 42px,
-    rgba(255, 255, 255, 0.82) 76px,
-    rgba(255, 255, 255, 0) 100%
+    light-dark(#ffffff, var(--theme-surface)) 0,
+    light-dark(rgba(255, 255, 255, 0.98), color-mix(in srgb, var(--theme-surface) 98%, transparent)) 42px,
+    light-dark(rgba(255, 255, 255, 0.82), color-mix(in srgb, var(--theme-surface) 82%, transparent)) 76px,
+    light-dark(rgba(255, 255, 255, 0), color-mix(in srgb, var(--theme-surface) 0%, transparent)) 100%
   );
   content: "";
   pointer-events: none;
@@ -3888,7 +3906,7 @@
   border-radius: 6px;
   background: transparent;
   box-shadow: none;
-  color: #526273;
+  color: light-dark(#526273, rgba(168, 185, 208, 1));
 }
 
 .chatSlidePanel .slidePanelIconButton:hover,
@@ -3898,7 +3916,7 @@
   transform: none;
   background: rgba(24, 49, 83, 0.07);
   box-shadow: none;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
 }
 
 .chatSlidePanel .slidePanelBody {
@@ -3936,7 +3954,7 @@
   min-height: 0;
   overflow-y: auto;
   padding: 86px 18px 90px;
-  background-color: #e9e3d8;
+  background-color: light-dark(#e9e3d8, var(--theme-inset));
   background-image:
     linear-gradient(
       to bottom,
@@ -3986,9 +4004,9 @@
   width: fit-content;
   padding: 5px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
   box-shadow: 0 2px 8px rgba(17, 38, 64, 0.1);
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   font-size: 0.68rem;
   font-weight: 800;
   backdrop-filter: blur(8px);
@@ -4037,13 +4055,13 @@
   padding: 7px;
   border: 1px solid rgba(24, 49, 83, 0.09);
   border-radius: 21px;
-  background: rgba(255, 255, 255, 0.34);
+  background: light-dark(rgba(255, 255, 255, 0.34), color-mix(in srgb, var(--theme-surface) 34%, transparent));
   box-shadow: 0 5px 16px rgba(17, 38, 64, 0.05);
 }
 
 .whatsAppMessageContentOwn.whatsAppMessageContentWithReferences {
   border-color: rgba(77, 173, 78, 0.15);
-  background: rgba(217, 253, 211, 0.28);
+  background: light-dark(rgba(217, 253, 211, 0.28), color-mix(in srgb, rgba(217, 253, 211, 0.28) 15%, #111c2e47));
 }
 
 .whatsAppMessageContent .whatsAppBubble {
@@ -4152,7 +4170,7 @@
 .whatsAppSenderName {
   max-width: 100%;
   overflow: hidden;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-size: 0.7rem;
   font-weight: 900;
   text-overflow: ellipsis;
@@ -4164,7 +4182,7 @@
   width: 34px;
   height: 34px;
   place-items: center;
-  border: 2px solid rgba(255, 255, 255, 0.92);
+  border: 2px solid light-dark(rgba(255, 255, 255, 0.92), rgba(136, 158, 190, 0.92));
   border-radius: 50%;
   background: #2c94f5;
   box-shadow: 0 3px 9px rgba(17, 38, 64, 0.14);
@@ -4179,7 +4197,7 @@
   width: 34px;
   height: 34px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.92);
+  border: 2px solid light-dark(rgba(255, 255, 255, 0.92), rgba(136, 158, 190, 0.92));
   border-radius: 50%;
   box-shadow: 0 3px 9px rgba(17, 38, 64, 0.14);
 }
@@ -4228,7 +4246,7 @@
   min-height: 145px;
   padding: 48px 16px 18px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.97) 38%);
+  background: linear-gradient(180deg, light-dark(rgba(255, 255, 255, 0.16), color-mix(in srgb, var(--theme-raised) 16%, transparent)), light-dark(rgba(255, 255, 255, 0.97), color-mix(in srgb, var(--theme-raised) 97%, transparent)) 38%);
   text-align: center;
 }
 
@@ -4241,7 +4259,7 @@
   height: 72px;
   place-items: center;
   object-fit: cover;
-  border: 4px solid #fff;
+  border: 4px solid light-dark(#fff, rgba(136, 158, 190, 0.3));
   border-radius: 50%;
   background: linear-gradient(135deg, #0f4e8a, #2c94f5);
   box-shadow: 0 10px 22px rgba(17, 38, 64, 0.2);
@@ -4252,7 +4270,7 @@
 
 .whatsAppProfileTooltipBody strong {
   max-width: 100%;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
 }
 
@@ -4260,7 +4278,7 @@
   display: -webkit-box;
   overflow: hidden;
   margin: 0;
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 0.76rem;
   line-height: 1.45;
   -webkit-box-orient: vertical;
@@ -4275,14 +4293,14 @@
   max-width: min(78%, 520px);
   padding: 10px 38px 8px 12px;
   border-radius: 16px 16px 16px 4px;
-  background: #ffffff;
-  color: #172234;
+  background: light-dark(#ffffff, var(--theme-surface));
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   box-shadow: 0 4px 14px rgba(17, 38, 64, 0.08);
 }
 
 .whatsAppBubbleOwn {
   border-radius: 16px 16px 4px 16px;
-  background: #d9fdd3;
+  background: light-dark(#d9fdd3, color-mix(in srgb, #d9fdd3 15%, #111c2e));
 }
 
 .whatsAppBubbleDeleted {
@@ -4317,7 +4335,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 14px;
-  color: rgba(24, 49, 83, 0.56);
+  color: light-dark(rgba(24, 49, 83, 0.56), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 850;
 }
@@ -4333,7 +4351,7 @@
   align-items: center;
   gap: 4px 6px;
   margin: 0;
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.92rem;
   line-height: 1.45;
   white-space: pre-wrap;
@@ -4379,7 +4397,7 @@
   padding: 9px 11px;
   border-radius: 11px;
   background: rgba(15, 111, 189, 0.09);
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   text-decoration: none;
 }
 
@@ -4402,7 +4420,7 @@
 }
 
 .whatsAppMessageFile small {
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.62rem;
   font-weight: 750;
 }
@@ -4414,7 +4432,7 @@
   border: 1px solid rgba(15, 111, 189, 0.16);
   border-radius: 10px;
   background: rgba(15, 111, 189, 0.07);
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.68rem;
   font-weight: 900;
@@ -4429,7 +4447,7 @@
 }
 
 .whatsAppDeletedMessage {
-  color: #344554;
+  color: light-dark(#344554, rgba(231, 238, 249, 1));
   font-style: italic;
   font-weight: 700;
 }
@@ -4450,7 +4468,7 @@
   place-items: center;
   border-radius: 999px;
   background: rgba(24, 49, 83, 0.1);
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 0.58rem;
   font-style: normal;
   font-weight: 900;
@@ -4491,7 +4509,7 @@
 .whatsAppEditedLabel {
   align-self: flex-end;
   margin-left: 1px;
-  color: rgba(24, 49, 83, 0.48);
+  color: light-dark(rgba(24, 49, 83, 0.48), rgba(231, 238, 249, 0.8));
   font-size: 0.64rem;
   font-style: italic;
   font-weight: 750;
@@ -4502,7 +4520,7 @@
 .whatsAppInlineTime {
   align-self: flex-end;
   margin-left: 3px;
-  color: rgba(24, 49, 83, 0.52);
+  color: light-dark(rgba(24, 49, 83, 0.52), rgba(231, 238, 249, 0.8));
   font-size: 0.64rem;
   font-weight: 800;
   line-height: 1.45;
@@ -4521,14 +4539,14 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: rgba(24, 49, 83, 0.5);
+  color: light-dark(rgba(24, 49, 83, 0.5), rgba(231, 238, 249, 0.8));
   cursor: pointer;
 }
 
 .whatsAppReplyIcon:hover,
 .whatsAppReplyIcon:focus-visible {
   background: rgba(24, 49, 83, 0.08);
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
 }
 
 .whatsAppMessageOptions {
@@ -4541,7 +4559,7 @@
   padding: 5px;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 12px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-surface));
   box-shadow: 0 12px 28px rgba(17, 38, 64, 0.18);
   animation: whatsAppMenuBounceIn 180ms ease-out both;
 }
@@ -4555,7 +4573,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.76rem;
   font-weight: 850;
@@ -4566,15 +4584,15 @@
 .whatsAppMessageOptions button:hover,
 .whatsAppMessageOptions button:focus-visible {
   background: rgba(44, 148, 245, 0.09);
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
 }
 
 .whatsAppMessageOptions button:last-child {
-  color: #b42318;
+  color: light-dark(#b42318, color-mix(in srgb, #b42318 30%, #d4e7ff));
 }
 
 .whatsAppMessageBody a {
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-weight: 900;
   text-decoration: underline;
   text-underline-offset: 0.16em;
@@ -4590,7 +4608,7 @@
   border: 1px solid rgba(44, 148, 245, 0.16);
   border-radius: 999px;
   background: rgba(44, 148, 245, 0.1);
-  color: #0f4e8a;
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
   font-size: 0.72rem;
   font-weight: 900;
   text-transform: capitalize;
@@ -4599,7 +4617,7 @@
 .whatsAppReferenceChip strong {
   min-width: 0;
   overflow: hidden;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.76rem;
   text-overflow: ellipsis;
   text-transform: none;
@@ -4617,7 +4635,7 @@
   overflow: hidden;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
+  background: light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-surface) 94%, transparent));
   box-shadow: 0 10px 24px rgba(17, 38, 64, 0.08);
   font-style: normal;
   white-space: normal;
@@ -4631,8 +4649,8 @@
   padding: 2px 7px 2px 2px;
   border: 1px solid rgba(15, 111, 189, 0.22);
   border-radius: 999px;
-  background: rgba(214, 236, 255, 0.82);
-  color: #0f6fbd;
+  background: light-dark(rgba(214, 236, 255, 0.82), color-mix(in srgb, rgba(214, 236, 255, 0.82) 15%, #111c2ed1));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   vertical-align: middle;
 }
 
@@ -4665,9 +4683,9 @@
   width: 100%;
   height: 150px;
   place-items: center;
-  background: linear-gradient(135deg, #dff0ff, #beddf8);
+  background: linear-gradient(135deg, light-dark(#dff0ff, var(--theme-inset)), light-dark(#beddf8, color-mix(in srgb, #beddf8 15%, #111c2e)));
   object-fit: cover;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-size: 1.5rem;
   font-weight: 950;
 }
@@ -4681,7 +4699,7 @@
 }
 
 .whatsAppSentReferenceCard small {
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-size: 0.55rem;
   font-weight: 950;
   letter-spacing: 0.07em;
@@ -4696,13 +4714,13 @@
 }
 
 .whatsAppSentReferenceCard strong {
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.9rem;
   font-weight: 950;
 }
 
 .whatsAppSentReferenceCard em {
-  color: rgba(24, 49, 83, 0.6);
+  color: light-dark(rgba(24, 49, 83, 0.6), rgba(231, 238, 249, 0.8));
   font-size: 0.66rem;
   font-style: normal;
   font-weight: 700;
@@ -4714,20 +4732,20 @@
   align-items: center;
   justify-self: start;
   gap: 5px;
-  color: #74839a;
+  color: light-dark(#74839a, rgba(168, 185, 208, 1));
   font-size: 0.65rem;
   font-weight: 800;
 }
 
 .whatsAppSentReferenceRating svg,
 .whatsAppReferenceRating svg {
-  color: #f5a623;
+  color: light-dark(#f5a623, color-mix(in srgb, #f5a623 30%, #d4e7ff));
   fill: #f5a623;
 }
 
 .whatsAppSentReferenceRating b,
 .whatsAppReferenceRating b {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.72rem;
 }
 
@@ -4741,8 +4759,8 @@
   margin-top: 2px;
   border: 1px solid rgba(24, 49, 83, 0.14);
   border-radius: 11px;
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-surface));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-family: inherit;
   font-size: 0.68rem;
   font-style: normal;
@@ -4757,13 +4775,13 @@
   padding: 10px 12px;
   border-left: 3px solid rgba(44, 148, 245, 0.5);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   text-decoration: none;
 }
 
 .whatsAppLinkPreview span {
-  color: rgba(24, 49, 83, 0.54);
+  color: light-dark(rgba(24, 49, 83, 0.54), rgba(231, 238, 249, 0.8));
   font-size: 0.66rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -4783,8 +4801,8 @@
   overflow: hidden;
   margin-top: 2px;
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #183153;
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   text-decoration: none;
 }
 
@@ -4793,7 +4811,7 @@
   display: block;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #e7ebee;
+  background: light-dark(#e7ebee, var(--theme-inset));
 }
 
 .whatsAppRichLinkImage > img {
@@ -4824,7 +4842,7 @@
 }
 
 .whatsAppRichLinkCopy small {
-  color: rgba(24, 49, 83, 0.54);
+  color: light-dark(rgba(24, 49, 83, 0.54), rgba(231, 238, 249, 0.8));
   font-size: 0.66rem;
   font-weight: 900;
   letter-spacing: 0.06em;
@@ -4834,7 +4852,7 @@
 .whatsAppRichLinkCopy strong {
   display: -webkit-box;
   overflow: hidden;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.84rem;
   line-height: 1.35;
   -webkit-box-orient: vertical;
@@ -4844,7 +4862,7 @@
 .whatsAppRichLinkCopy > span {
   display: -webkit-box;
   overflow: hidden;
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   line-height: 1.4;
   -webkit-box-orient: vertical;
@@ -4873,8 +4891,8 @@
   gap: 2px;
   min-width: 0;
   padding: 9px 11px 10px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #112640;
+  background: light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   text-decoration: none;
 }
 
@@ -4891,7 +4909,7 @@
 }
 
 .whatsAppYouTubePlayer > a span {
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.68rem;
   font-weight: 700;
 }
@@ -4906,7 +4924,7 @@
   padding: 0;
   border: 1px solid rgba(17, 38, 64, 0.09);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.76);
+  background: light-dark(rgba(255, 255, 255, 0.76), color-mix(in srgb, var(--theme-surface) 76%, transparent));
   box-shadow: 0 3px 11px rgba(17, 38, 64, 0.1);
 }
 
@@ -4919,7 +4937,7 @@
   margin: 0;
   aspect-ratio: 16 / 9;
   border-radius: 11px 11px 0 0;
-  background: #e7ebee;
+  background: light-dark(#e7ebee, var(--theme-inset));
 }
 
 .whatsAppSentLinkPreview .whatsAppRichLinkImage > img {
@@ -4967,7 +4985,7 @@
   aspect-ratio: auto;
   place-items: center;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
 }
 
 .whatsAppSentLinkPreviewFavicon .whatsAppRichLinkImage > img,
@@ -4986,16 +5004,16 @@
   margin-top: 4px;
   border: 1px solid rgba(17, 38, 64, 0.09);
   border-left: 3px solid #2c94f5;
-  background: rgba(255, 255, 255, 0.72);
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
 }
 
 .whatsAppLinkPreview strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.84rem;
 }
 
 .whatsAppLinkPreview small {
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.74rem;
   font-weight: 750;
 }
@@ -5010,7 +5028,7 @@
   border-left: 3px solid rgba(44, 148, 245, 0.55);
   border-radius: 8px;
   background: rgba(17, 38, 64, 0.06);
-  color: rgba(24, 49, 83, 0.72);
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1.35;
@@ -5026,7 +5044,7 @@
 .whatsAppReplyBanner button {
   border: 0;
   background: transparent;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.72rem;
   font-weight: 900;
@@ -5037,7 +5055,7 @@
   display: grid;
   place-items: center;
   min-height: 220px;
-  color: rgba(24, 49, 83, 0.64);
+  color: light-dark(rgba(24, 49, 83, 0.64), rgba(231, 238, 249, 0.8));
   font-weight: 800;
   text-align: center;
 }
@@ -5052,7 +5070,7 @@
   gap: 8px;
   padding: 10px 14px 0;
   border-top: 0;
-  background: linear-gradient(to bottom, rgba(233, 227, 216, 0), #e9e3d8 20px);
+  background: linear-gradient(to bottom, light-dark(rgba(233, 227, 216, 0), rgb(29, 43, 63, 0)), light-dark(#e9e3d8, var(--theme-inset)) 20px);
 }
 
 .whatsAppFileDropOverlay {
@@ -5065,8 +5083,8 @@
   gap: 4px;
   border: 2px dashed #2c94f5;
   border-radius: 20px;
-  background: rgba(234, 244, 255, 0.96);
-  color: #0f6fbd;
+  background: light-dark(rgba(234, 244, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   pointer-events: none;
   animation: chatCameraFadeIn 140ms ease-out both;
 }
@@ -5081,7 +5099,7 @@
 }
 
 .whatsAppFileDropOverlay span {
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.7rem;
   font-weight: 750;
 }
@@ -5093,7 +5111,7 @@
   overflow-x: auto;
   padding: 8px;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.92);
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent));
   box-shadow: 0 8px 24px rgba(17, 38, 64, 0.1);
 }
 
@@ -5105,8 +5123,8 @@
   min-width: 0;
   padding: 7px 8px;
   border-radius: 10px;
-  background: #eef5fb;
-  color: #0f6fbd;
+  background: light-dark(#eef5fb, var(--theme-surface));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
 }
 
 .whatsAppPendingFiles > div > span {
@@ -5117,7 +5135,7 @@
 
 .whatsAppPendingFiles strong {
   overflow: hidden;
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.68rem;
   font-weight: 900;
   text-overflow: ellipsis;
@@ -5125,7 +5143,7 @@
 }
 
 .whatsAppPendingFiles small {
-  color: rgba(24, 49, 83, 0.55);
+  color: light-dark(rgba(24, 49, 83, 0.55), rgba(231, 238, 249, 0.8));
   font-size: 0.58rem;
   font-weight: 750;
 }
@@ -5134,7 +5152,7 @@
   flex: 0 0 auto;
   border: 0;
   background: transparent;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.68rem;
   font-weight: 900;
@@ -5158,7 +5176,7 @@
   overflow-x: auto;
   padding: 8px;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.9);
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
   box-shadow: 0 8px 24px rgba(17, 38, 64, 0.1);
 }
 
@@ -5171,7 +5189,7 @@
   overflow: hidden;
   border: 0;
   border-radius: 10px;
-  background: #eaf4ff;
+  background: light-dark(#eaf4ff, var(--theme-raised));
 }
 
 .whatsAppPendingPhotos img {
@@ -5201,7 +5219,7 @@
   height: 54px;
   place-items: center;
   align-content: center;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.58rem;
   font-weight: 900;
@@ -5232,7 +5250,7 @@
   overflow-y: auto;
   padding: 16px;
   border-radius: 24px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-raised));
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
   animation: whatsAppReferenceSlideUp 220ms ease-out both;
 }
@@ -5252,13 +5270,13 @@
 }
 
 .chatCameraModal header strong {
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 1rem;
   font-weight: 950;
 }
 
 .chatCameraModal header span {
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -5271,8 +5289,8 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #eef3f7;
-  color: #172234;
+  background: light-dark(#eef3f7, var(--theme-raised));
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   cursor: pointer;
 }
 
@@ -5313,7 +5331,7 @@
 .chatCameraCropFrame > span {
   position: absolute;
   inset: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.58);
+  border: 1px solid light-dark(rgba(255, 255, 255, 0.58), rgba(136, 158, 190, 0.58));
   border-radius: 13px;
   box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.08);
   pointer-events: none;
@@ -5327,7 +5345,7 @@
 }
 
 .chatCameraCropControls > span {
-  color: #344554;
+  color: light-dark(#344554, rgba(231, 238, 249, 1));
   font-size: 0.72rem;
   font-weight: 850;
 }
@@ -5346,8 +5364,8 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #eaf4ff;
-  color: #0f6fbd;
+  background: light-dark(#eaf4ff, var(--theme-raised));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 1.15rem;
   font-weight: 950;
@@ -5356,7 +5374,7 @@
 
 .chatCameraCropControls strong {
   min-width: 42px;
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.7rem;
   text-align: center;
 }
@@ -5373,8 +5391,8 @@
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
-  background: #eef3f7;
-  color: #172234;
+  background: light-dark(#eef3f7, var(--theme-raised));
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.76rem;
   font-weight: 900;
@@ -5397,8 +5415,8 @@
   height: 58px;
   padding: 0;
   place-items: center;
-  border: 4px solid #d9ebfb;
-  background: #fff;
+  border: 4px solid light-dark(#d9ebfb, rgba(136, 158, 190, 0.3));
+  background: light-dark(#fff, var(--theme-surface));
   box-shadow: 0 0 0 2px #0f6fbd;
 }
 
@@ -5464,7 +5482,7 @@
   padding: 10px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
+  background: light-dark(rgba(255, 255, 255, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
   animation: whatsAppReferenceSlideUp 180ms ease-out both;
   transform-origin: bottom center;
 }
@@ -5483,7 +5501,7 @@
   overflow: hidden;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 20px 4px 4px 20px;
-  background: rgba(249, 251, 253, 0.98);
+  background: light-dark(rgba(249, 251, 253, 0.98), color-mix(in srgb, var(--theme-raised) 98%, transparent));
   box-shadow: -14px 18px 42px rgba(17, 38, 64, 0.2);
   animation: whatsAppReferenceDrawerIn 280ms cubic-bezier(0.2, 0.82, 0.25, 1) both;
 }
@@ -5517,13 +5535,13 @@
 }
 
 .whatsAppReferenceDrawer > header strong {
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.9rem;
   font-weight: 950;
 }
 
 .whatsAppReferenceDrawer > header span {
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.66rem;
   font-weight: 750;
 }
@@ -5536,8 +5554,8 @@
   place-items: center;
   border: 0;
   border-radius: 50%;
-  background: #eaf1f7;
-  color: #344554;
+  background: light-dark(#eaf1f7, var(--theme-raised));
+  color: light-dark(#344554, rgba(231, 238, 249, 1));
   cursor: pointer;
 }
 
@@ -5565,7 +5583,7 @@
 
 .whatsAppReferenceDrawerGroups h3 {
   margin: 0;
-  color: rgba(24, 49, 83, 0.56);
+  color: light-dark(rgba(24, 49, 83, 0.56), rgba(231, 238, 249, 0.8));
   font-size: 0.62rem;
   font-weight: 950;
   letter-spacing: 0.09em;
@@ -5597,9 +5615,9 @@
   padding: 0;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-raised));
   box-shadow: 0 10px 24px rgba(17, 38, 64, 0.08);
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   text-align: left;
   scroll-snap-align: start;
@@ -5619,8 +5637,8 @@
   height: 135px;
   place-items: center;
   border-radius: 19px 19px 0 0;
-  background: linear-gradient(135deg, #eaf4ff, #d5eaff);
-  color: #0f6fbd;
+  background: linear-gradient(135deg, light-dark(#eaf4ff, var(--theme-raised)), light-dark(#d5eaff, color-mix(in srgb, #d5eaff 15%, #111c2e)));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-size: 1rem;
   font-weight: 950;
 }
@@ -5631,7 +5649,7 @@
   height: 135px;
   border-radius: 19px 19px 0 0;
   object-fit: cover;
-  background: #dceaf6;
+  background: light-dark(#dceaf6, var(--theme-inset));
 }
 
 .whatsAppReferenceDrawerGroups section button > div {
@@ -5662,13 +5680,13 @@
 }
 
 .whatsAppReferenceDrawerGroups section button strong {
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.8rem;
   font-weight: 900;
 }
 
 .whatsAppReferenceDrawerGroups section button small {
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   min-height: 2.4em;
   font-size: 0.62rem;
   font-weight: 700;
@@ -5682,7 +5700,7 @@
 
 .whatsAppReferenceEmpty {
   margin: 28px 8px;
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.74rem;
   font-weight: 800;
   text-align: center;
@@ -5729,7 +5747,7 @@
   left: 5px;
   height: 62px;
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.96) 34%);
+  background: linear-gradient(180deg, light-dark(rgba(255, 255, 255, 0.3), color-mix(in srgb, var(--theme-raised) 30%, transparent)), light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-raised) 96%, transparent)) 34%);
   content: "";
 }
 
@@ -5740,7 +5758,7 @@
   top: 20px;
   width: 46px;
   height: 46px;
-  border: 3px solid #fff;
+  border: 3px solid light-dark(#fff, rgba(136, 158, 190, 0.3));
   border-radius: 50%;
   box-shadow: 0 6px 14px rgba(17, 38, 64, 0.18);
 }
@@ -5816,7 +5834,7 @@
 .whatsAppAudioRecorder strong {
   flex: 0 0 auto;
   min-width: 34px;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -5830,8 +5848,8 @@
   place-items: center;
   border: 0;
   border-radius: 8px;
-  background: #eaf4ff;
-  color: #0f6fbd;
+  background: light-dark(#eaf4ff, var(--theme-raised));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.68rem;
   font-weight: 950;
@@ -5888,17 +5906,17 @@
 
 .whatsAppAudioRecorder .whatsAppAudioCancel {
   background: transparent;
-  color: #7b8794;
+  color: light-dark(#7b8794, rgba(168, 185, 208, 1));
 }
 
 .whatsAppAudioRecorder .whatsAppAudioCancel:hover {
-  background: #fff0ee;
-  color: #b42318;
+  background: light-dark(#fff0ee, var(--theme-hover));
+  color: light-dark(#b42318, color-mix(in srgb, #b42318 30%, #d4e7ff));
 }
 
 .whatsAppAudioRecorder .whatsAppAudioToggle {
   border-radius: 50%;
-  background: #eaf4ff;
+  background: light-dark(#eaf4ff, var(--theme-surface));
   box-shadow: inset 0 0 0 1px rgba(15, 111, 189, 0.16);
 }
 
@@ -5949,7 +5967,7 @@
 }
 
 .whatsAppVoiceMessage > time {
-  color: rgba(24, 49, 83, 0.58);
+  color: light-dark(rgba(24, 49, 83, 0.58), rgba(231, 238, 249, 0.8));
   font-size: 0.62rem;
   font-weight: 800;
   white-space: nowrap;
@@ -6161,7 +6179,7 @@
   padding: 10px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.94);
+  background: light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-surface) 94%, transparent));
   animation: whatsAppReferenceSlideUp 180ms ease-out both;
 }
 .whatsAppAddMenu,
@@ -6179,7 +6197,7 @@
   padding: 10px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.96);
+  background: light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
   box-shadow: 0 14px 34px rgba(17, 38, 64, 0.2);
   transform-origin: left bottom;
   animation: whatsAppAddBounceIn 240ms cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
@@ -6197,19 +6215,19 @@
   border: 0;
   border-radius: 12px;
   background: transparent;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   cursor: pointer;
 }
 .whatsAppAddMenu > button:hover,
 .whatsAppAddMenuClosing > button:hover {
-  background: #eef4f8;
+  background: light-dark(#eef4f8, var(--theme-hover));
 }
 .whatsAppAddMenu > button > svg,
 .whatsAppAddMenuClosing > button > svg {
   width: 22px;
   height: 22px;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
 }
 .whatsAppAddMenu > button > span,
 .whatsAppAddMenuClosing > button > span {
@@ -6223,7 +6241,7 @@
 }
 .whatsAppAddMenu small,
 .whatsAppAddMenuClosing small {
-  color: #64748b;
+  color: light-dark(#64748b, rgba(168, 185, 208, 1));
   font-size: 0.64rem;
   line-height: 1.3;
 }
@@ -6274,7 +6292,7 @@
   cursor: pointer;
 }
 .whatsAppEmojiGrid button:hover {
-  background: #eef4f8;
+  background: light-dark(#eef4f8, var(--theme-hover));
 }
 
 .whatsAppMediaPicker {
@@ -6285,7 +6303,7 @@
   overflow: hidden;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.98);
+  background: light-dark(rgba(255, 255, 255, 0.98), color-mix(in srgb, var(--theme-surface) 98%, transparent));
   box-shadow: 0 14px 34px rgba(17, 38, 64, 0.16);
   animation: whatsAppReferenceSlideUp 180ms ease-out both;
 }
@@ -6307,7 +6325,7 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: #526273;
+  color: light-dark(#526273, rgba(168, 185, 208, 1));
   font: inherit;
   font-size: 0.72rem;
   font-weight: 900;
@@ -6322,8 +6340,8 @@
 }
 
 .whatsAppMediaPicker header .whatsAppMediaTabActive {
-  background: #eaf4ff;
-  color: #0f6fbd;
+  background: light-dark(#eaf4ff, var(--theme-raised));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
 }
 
 .whatsAppMediaSearch {
@@ -6332,8 +6350,8 @@
   gap: 7px;
   padding: 0 10px;
   border-radius: 11px;
-  background: #eef3f7;
-  color: #718096;
+  background: light-dark(#eef3f7, var(--theme-surface));
+  color: light-dark(#718096, rgba(168, 185, 208, 1));
 }
 
 .whatsAppMediaSearch input {
@@ -6342,7 +6360,7 @@
   border: 0;
   outline: 0;
   background: transparent;
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.76rem;
 }
@@ -6367,7 +6385,7 @@
   padding: 0;
   border: 0;
   border-radius: 9px;
-  background: #edf1f4;
+  background: light-dark(#edf1f4, var(--theme-raised));
   cursor: pointer;
 }
 
@@ -6397,7 +6415,7 @@
   justify-items: center;
   gap: 7px;
   padding: 10px;
-  color: rgba(24, 49, 83, 0.52);
+  color: light-dark(rgba(24, 49, 83, 0.52), rgba(231, 238, 249, 0.8));
   font-size: 0.66rem;
   font-weight: 800;
   text-align: center;
@@ -6418,8 +6436,8 @@
   aspect-ratio: auto;
   border: 1px solid rgba(15, 111, 189, 0.14);
   border-radius: 999px;
-  background: #eaf4ff;
-  color: #0f6fbd;
+  background: light-dark(#eaf4ff, var(--theme-raised));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.62rem;
   font-weight: 900;
@@ -6427,7 +6445,7 @@
 }
 
 .whatsAppMediaGrid .whatsAppMediaLoadMore button:hover {
-  background: #dceeff;
+  background: light-dark(#dceeff, var(--theme-inset));
 }
 
 .whatsAppMediaStatus,
@@ -6437,23 +6455,23 @@
   place-items: center;
   align-content: center;
   gap: 4px;
-  color: #526273;
+  color: light-dark(#526273, rgba(168, 185, 208, 1));
   font-size: 0.75rem;
   font-weight: 800;
   text-align: center;
 }
 
 .whatsAppMediaSetup strong {
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.82rem;
 }
 
 .whatsAppMediaSetup span {
-  color: rgba(24, 49, 83, 0.6);
+  color: light-dark(rgba(24, 49, 83, 0.6), rgba(231, 238, 249, 0.8));
 }
 
 .whatsAppGiphyCredit {
-  color: rgba(24, 49, 83, 0.48);
+  color: light-dark(rgba(24, 49, 83, 0.48), rgba(231, 238, 249, 0.8));
   font-size: 0.56rem;
   font-weight: 900;
   text-align: right;
@@ -6478,7 +6496,7 @@
   overflow-x: auto;
   padding: 8px;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.94);
+  background: light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-surface) 94%, transparent));
   box-shadow: 0 8px 24px rgba(17, 38, 64, 0.1);
 }
 
@@ -6547,8 +6565,8 @@
   align-content: center;
   border: 0;
   border-radius: 10px;
-  background: #eaf4ff;
-  color: #0f6fbd;
+  background: light-dark(#eaf4ff, var(--theme-surface));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.58rem;
   font-weight: 900;
@@ -6601,7 +6619,7 @@
   left: 10px;
   padding: 3px 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.86);
+  background: light-dark(rgba(255, 255, 255, 0.86), color-mix(in srgb, var(--theme-surface) 86%, transparent));
 }
 
 @keyframes whatsAppReferenceSlideUp {
@@ -6623,7 +6641,7 @@
 }
 
 .whatsAppReferenceTopline span {
-  color: rgba(24, 49, 83, 0.6);
+  color: light-dark(rgba(24, 49, 83, 0.6), rgba(231, 238, 249, 0.8));
   font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -6640,7 +6658,7 @@
 .whatsAppReferenceGroup button {
   border: 0;
   background: transparent;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.74rem;
   font-weight: 900;
@@ -6660,7 +6678,7 @@
 }
 
 .whatsAppReferenceGroup > span {
-  color: rgba(24, 49, 83, 0.54);
+  color: light-dark(rgba(24, 49, 83, 0.54), rgba(231, 238, 249, 0.8));
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -6679,8 +6697,8 @@
   padding: 0 9px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 999px;
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-raised));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6753,7 +6771,7 @@
   width: min(340px, calc(100% - 36px));
   border: 1px solid rgba(44, 148, 245, 0.2);
   border-radius: 16px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-raised));
   box-shadow: 0 20px 54px rgba(17, 38, 64, 0.24);
   pointer-events: none;
   animation: whatsAppProfileCardIn 160ms ease-out both;
@@ -6767,7 +6785,7 @@
 .whatsAppComposerLinkPreview .whatsAppRichLinkPreview,
 .whatsAppComposerLinkPreview .whatsAppLinkPreview {
   margin: 0;
-  background: rgba(255, 255, 255, 0.94);
+  background: light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-surface) 94%, transparent));
 }
 
 .whatsAppComposerLinkPreview .whatsAppRichLinkPreview {
@@ -6837,7 +6855,7 @@
   overflow: hidden;
   border: 2px solid #1684d6;
   border-radius: 12px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-surface));
   box-shadow: 0 2px 7px rgba(15, 78, 138, 0.12);
 }
 
@@ -6877,7 +6895,7 @@
 .whatsAppComposerLinkPreviewsPills .whatsAppLinkPreview strong {
   max-width: 148px;
   overflow: hidden;
-  color: #102b43;
+  color: light-dark(#102b43, rgba(231, 238, 249, 1));
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: -0.005em;
@@ -6904,7 +6922,7 @@
   margin: 5px;
   place-items: center;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.9);
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
 }
 
 .whatsAppRichLinkImageFavicon > img,
@@ -7000,7 +7018,7 @@
   min-height: 32px;
   margin: 0;
   border-radius: 8px;
-  background: #eef5fb;
+  background: light-dark(#eef5fb, var(--theme-surface));
 }
 
 .whatsAppComposerLinkPreviewsPills .whatsAppRichLinkImageFavicon > img {
@@ -7015,7 +7033,7 @@
 
 .whatsAppComposerLinkPreviewsPills .whatsAppComposerLinkPreview:hover {
   border-color: #0f6fbd;
-  background: #f5faff;
+  background: light-dark(#f5faff, var(--theme-hover));
   box-shadow: 0 4px 12px rgba(15, 78, 138, 0.16);
   transform: translateY(-1px);
 }
@@ -7054,7 +7072,7 @@
   padding: 7px 8px;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 24px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-inset));
 }
 
 .whatsAppInputShellRecording {
@@ -7069,7 +7087,7 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #344554;
+  color: light-dark(#344554, rgba(231, 238, 249, 1));
   font-size: 1rem;
   cursor: pointer;
 }
@@ -7080,8 +7098,8 @@
 }
 .whatsAppComposerIcon:hover,
 .whatsAppComposerIconActive {
-  background: #eaf4ff;
-  color: #0f6fbd;
+  background: light-dark(#eaf4ff, var(--theme-hover));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
 }
 
 .whatsAppReferenceToggle,
@@ -7090,8 +7108,8 @@
   padding: 0 13px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 22px;
-  background: #fff;
-  color: #0f6fbd;
+  background: light-dark(#fff, var(--theme-surface));
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 0.74rem;
   font-weight: 900;
@@ -7100,7 +7118,7 @@
 
 .whatsAppReferenceToggleActive {
   border-color: rgba(44, 148, 245, 0.4);
-  background: #eaf4ff;
+  background: light-dark(#eaf4ff, var(--theme-surface));
 }
 
 .whatsAppComposerRow label {
@@ -7117,8 +7135,8 @@
   padding: 11px 12px;
   border: 0;
   border-radius: 0;
-  background: #ffffff;
-  color: #172234;
+  background: light-dark(#ffffff, var(--theme-inset));
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font: inherit;
   line-height: 1.35;
 }
@@ -7133,7 +7151,7 @@
   inset: 0;
   overflow: hidden;
   padding: 11px 12px;
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font: inherit;
   line-height: 1.35;
   z-index: 2;
@@ -7143,7 +7161,7 @@
 }
 
 .whatsAppDraftLink {
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   text-decoration: underline;
   text-underline-offset: 0.14em;
 }
@@ -7156,14 +7174,14 @@
   border-radius: 999px;
   background: linear-gradient(
     135deg,
-    rgba(234, 244, 255, 0.96),
-    rgba(214, 235, 253, 0.96)
+    light-dark(rgba(234, 244, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent)),
+    light-dark(rgba(214, 235, 253, 0.96), color-mix(in srgb, rgba(214, 235, 253, 0.96) 15%, #111c2ef5))
   );
   box-shadow:
     0 0 0 2px rgba(15, 111, 189, 0.52),
     0 0 0 4px rgba(44, 148, 245, 0.1),
     0 3px 8px rgba(15, 78, 138, 0.13);
-  color: #0a5998;
+  color: light-dark(#0a5998, rgba(231, 238, 249, 1));
   font-size: 0.78em;
   font-weight: 950;
   line-height: 1.15;
@@ -7208,9 +7226,9 @@
   padding: 2px 1.7em 2px 3px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.94);
+  background: light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-surface) 94%, transparent));
   box-shadow: 0 4px 10px rgba(17, 38, 64, 0.07);
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-size: 0.76em;
   font-weight: 900;
   line-height: 1.2;
@@ -7246,9 +7264,9 @@
   height: 30px;
   place-items: center;
   border-radius: 8px;
-  background: #cfe6fb;
+  background: light-dark(#cfe6fb, color-mix(in srgb, #cfe6fb 15%, #111c2e));
   object-fit: cover;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-weight: 950;
 }
 
@@ -7259,7 +7277,7 @@
 }
 
 .whatsAppDraftReference small {
-  color: rgba(15, 111, 189, 0.68);
+  color: light-dark(rgba(15, 111, 189, 0.68), color-mix(in srgb, rgba(15, 111, 189, 0.68) 30%, #d4e7ff));
   font-size: 0.68em;
   font-weight: 950;
   text-transform: uppercase;
@@ -7267,7 +7285,7 @@
 
 .whatsAppDraftReference strong {
   overflow: hidden;
-  color: #173554;
+  color: light-dark(#173554, rgba(231, 238, 249, 1));
   font-size: 0.9em;
   font-weight: 950;
   text-overflow: ellipsis;
@@ -7305,8 +7323,8 @@
 }
 
 .whatsAppComposerDraftField textarea::placeholder {
-  color: rgba(24, 49, 83, 0.46);
-  -webkit-text-fill-color: rgba(24, 49, 83, 0.46);
+  color: light-dark(rgba(24, 49, 83, 0.46), rgba(231, 238, 249, 0.8));
+  -webkit-text-fill-color: light-dark(rgba(24, 49, 83, 0.46), rgba(231, 238, 249, 0.8));
 }
 
 .chatComposerModalBackdrop {
@@ -7339,7 +7357,7 @@
   width: min(390px, calc(100vw - 48px));
   padding: 22px;
   border-radius: 18px;
-  background: #fff;
+  background: light-dark(#fff, var(--theme-raised));
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
   animation: whatsAppReferenceSlideUp 180ms ease-out both;
 }
@@ -7350,12 +7368,12 @@
 }
 
 .chatDeleteModal h2 {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.1rem;
 }
 
 .chatDeleteModal p {
-  color: rgba(24, 49, 83, 0.7);
+  color: light-dark(rgba(24, 49, 83, 0.7), rgba(231, 238, 249, 0.8));
   font-size: 0.86rem;
   line-height: 1.55;
 }
@@ -7372,8 +7390,8 @@
   padding: 8px 13px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 10px;
-  background: #fff;
-  color: #183153;
+  background: light-dark(#fff, var(--theme-raised));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.8rem;
   font-weight: 850;
@@ -7393,7 +7411,7 @@
   height: min(820px, calc(100vh - 56px));
   padding: 20px;
   border-radius: 16px;
-  background: #f8fafc;
+  background: light-dark(#f8fafc, var(--theme-raised));
   box-shadow: 0 28px 90px rgba(15, 23, 42, 0.32);
   animation: chatComposerSlideInUp 360ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
   backface-visibility: hidden;
@@ -7431,7 +7449,7 @@
   justify-content: flex-end;
 }
 .chatComposerModal header span {
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -7439,7 +7457,7 @@
 }
 .chatComposerModal h2 {
   margin: 3px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.3rem;
 }
 .chatComposerModal header button {
@@ -7449,8 +7467,8 @@
   place-items: center;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 50%;
-  background: #fff;
-  color: #183153;
+  background: light-dark(#fff, var(--theme-raised));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   cursor: pointer;
 }
 .chatComposerModal textarea {
@@ -7461,8 +7479,8 @@
   padding: 20px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 12px;
-  background: #fff;
-  color: #172234;
+  background: light-dark(#fff, var(--theme-inset));
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 1rem;
   line-height: 1.6;
@@ -7473,7 +7491,7 @@
   box-shadow: 0 0 0 4px rgba(44, 148, 245, 0.1);
 }
 .chatComposerModal footer span {
-  color: #64748b;
+  color: light-dark(#64748b, rgba(168, 185, 208, 1));
   font-size: 0.74rem;
   font-weight: 750;
 }
@@ -7487,7 +7505,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 1.3rem;
   font-weight: 900;
@@ -7500,7 +7518,7 @@
 
 .chatComposerModalSend:hover,
 .chatComposerModalSend:focus-visible {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
 }
 
 @media (max-width: 640px) {
@@ -7529,7 +7547,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-size: 1.25rem;
   font-weight: 900;
@@ -7542,7 +7560,7 @@
 
 .whatsAppSendButton:hover,
 .whatsAppSendButton:focus-visible {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
 }
 
 .whatsAppSendButton:disabled {
@@ -7578,8 +7596,8 @@
   min-height: 40px;
   border: 1px solid rgba(24, 49, 83, 0.1);
   border-radius: 999px;
-  background: #ffffff;
-  color: rgba(24, 49, 83, 0.72);
+  background: light-dark(#ffffff, var(--theme-raised));
+  color: light-dark(rgba(24, 49, 83, 0.72), rgba(231, 238, 249, 0.8));
   font: inherit;
   font-size: 0.84rem;
   font-weight: 900;
@@ -7601,13 +7619,13 @@
 .tripOptionVoteButtonActive {
   border-color: rgba(53, 168, 99, 0.28);
   background: rgba(53, 168, 99, 0.12);
-  color: #176137;
+  color: light-dark(#176137, color-mix(in srgb, #176137 30%, #d4e7ff));
 }
 
 .tripOptionVoteButtonDownActive {
   border-color: rgba(211, 91, 58, 0.24);
   background: rgba(211, 91, 58, 0.1);
-  color: #9c3419;
+  color: light-dark(#9c3419, color-mix(in srgb, #9c3419 30%, #d4e7ff));
 }
 
 .tripOptionVoteButton:disabled,
@@ -7637,7 +7655,7 @@
   min-width: 42px;
   min-height: 94px;
   padding: 12px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid light-dark(rgba(255, 255, 255, 0.14), rgba(136, 158, 190, 0.18));
   border-right: 0;
   border-radius: 6px 0 0 6px;
   background: #172234;
@@ -7674,9 +7692,9 @@
   height: calc(100vh - 36px);
   overflow-y: auto;
   padding: 0;
-  border: 1px solid rgba(26, 38, 55, 0.22);
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.22), rgba(136, 158, 190, 0.22));
   border-radius: 2px;
-  background: #eef2f6;
+  background: light-dark(#eef2f6, var(--theme-surface));
   box-shadow: 0 22px 58px rgba(17, 38, 64, 0.22);
   animation: slidePanelIn 220ms ease-out;
   pointer-events: auto;
@@ -7744,14 +7762,14 @@
   justify-content: space-between;
   gap: 14px;
   padding: 18px 18px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid light-dark(rgba(255, 255, 255, 0.08), rgba(136, 158, 190, 0.18));
   background: #172234;
 }
 
 .testingAccessLogHeader span {
   display: inline-flex;
   margin-bottom: 8px;
-  color: #f29b5b;
+  color: light-dark(#f29b5b, color-mix(in srgb, #f29b5b 30%, #d4e7ff));
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.14em;
@@ -7775,9 +7793,9 @@
   width: 34px;
   height: 34px;
   min-height: 34px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid light-dark(rgba(255, 255, 255, 0.16), rgba(136, 158, 190, 0.18));
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: light-dark(rgba(255, 255, 255, 0.08), color-mix(in srgb, var(--theme-raised) 8%, transparent));
   color: #ffffff;
   font-size: 1.25rem;
   line-height: 1;
@@ -7790,8 +7808,8 @@
 
 .testingAccessLogHeader .iconButton:hover,
 .testingAccessLogHeader .iconButton:focus-visible {
-  border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.16);
+  border-color: light-dark(rgba(255, 255, 255, 0.28), rgba(136, 158, 190, 0.28));
+  background: light-dark(rgba(255, 255, 255, 0.16), color-mix(in srgb, var(--theme-hover) 16%, transparent));
   transform: translateY(-1px);
 }
 
@@ -7800,15 +7818,15 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
   padding: 12px 12px 0;
-  background: #e5ebf2;
+  background: light-dark(#e5ebf2, var(--theme-inset));
 }
 
 .testingConsoleTab,
 .testingConsoleTabActive {
   min-height: 40px;
-  border: 1px solid rgba(26, 38, 55, 0.16);
-  background: #f7f9fc;
-  color: #4a5b73;
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.16), rgba(136, 158, 190, 0.18));
+  background: light-dark(#f7f9fc, var(--theme-raised));
+  color: light-dark(#4a5b73, rgba(168, 185, 208, 1));
   font: inherit;
   font-size: 0.76rem;
   font-weight: 900;
@@ -7818,21 +7836,21 @@
 }
 
 .testingConsoleTabActive {
-  background: #ffffff;
-  color: #172234;
+  background: light-dark(#ffffff, var(--theme-raised));
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   box-shadow: inset 0 3px 0 #2c94f5;
 }
 
 .testingAccessLogSection {
   margin: 12px;
   padding: 14px;
-  border: 1px solid rgba(26, 38, 55, 0.14);
-  background: #ffffff;
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.14), rgba(136, 158, 190, 0.18));
+  background: light-dark(#ffffff, var(--theme-surface));
 }
 
 .testingAccessLogSection h3 {
   margin: 0 0 10px;
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.86rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -7849,18 +7867,18 @@
   display: grid;
   gap: 2px;
   padding: 12px;
-  border: 1px solid rgba(26, 38, 55, 0.12);
-  background: #f7f9fc;
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.12), rgba(136, 158, 190, 0.18));
+  background: light-dark(#f7f9fc, var(--theme-surface));
 }
 
 .testingConsoleSummaryGrid strong {
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 1.35rem;
   line-height: 1;
 }
 
 .testingConsoleSummaryGrid span {
-  color: #6b7c95;
+  color: light-dark(#6b7c95, rgba(168, 185, 208, 1));
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.06em;
@@ -7879,20 +7897,20 @@
   gap: 10px;
   align-items: center;
   padding: 9px 10px;
-  border: 1px solid rgba(26, 38, 55, 0.1);
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.1), rgba(136, 158, 190, 0.18));
   border-radius: 0;
-  background: #fbfcfe;
+  background: light-dark(#fbfcfe, var(--theme-surface));
 }
 
 .testingAccessLogRow span {
-  color: #6b7c95;
+  color: light-dark(#6b7c95, rgba(168, 185, 208, 1));
   font-size: 0.74rem;
   font-weight: 800;
 }
 
 .testingAccessLogRow strong {
   min-width: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.8rem;
   overflow-wrap: anywhere;
   text-transform: capitalize;
@@ -7911,22 +7929,22 @@
 .testingAccessLogAllowed {
   border: 1px solid rgba(53, 168, 99, 0.2);
   background: rgba(53, 168, 99, 0.1);
-  color: #176137;
+  color: light-dark(#176137, color-mix(in srgb, #176137 30%, #d4e7ff));
 }
 
 .testingAccessLogRemoved {
   border: 1px solid rgba(211, 91, 58, 0.18);
   background: rgba(211, 91, 58, 0.09);
-  color: #9c3419;
+  color: light-dark(#9c3419, color-mix(in srgb, #9c3419 30%, #d4e7ff));
 }
 
 .testingConsoleNotice,
 .testingConsoleError {
   margin: 0;
   padding: 12px;
-  border: 1px solid rgba(26, 38, 55, 0.12);
-  background: #f7f9fc;
-  color: #4a5b73;
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.12), rgba(136, 158, 190, 0.18));
+  background: light-dark(#f7f9fc, var(--theme-surface));
+  color: light-dark(#4a5b73, rgba(168, 185, 208, 1));
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -7934,7 +7952,7 @@
 .testingConsoleError {
   border-color: rgba(211, 91, 58, 0.2);
   background: rgba(211, 91, 58, 0.08);
-  color: #9c3419;
+  color: light-dark(#9c3419, color-mix(in srgb, #9c3419 30%, #d4e7ff));
 }
 
 .testingActivityTimeline {
@@ -7946,8 +7964,8 @@
   display: grid;
   gap: 8px;
   padding: 12px;
-  border: 1px solid rgba(26, 38, 55, 0.12);
-  background: #fbfcfe;
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.12), rgba(136, 158, 190, 0.18));
+  background: light-dark(#fbfcfe, var(--theme-surface));
 }
 
 .testingActivityTopline {
@@ -7962,8 +7980,8 @@
   align-items: center;
   min-height: 24px;
   padding: 0 8px;
-  background: #e9f3ff;
-  color: #0f4e8a;
+  background: light-dark(#e9f3ff, var(--theme-surface));
+  color: light-dark(#0f4e8a, rgba(231, 238, 249, 1));
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.04em;
@@ -7971,19 +7989,19 @@
 }
 
 .testingActivityTopline time {
-  color: #6b7c95;
+  color: light-dark(#6b7c95, rgba(168, 185, 208, 1));
   font-size: 0.72rem;
   font-weight: 800;
 }
 
 .testingActivityTimeline strong {
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.9rem;
 }
 
 .testingActivityTimeline p {
   margin: 0;
-  color: #667790;
+  color: light-dark(#667790, rgba(168, 185, 208, 1));
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -7998,8 +8016,8 @@
 .testingActivityTimeline dl div {
   min-width: 0;
   padding: 8px;
-  border: 1px solid rgba(26, 38, 55, 0.1);
-  background: #ffffff;
+  border: 1px solid light-dark(rgba(26, 38, 55, 0.1), rgba(136, 158, 190, 0.18));
+  background: light-dark(#ffffff, var(--theme-surface));
 }
 
 .testingActivityTimeline dt,
@@ -8008,7 +8026,7 @@
 }
 
 .testingActivityTimeline dt {
-  color: #75849a;
+  color: light-dark(#75849a, rgba(168, 185, 208, 1));
   font-size: 0.66rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -8019,7 +8037,7 @@
   margin-top: 4px;
   min-width: 0;
   overflow-wrap: anywhere;
-  color: #172234;
+  color: light-dark(#172234, rgba(231, 238, 249, 1));
   font-size: 0.74rem;
   font-weight: 850;
 }
@@ -8064,8 +8082,8 @@
 
 .hotelTab {
   border: 1px solid rgba(24, 49, 83, 0.12);
-  background: rgba(248, 250, 252, 0.92);
-  color: #183153;
+  background: light-dark(rgba(248, 250, 252, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
 }
 
 .hotelTabActive {
@@ -8082,7 +8100,7 @@
   padding: 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 24px;
-  background: rgba(248, 250, 252, 0.92);
+  background: light-dark(rgba(248, 250, 252, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent));
 }
 
 .hotelHeroImage {
@@ -8092,7 +8110,7 @@
   object-fit: cover;
   background:
     linear-gradient(135deg, rgba(103, 171, 221, 0.42), rgba(24, 49, 83, 0.18)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .hotelHeroBody {
@@ -8120,7 +8138,7 @@
   object-fit: cover;
   background:
     linear-gradient(135deg, rgba(103, 171, 221, 0.42), rgba(24, 49, 83, 0.18)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .hotelMapFrame {
@@ -8128,7 +8146,7 @@
   height: 300px;
   border: 0;
   border-radius: 20px;
-  background: rgba(232, 238, 247, 0.92);
+  background: light-dark(rgba(232, 238, 247, 0.92), rgb(29, 43, 63, 0.92));
 }
 
 .reviewGrid {
@@ -8142,7 +8160,7 @@
   padding: 16px 18px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(248, 250, 252, 0.92);
+  background: light-dark(rgba(248, 250, 252, 0.92), color-mix(in srgb, var(--theme-surface) 92%, transparent));
 }
 
 .reviewCard p {
@@ -8169,8 +8187,8 @@
 .hotelActionLink,
 .hotelActionButton {
   border: 1px solid rgba(24, 49, 83, 0.12);
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-raised));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
 }
 
 .hotelActionButton {
@@ -8207,7 +8225,7 @@
 }
 
 .field span {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.88rem;
   font-weight: 700;
 }
@@ -8217,7 +8235,7 @@
 }
 
 .fieldHint {
-  color: rgba(24, 49, 83, 0.62);
+  color: light-dark(rgba(24, 49, 83, 0.62), rgba(231, 238, 249, 0.8));
   font-size: 0.8rem;
   line-height: 1.5;
 }
@@ -8229,7 +8247,7 @@
   padding: 8px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.96);
+  background: light-dark(rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
   box-shadow: 0 10px 24px rgba(17, 38, 64, 0.08);
 }
 
@@ -8239,7 +8257,7 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.92rem;
   font-weight: 600;
@@ -8260,7 +8278,7 @@
   padding: 20px;
   border: 1.5px dashed rgba(24, 49, 83, 0.18);
   border-radius: 18px;
-  background: rgba(248, 250, 252, 0.85);
+  background: light-dark(rgba(248, 250, 252, 0.85), color-mix(in srgb, var(--theme-surface) 85%, transparent));
   text-align: center;
   cursor: pointer;
   transition:
@@ -8271,13 +8289,13 @@
 
 .dropzone strong,
 .dropzoneActive strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.96rem;
 }
 
 .dropzoneActive {
   border-color: rgba(24, 49, 83, 0.42);
-  background: rgba(230, 238, 247, 0.95);
+  background: light-dark(rgba(230, 238, 247, 0.95), rgb(29, 43, 63, 0.95));
   transform: translateY(-1px);
 }
 
@@ -8288,8 +8306,8 @@
   min-height: 46px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 14px;
-  background: #ffffff;
-  color: #112640;
+  background: light-dark(#ffffff, var(--theme-inset));
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font: inherit;
   padding: 12px 14px;
 }
@@ -8343,18 +8361,18 @@
 
 .destinationPhotoButton {
   border: 1px solid rgba(24, 49, 83, 0.08);
-  background: rgba(255, 255, 255, 0.92);
+  background: light-dark(rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--theme-raised) 92%, transparent));
 }
 
 .destinationPhotoButtonActive {
-  border: 1px solid rgba(80, 176, 101, 0.42);
-  background: rgba(240, 255, 246, 0.96);
+  border: 1px solid light-dark(rgba(80, 176, 101, 0.42), rgba(136, 158, 190, 0.42));
+  background: light-dark(rgba(240, 255, 246, 0.96), color-mix(in srgb, var(--theme-raised) 96%, transparent));
   box-shadow: 0 14px 32px rgba(17, 38, 64, 0.08);
 }
 
 .destinationPhotoButton span,
 .destinationPhotoButtonActive span {
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font-size: 0.84rem;
   font-weight: 700;
 }
@@ -8366,12 +8384,18 @@
   object-fit: cover;
   background:
     linear-gradient(135deg, rgba(103, 171, 221, 0.42), rgba(24, 49, 83, 0.18)),
-    #e8eef7;
+    light-dark(#e8eef7, var(--theme-inset));
 }
 
 .formActions {
   display: flex;
   justify-content: flex-start;
+}
+
+.inviteForm .formActions {
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 .settingsList {
@@ -8387,23 +8411,23 @@
   padding: 16px 18px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(248, 250, 252, 0.88);
+  background: light-dark(rgba(248, 250, 252, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
 }
 
 .settingsRow h3 {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.98rem;
 }
 
 .settingsRow p {
   margin: 6px 0 0;
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   line-height: 1.55;
 }
 
 .settingsRow strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.92rem;
   font-weight: 800;
   text-align: right;
@@ -8417,7 +8441,7 @@
 }
 
 .formError {
-  color: #b9382f;
+  color: light-dark(#b9382f, color-mix(in srgb, #b9382f 30%, #d4e7ff));
 }
 
 .formErrorAction {
@@ -8426,7 +8450,7 @@
   border: 0;
   border-bottom: 1px solid currentColor;
   background: transparent;
-  color: #0f6fbd;
+  color: light-dark(#0f6fbd, color-mix(in srgb, #0f6fbd 30%, #d4e7ff));
   font: inherit;
   font-weight: 900;
   cursor: pointer;
@@ -8434,11 +8458,11 @@
 
 .formErrorAction:hover,
 .formErrorAction:focus-visible {
-  color: #0a568f;
+  color: light-dark(#0a568f, rgba(231, 238, 249, 1));
 }
 
 .formSuccess {
-  color: #1f7a43;
+  color: light-dark(#1f7a43, color-mix(in srgb, #1f7a43 30%, #d4e7ff));
 }
 
 .primaryAction {
@@ -8465,8 +8489,8 @@
   padding: 0 13px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 12px;
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-surface));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.88rem;
   font-weight: 700;
@@ -8481,8 +8505,8 @@
   padding: 0 13px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 12px;
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-surface));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   font-size: 0.88rem;
   font-weight: 700;
@@ -8504,7 +8528,7 @@
   padding: 6px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(244, 247, 251, 0.88);
+  background: light-dark(rgba(244, 247, 251, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
 }
 
 .inviteTabs.compactInviteFilter { gap: 2px; padding: 2px; margin-bottom: 0; border-radius: 999px; }
@@ -8528,12 +8552,12 @@
 
 .inviteTab {
   background: transparent;
-  color: rgba(24, 49, 83, 0.76);
+  color: light-dark(rgba(24, 49, 83, 0.76), rgba(231, 238, 249, 0.8));
 }
 
 .inviteTabActive {
-  background: #ffffff;
-  color: #112640;
+  background: light-dark(#ffffff, var(--theme-raised));
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   box-shadow: 0 12px 28px rgba(17, 38, 64, 0.08);
 }
 
@@ -8575,14 +8599,14 @@
 
 .publishGateTitle {
   margin: 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1rem;
   font-weight: 800;
 }
 
 .publishGateCopy {
   margin: 0;
-  color: rgba(24, 49, 83, 0.76);
+  color: light-dark(rgba(24, 49, 83, 0.76), rgba(231, 238, 249, 0.8));
   line-height: 1.6;
 }
 
@@ -8598,7 +8622,7 @@
 
 .formError {
   margin: 0;
-  color: #9a3412;
+  color: light-dark(#9a3412, color-mix(in srgb, #9a3412 30%, #d4e7ff));
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -8619,7 +8643,7 @@
   overflow-y: auto;
   padding: 22px;
   border-radius: 28px;
-  background: #ffffff;
+  background: light-dark(#ffffff, var(--theme-raised));
   box-shadow: 0 28px 70px rgba(17, 38, 64, 0.2);
 }
 
@@ -8636,7 +8660,7 @@
   overflow: hidden;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
+  background: light-dark(rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--theme-surface) 94%, transparent));
 }
 
 .inviteTripSummaryImage,
@@ -8654,7 +8678,7 @@
 .inviteTripSummaryImageFallback {
   background:
     linear-gradient(135deg, rgba(44, 148, 245, 0.16), rgba(24, 49, 83, 0.08)),
-    rgba(244, 247, 251, 0.96);
+    light-dark(rgba(244, 247, 251, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent));
 }
 
 .inviteTripSummaryBody {
@@ -8679,7 +8703,7 @@
   padding: 14px 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(248, 250, 252, 0.88);
+  background: light-dark(rgba(248, 250, 252, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
   transition:
     transform 180ms ease,
     border-color 180ms ease,
@@ -8755,7 +8779,7 @@
 }
 
 .rowTitle {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.98rem;
   font-weight: 700;
 }
@@ -8779,7 +8803,7 @@
   padding: 18px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 22px;
-  background: rgba(248, 250, 252, 0.72);
+  background: light-dark(rgba(248, 250, 252, 0.72), color-mix(in srgb, var(--theme-surface) 72%, transparent));
 }
 
 .discussionTextarea {
@@ -8789,8 +8813,8 @@
   padding: 14px 16px;
   border: 1px solid rgba(24, 49, 83, 0.12);
   border-radius: 18px;
-  background: #ffffff;
-  color: #183153;
+  background: light-dark(#ffffff, var(--theme-inset));
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   font: inherit;
   line-height: 1.55;
 }
@@ -8825,7 +8849,7 @@
   gap: 8px;
   padding: 14px 16px;
   border-radius: 18px;
-  background: rgba(248, 250, 252, 0.88);
+  background: light-dark(rgba(248, 250, 252, 0.88), color-mix(in srgb, var(--theme-surface) 88%, transparent));
   border: 1px solid rgba(24, 49, 83, 0.06);
 }
 
@@ -8854,7 +8878,7 @@
   width: min(100%, 720px);
   padding: 16px 18px;
   border-radius: 22px 22px 22px 8px;
-  background: rgba(248, 250, 252, 0.95);
+  background: light-dark(rgba(248, 250, 252, 0.95), color-mix(in srgb, var(--theme-surface) 95%, transparent));
   border: 1px solid rgba(24, 49, 83, 0.08);
   box-shadow: 0 12px 28px rgba(17, 38, 64, 0.05);
 }
@@ -8874,7 +8898,7 @@
 
 .discussionChatBody {
   margin: 0;
-  color: #183153;
+  color: light-dark(#183153, rgba(231, 238, 249, 1));
   line-height: 1.6;
   white-space: pre-wrap;
 }
@@ -8894,7 +8918,7 @@
   padding: 10px 12px;
   border-radius: 14px;
   background: rgba(17, 38, 64, 0.05);
-  color: rgba(24, 49, 83, 0.76);
+  color: light-dark(rgba(24, 49, 83, 0.76), rgba(231, 238, 249, 0.8));
   font-size: 0.84rem;
   line-height: 1.45;
 }
@@ -8907,13 +8931,13 @@
   padding: 18px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.95);
+  background: light-dark(rgba(255, 255, 255, 0.95), color-mix(in srgb, var(--theme-surface) 95%, transparent));
   box-shadow: 0 -16px 36px rgba(17, 38, 64, 0.06);
   backdrop-filter: blur(16px);
 }
 
 .rowMeta {
-  color: rgba(24, 49, 83, 0.64);
+  color: light-dark(rgba(24, 49, 83, 0.64), rgba(231, 238, 249, 0.8));
   font-size: 0.84rem;
 }
 
@@ -8988,7 +9012,7 @@
   position: relative;
   overflow: hidden;
   padding: 20px 22px;
-  border: 1px solid rgba(80, 176, 101, 0.18);
+  border: 1px solid light-dark(rgba(80, 176, 101, 0.18), rgba(136, 158, 190, 0.18));
   border-radius: 22px;
   background:
     radial-gradient(
@@ -8998,8 +9022,8 @@
     ),
     linear-gradient(
       180deg,
-      rgba(240, 255, 246, 0.96),
-      rgba(255, 255, 255, 0.98)
+      light-dark(rgba(240, 255, 246, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent)),
+      light-dark(rgba(255, 255, 255, 0.98), color-mix(in srgb, var(--theme-surface) 98%, transparent))
     );
   box-shadow: 0 18px 46px rgba(17, 38, 64, 0.08);
   z-index: 71;
@@ -9020,7 +9044,7 @@
   width: min(100%, 560px);
   overflow: hidden;
   padding: 26px 28px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid light-dark(rgba(255, 255, 255, 0.28), rgba(136, 158, 190, 0.28));
   border-radius: 28px;
   background:
     radial-gradient(
@@ -9030,13 +9054,13 @@
     ),
     radial-gradient(
       circle at top left,
-      rgba(255, 255, 255, 0.18),
+      light-dark(rgba(255, 255, 255, 0.18), color-mix(in srgb, var(--theme-raised) 18%, transparent)),
       transparent 30%
     ),
     linear-gradient(
       180deg,
-      rgba(233, 247, 244, 0.42),
-      rgba(255, 255, 255, 0.14)
+      light-dark(rgba(233, 247, 244, 0.42), color-mix(in srgb, var(--theme-raised) 42%, transparent)),
+      light-dark(rgba(255, 255, 255, 0.14), color-mix(in srgb, var(--theme-raised) 14%, transparent))
     );
   box-shadow: 0 28px 90px rgba(17, 38, 64, 0.18);
   backdrop-filter: blur(24px) saturate(1.08);
@@ -9069,7 +9093,7 @@
 
 .celebrationCard h2 {
   margin: 8px 0 0;
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 1.8rem;
   line-height: 1;
   letter-spacing: -0.04em;
@@ -9077,7 +9101,7 @@
 
 .celebrationCopy {
   margin: 12px 0 0;
-  color: rgba(24, 49, 83, 0.74);
+  color: light-dark(rgba(24, 49, 83, 0.74), rgba(231, 238, 249, 0.8));
   font-size: 0.98rem;
   line-height: 1.65;
 }
@@ -9095,16 +9119,16 @@
   padding: 14px 16px;
   border: 1px solid rgba(24, 49, 83, 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.9);
+  background: light-dark(rgba(255, 255, 255, 0.9), color-mix(in srgb, var(--theme-surface) 90%, transparent));
 }
 
 .celebrationFeature strong {
-  color: #112640;
+  color: light-dark(#112640, rgba(231, 238, 249, 1));
   font-size: 0.96rem;
 }
 
 .celebrationFeature span {
-  color: rgba(24, 49, 83, 0.68);
+  color: light-dark(rgba(24, 49, 83, 0.68), rgba(231, 238, 249, 0.8));
   line-height: 1.55;
 }
 
@@ -9123,19 +9147,19 @@
 }
 
 .confettiPiece:nth-child(4n) {
-  background: linear-gradient(180deg, var(--brand-accent-strong), #7dc5ff);
+  background: linear-gradient(180deg, var(--brand-accent-strong), light-dark(#7dc5ff, color-mix(in srgb, #7dc5ff 15%, #111c2e)));
 }
 
 .confettiPiece:nth-child(4n + 1) {
-  background: linear-gradient(180deg, #cf6d2e, #ffd0a8);
+  background: linear-gradient(180deg, #cf6d2e, light-dark(#ffd0a8, color-mix(in srgb, #ffd0a8 15%, #111c2e)));
 }
 
 .confettiPiece:nth-child(4n + 2) {
-  background: linear-gradient(180deg, #50b065, #bbf7d0);
+  background: linear-gradient(180deg, #50b065, light-dark(#bbf7d0, color-mix(in srgb, #bbf7d0 15%, #111c2e)));
 }
 
 .confettiPiece:nth-child(4n + 3) {
-  background: linear-gradient(180deg, #9a3ec7, #d8b4fe);
+  background: linear-gradient(180deg, #9a3ec7, light-dark(#d8b4fe, color-mix(in srgb, #d8b4fe 15%, #111c2e)));
 }
 
 @keyframes confettiFall {
@@ -9448,10 +9472,10 @@
   border-radius: 24px 0 0 24px;
   background: linear-gradient(
     180deg,
-    #eaf2ff 0%,
-    #f8fafc 22%,
-    #f8fafc 78%,
-    #edf3ff 100%
+    light-dark(#eaf2ff, var(--theme-surface)) 0%,
+    light-dark(#f8fafc, var(--theme-surface)) 22%,
+    light-dark(#f8fafc, var(--theme-surface)) 78%,
+    light-dark(#edf3ff, var(--theme-surface)) 100%
   );
 }
 .expensesSlidePanel:has([data-expense-creation-open="true"]) {
@@ -9475,7 +9499,7 @@
   left: 0;
   right: 0;
   height: 28px;
-  background: linear-gradient(180deg, rgba(234, 242, 255, 0.96), rgba(234, 242, 255, 0));
+  background: linear-gradient(180deg, light-dark(rgba(234, 242, 255, 0.96), color-mix(in srgb, var(--theme-surface) 96%, transparent)), light-dark(rgba(234, 242, 255, 0), color-mix(in srgb, var(--theme-surface) 0%, transparent)));
   pointer-events: none;
 }
 
@@ -9492,21 +9516,21 @@
 }
 
 .publicTripFilters { position: relative; z-index: 5; }
-.publicTripFilters > summary { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border: 1px solid #dce6f1; border-radius: 999px; background: #fff; color: #355875; font-size: .75rem; cursor: pointer; list-style: none; }
+.publicTripFilters > summary { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border: 1px solid light-dark(#dce6f1, rgba(136, 158, 190, 0.3)); border-radius: 999px; background: light-dark(#fff, var(--theme-raised)); color: light-dark(#355875, color-mix(in srgb, #355875 30%, #d4e7ff)); font-size: .75rem; cursor: pointer; list-style: none; }
 .publicTripFilters > summary::-webkit-details-marker { display: none; }
-.publicTripFilters > summary > span { min-width: 17px; border-radius: 999px; background: #eaf3ff; color: #287edd; text-align: center; }
-.publicTripFilters[open] > summary { background: #edf5ff; border-color: #bcd6f3; }
-.publicTripFilterPanel { position: absolute; top: calc(100% + 8px); right: 0; width: min(330px, calc(100vw - 48px)); padding: 16px; border: 1px solid #e1e9f2; border-radius: 16px; background: #fff; box-shadow: 0 12px 35px #18315320; box-sizing: border-box; }
+.publicTripFilters > summary > span { min-width: 17px; border-radius: 999px; background: light-dark(#eaf3ff, var(--theme-raised)); color: light-dark(#287edd, color-mix(in srgb, #287edd 30%, #d4e7ff)); text-align: center; }
+.publicTripFilters[open] > summary { background: light-dark(#edf5ff, var(--theme-raised)); border-color: light-dark(#bcd6f3, rgba(136, 158, 190, 0.3)); }
+.publicTripFilterPanel { position: absolute; top: calc(100% + 8px); right: 0; width: min(330px, calc(100vw - 48px)); padding: 16px; border: 1px solid light-dark(#e1e9f2, rgba(136, 158, 190, 0.3)); border-radius: 16px; background: light-dark(#fff, var(--theme-raised)); box-shadow: 0 12px 35px #18315320; box-sizing: border-box; }
 .publicTripFilterPanel fieldset { display: grid; gap: 12px; padding: 0; margin: 0; border: 0; min-width: 0; }
-.publicTripFilterPanel label { display: grid; gap: 6px; min-width: 0; font-size: .73rem; color: #526d85; }
+.publicTripFilterPanel label { display: grid; gap: 6px; min-width: 0; font-size: .73rem; color: light-dark(#526d85, rgba(168, 185, 208, 1)); }
 .publicTripFilterPanel label > span { display: flex; align-items: center; gap: 6px; }
-.publicTripFilterPanel input { width: 100%; min-width: 0; box-sizing: border-box; padding: 8px; border: 1px solid #dce5ef; border-radius: 8px; color: #213950; background: #fff; font: inherit; }
+.publicTripFilterPanel input { width: 100%; min-width: 0; box-sizing: border-box; padding: 8px; border: 1px solid light-dark(#dce5ef, rgba(136, 158, 190, 0.3)); border-radius: 8px; color: light-dark(#213950, rgba(231, 238, 249, 1)); background: light-dark(#fff, var(--theme-raised)); font: inherit; }
 .publicTripDateFields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.publicTripFilterPanel p { margin: 0; font-size: .68rem; line-height: 1.5; color: #75889a; }
+.publicTripFilterPanel p { margin: 0; font-size: .68rem; line-height: 1.5; color: light-dark(#75889a, rgba(168, 185, 208, 1)); }
 .publicTripFilterPanel > p { margin-top: 10px; }
-.publicTripFilterPanel p[role="alert"] { color: #a23038; }
+.publicTripFilterPanel p[role="alert"] { color: light-dark(#a23038, color-mix(in srgb, #a23038 30%, #d4e7ff)); }
 .publicTripFilterActions { display: flex; justify-content: space-between; gap: 8px; }
-.publicTripFilterActions button { padding: 7px 12px; border: 1px solid #dce5ef; border-radius: 999px; background: #fff; color: #526d85; font: inherit; font-size: .73rem; cursor: pointer; }
+.publicTripFilterActions button { padding: 7px 12px; border: 1px solid light-dark(#dce5ef, rgba(136, 158, 190, 0.3)); border-radius: 999px; background: light-dark(#fff, var(--theme-raised)); color: light-dark(#526d85, rgba(168, 185, 208, 1)); font: inherit; font-size: .73rem; cursor: pointer; }
 .publicTripFilterActions button[type="submit"] { background: #287edd; border-color: #287edd; color: #fff; }
 .publicTripFilterActions button:disabled { opacity: .5; cursor: default; }
 @media (max-width: 580px) { .publicTripFilterPanel { position: fixed; top: auto; left: 24px; right: 24px; width: auto; margin-top: 8px; max-height: 65dvh; overflow-y: auto; } }
@@ -9634,4 +9658,134 @@
   .connectionProfileGrid .profileCardPreview {
     max-width: 100%;
   }
+}
+:global(html[data-theme="dark"]) .tripImagePlaceholder {
+  background-image: linear-gradient(180deg, #182c4400, #10203533), url("/images/journi-trip-empty-dark.svg");
+}
+
+.tripImageHeaderButton { position: relative; }
+.coverPhotoCarousel {
+  position: absolute;
+  top: 36%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  transform: translateY(-50%);
+  z-index: 4;
+  color: light-dark(#183153, #fff);
+  animation: coverPhotoAppear 220ms ease-out;
+}
+.coverPhotoCarouselHeading { padding-inline: 16px; display: flex; align-items: center; justify-content: space-between; min-height: 24px; margin-bottom: 7px; font-size: .72rem; font-weight: 750; }
+.coverPhotoCarouselHeading button { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.coverPhotoRail { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; padding: 4px 0 10px; }
+.coverPhotoRail::-webkit-scrollbar { display: none; }
+.coverPhotoChoice { flex: 0 0 164px; height: 112px; border: 1px solid var(--glass-edge); border-radius: 16px; padding: 0; overflow: hidden; scroll-snap-align: start; box-shadow: 0 6px 16px #071b332b; cursor: pointer; background: light-dark(#e9f1fa, #172b43); color: inherit; }
+.coverPhotoChoice img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.coverPhotoChoice:hover, .coverPhotoChoice[aria-pressed="true"] { border: 2px solid #4ea5ff; }
+.coverPhotoChoices { position: relative; display: flex; align-items: center; gap: 8px; }
+.coverPhotoChoices > div { position: static; flex: 1; min-width: 0; }
+.coverPhotoUpload { display: grid; place-items: center; flex: 0 0 48px; height: 48px; border: 0; border-radius: 50%; padding: 0; background: transparent; color: inherit; cursor: pointer; }
+.coverPhotoUpload:hover { background: light-dark(#ffffff55, #ffffff15); }
+.coverPhotoUpload:disabled { opacity: .55; cursor: wait; }
+.coverPhotoUpload svg { width: 24px; height: 24px; }
+.coverPhotoStatus { align-self: center; flex: 0 0 145px; font-size: .72rem; line-height: 1.4; }
+.coverPhotoCarousel button:focus-visible { outline: 2px solid #4ea5ff; outline-offset: -3px; }
+@keyframes coverPhotoAppear { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 600px) { .coverPhotoCarousel { top: 32%; } .coverPhotoChoice { flex-basis: 132px; height: 94px; } }
+@media (prefers-reduced-motion: reduce) { .coverPhotoCarousel { animation: none; } }
+
+/* Anchor arrows to the full edge-to-edge photo carousel. */
+.coverPhotoCarousel button[aria-controls] { top: calc(50% - 3px); }
+.coverPhotoCarousel button[aria-controls]:first-of-type { left: -22px; }
+.coverPhotoCarousel button[aria-controls]:last-of-type { right: -22px; }
+@media (max-width: 600px) {
+  .coverPhotoCarousel button[aria-controls]:first-of-type { left: -12px; }
+  .coverPhotoCarousel button[aria-controls]:last-of-type { right: -12px; }
+}
+
+.coverPhotoDragActive { outline: 2px dashed #4ea5ff; outline-offset: -5px; border-radius: 24px 24px 0 0; }
+.coverPhotoDragActive::after { content: "Drop photo to upload"; position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: light-dark(#e7f3fff0, #172b43f0); color: light-dark(#144c80, #ffffff); font-weight: 700; pointer-events: none; border-radius: inherit; }
+.coverPhotoSpinner { animation: coverPhotoSpin 1s linear infinite; }
+@keyframes coverPhotoSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .coverPhotoSpinner { animation: none; } }
+
+.coverPhotoCarouselHeading > span { flex: 1; }
+.coverPhotoCarouselHeading .coverPhotoUpload { flex: 0 0 40px; width: 40px; height: 36px; }
+
+.coverPhotoCarouselHeading .coverPhotoClose { width: 40px; height: 40px; flex-shrink: 0; }
+.coverPhotoClose svg { width: 24px; height: 24px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .journiLoaderMark, .journiLoaderMark::before, .journiLoaderMark::after, .journiLoaderMark span { animation: none; }
+}
+
+.journiLoaderFullscreen { position: fixed; inset: 0; z-index: 500; background: light-dark(#f6f9fc, var(--theme-canvas)); }
+.journiLoaderBrand { display: grid; justify-items: center; gap: 20px; width: 180px; }
+.journiLoaderWordmark { position: relative; width: 180px; height: 64px; overflow: hidden; animation: journiBrandBreathe 1800ms ease-in-out infinite; }
+.journiLoaderWordmark img { position: absolute; left: 50%; top: 50%; width: 220px; height: 220px; max-width: none; transform: translate(-50%, -44%); }
+.journiLoaderBrand span { position: relative; width: 100px; height: 3px; border-radius: 999px; overflow: hidden; background: light-dark(#d8e7f7, #314a69); }
+.journiLoaderBrand span::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, #2c94f5, #6ecbff); animation: journiLoadingSweep 1300ms ease-in-out infinite; }
+@keyframes journiLoadingSweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes journiBrandBreathe { 0%, 100% { opacity: .65; transform: scale(.97); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .journiLoaderWordmark, .journiLoaderBrand span::after { animation: none; } }
+
+.journiLoaderContent { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; max-width: 100%; }
+
+.newPublicFilter { display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px; border: 1px solid var(--glass-edge); border-radius: 999px; background: var(--glass-sheen), var(--glass-fill); color: light-dark(#246fb7, #b9dcff); font-size: .75rem; font-weight: 700; cursor: pointer; }
+.savedPublicFilters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.savedPublicFilter { display: inline-flex; align-items: center; border-radius: 999px; background: var(--glass-fill); border: 1px solid var(--glass-edge); }
+.savedPublicFilters button { min-height: 36px; padding: 0 13px; border: 0; border-radius: 999px; color: light-dark(#29415d, #e7eef9); background: transparent; font-size: .75rem; cursor: pointer; }
+.savedPublicFilters > button { background: var(--glass-fill); }
+.savedPublicFilters > button[aria-pressed="true"], .savedPublicFilter[data-active="true"] { background: light-dark(#dceeff, #2c537c); }
+.savedPublicFilter .editPublicFilter { display: grid; place-items: center; width: 32px; padding: 0; }
+.savedPublicFilter .removePublicFilter { display: grid; place-items: center; width: 32px; padding: 0; margin-right: 3px; }
+.savedPublicFilter .removePublicFilter:hover { color: light-dark(#b33b4a, #ffacb7); background: light-dark(#ffe6eb, #5b2e42); }
+.savedPublicFilters button:focus-visible, .newPublicFilter:focus-visible { outline: 2px solid #4ea5ff; outline-offset: 3px; }
+.savedPublicFilters button:disabled, .newPublicFilter:disabled { opacity: .5; cursor: wait; }
+
+.savedFilterCount { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: light-dark(#287ddd, #91c7ff); color: light-dark(#fff, #10243a); font-size: .65rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+
+.tripRequirements { position: fixed; z-index: 60; right: 196px; bottom: 24px; width: min(460px, calc(100vw - 32px)); max-height: min(340px, 45dvh); overflow-y: auto; box-shadow: 0 12px 36px #10203f26; margin: 0; padding: 16px 18px; border: 1px solid light-dark(#e2ab52, #c99343); border-radius: 16px; background: light-dark(#fff7e8, #392e20); color: light-dark(#794914, #ffd492); }
+.tripRequirements strong { font-size: .88rem; }
+.tripRequirements > div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.tripRequirements button { display: inline-flex; align-items: center; gap: 5px; padding: 7px 10px; border: 1px solid currentColor; border-radius: 999px; background: transparent; color: inherit; font-size: .78rem; cursor: pointer; }
+.tripRequirements button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.tripPanel [data-needs-attention="true"] { outline: 2px solid light-dark(#d99425, #efb65a); outline-offset: 5px; border-radius: 10px; scroll-margin-top: 100px; }
+
+.tripRequirements strong { display: block; padding-right: 28px; }
+.tripRequirements .tripRequirementsDismiss { position: absolute; right: 10px; top: 10px; padding: 5px; border: 0; }
+@media (max-width: 1100px) { .tripRequirements { right: 16px; bottom: 16px; } }
+
+.mobileTripSteps { display: none; }
+@media (max-width: 1080px) {
+  .mobileTripSteps { display: flex; align-items: end; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid light-dark(#dce5ef, var(--theme-border)); border-radius: 16px; background: var(--glass-fill); }
+  .mobileTripSteps label { display: grid; gap: 5px; flex: 1; min-width: 0; }
+  .mobileTripSteps label > span { font-size: .72rem; color: light-dark(#526d85, #a8b9d0); }
+  .mobileTripSteps select { width: 100%; min-width: 0; min-height: 44px; border: 0; border-radius: 10px; padding: 8px; background: light-dark(#fff, var(--theme-surface)); color: light-dark(#183153, #e7eef9); font: inherit; }
+  .mobileTripSteps button { min-height: 44px; flex-shrink: 0; }
+}
+@media (min-width: 641px) and (max-width: 1080px) {
+  .grid4, .grid3, .tripCardsGrid, .tripWorkspaceCardGrid, .hotelResultsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .formActions, .rowTop, .sectionTop { flex-wrap: wrap; gap: 10px; }
+  .tripBuilderBody { padding: 0 14px 18px; gap: 16px; }
+  .tripSetupGrid, .tripPlanningGrid { gap: 10px; }
+  .tripSetupGrid > .field, .tripSetupGrid > .tripSetupCard, .tripPlanningCard { padding: 12px; }
+  .tripFilter { max-width: 100%; flex-wrap: wrap; }
+  .tripFilterButton, .tripFilterButtonActive, .primaryAction, .secondaryAction, .hotelActionButton { min-height: 44px; }
+  .connectionProfileGrid { justify-items: center; }
+  .modalOverlay { padding: 12px; }
+  .modalCard { width: 100%; max-height: calc(100dvh - 24px); padding: 18px; overflow-y: auto; overscroll-behavior: contain; }
+  .slidePanelBody { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 900px) {
+  .tripPlanningGrid { grid-template-columns: minmax(0, 1fr); }
+  .datePickerShell { min-width: 0; padding: 4px; }
+  .datePickerShell :global(.rdp-months) { max-width: 100%; }
+  .datePickerShell :global(.rdp-month) { width: 100%; min-width: 0; padding: 4px; }
+  .datePickerShell :global(.rdp-month_grid) { width: 100%; table-layout: fixed; }
+  .datePickerShell :global(.rdp-root) { --rdp-day-width: auto; --rdp-day-height: 40px; }
+  .datePickerShell :global(.rdp-day_button) { width: 100%; height: 40px; }
 }

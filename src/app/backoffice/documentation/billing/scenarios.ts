@@ -1,0 +1,106 @@
+export type BillingScenario = {
+  title: string;
+  outcome: string;
+  check: string;
+  status: "Implemented" | "Current limitation" | "Stripe configuration";
+};
+type ScenarioRow = [string, string, string, BillingScenario["status"]?];
+const groups: { title: string; reference: string; rows: ScenarioRow[] }[] = [
+  { title: "Free trips and first-time users", reference: "plans", rows: [
+    ["First trip on a new free account", "The plan-choice dialog offers a Trip Pass, Pro or the first free trip after access is checked. No charge is made for choosing Free.", "Check that no free ledger entry exists."],
+    ["Close the plan-choice dialog", "The user can continue planning. Closing the dialog grants no additional allowance; finalise still checks access.", "Distinguish local planning from database trip creation."],
+    ["Resume a draft after dismissing the choices", "The dialog stays dismissed for that account in the same browser session. A fresh trip opens it again; a new session may show it again.", "Check the resume flag and account-specific session storage."],
+    ["Save a draft only in the browser", "The free allowance is not consumed until a trip is created in the database.", "Check the ledger, not the presence of a local draft."],
+    ["Create a database draft using Free", "This consumes the one free creation even before the trip is published.", "Check access_kind=free for the created trip."],
+    ["Create another trip after the free one", "Without verified paid access, finalise returns 402 / TRIP_LIMIT_REACHED and opens upgrade choices.", "Offer a Trip Pass or Pro; editing the old trip is not a new creation."],
+    ["Delete, cancel or finish the free trip", "The free ledger entry remains. None of these actions renews the allowance.", "A missing trip row does not mean a fresh allowance."],
+    ["Join someone else’s trip", "Joining does not create an owned trip or consume the user’s free creation allowance.", "Distinguish participant records from owned trips."],
+    ["Account already had trips when the ledger was introduced", "The migration records the earliest existing owned trip as free and other existing trips as legacy.", "Inspect the backfilled ledger; existing trips are retained."],
+    ["All earlier trips were deleted before the migration", "The backfill cannot recover those deleted trips; an account with no free ledger entry can appear unused.", "Historical deletion is not covered by the backfill.", "Current limitation"],
+    ["Delete the account and create a new account", "Account deletion cascades to its ledger. A new account has a separate allowance; there is no cross-account identity limit.", "Do not describe the rule as one free trip per person across all accounts.", "Current limitation"],
+  ]},
+  { title: "Checkout and Trip Pass purchases", reference: "checkout", rows: [
+    ["Start checkout while signed out or with an expired token", "The checkout route returns 401 and does not create a Stripe session.", "Sign in again before retrying."],
+    ["Buy a Trip Pass successfully", "A £39 GBP one-off payment creates an eligible pass when the completed, paid session matches the account and is unused.", "Check both session ownership fields, product, amount, currency and ledger use."],
+    ["Buy a Trip Pass before using the free trip", "When that pass session is supplied and verified, finalise uses the pass ahead of Free. The free allowance remains unused.", "Check which access kind finalise recorded."],
+    ["Use the same pass for a second trip", "The unique Checkout Session ledger entry prevents reuse, including after deletion of its first trip.", "An already-used pass grants no new access; another valid allowance may still allow creation."],
+    ["Open a pass session belonging to another account", "The session grants no pass access. The current account may still create using its own free allowance or verified Pro access.", "Compare client_reference_id and metadata.user_id with the authenticated user."],
+    ["Payment is pending, declined or checkout is abandoned", "An incomplete or unpaid session does not grant a pass. The app does not infer payment from a return URL.", "Check Stripe’s actual session and payment status; other valid access can still apply."],
+    ["A payment completes after an earlier pending check", "A later verification can recognise it once the session is complete and paid; the code has no billing webhook to grant it in the background.", "Retry verification using the same checkout session.", "Current limitation"],
+    ["A fake checkout-complete URL or browser unlock flag is used", "Neither grants paid creation access. The server verifies Stripe and the ledger.", "Use the server result rather than browser state."],
+    ["Returned session ID is invalid or Stripe cannot retrieve it", "The verification throws and finalise returns 503, even if another allowance might otherwise exist.", "Investigate the session/environment and retry; do not assume payment failed."],
+    ["Pass amount, currency or product does not match", "It is not accepted as a Trip Pass. The verifier currently requires exactly 3900 pence, GBP and product trip_pass.", "Review verification whenever changing prices or adding discounts."],
+    ["Older paid pass lacks account-binding metadata", "It does not meet the current pass verification requirements.", "Investigate the original Stripe payment; there is no automatic legacy-pass conversion.", "Current limitation"],
+    ["Return page is lost, a new device is used, or session storage is cleared", "There is no automatic email lookup or persistent wallet for unused passes. The purchase is not automatically recovered by this flow.", "Locate the original session and confirm ownership before resolving access.", "Current limitation"],
+    ["Buy multiple passes or start checkout repeatedly", "Each successful pass payment has its own session. There is no purchase deduplication or pass balance screen; only the supplied session is checked.", "Check all payments before suggesting another purchase.", "Current limitation"],
+    ["Change checkout pricing, tax or discounts", "Checkout has fixed inline GBP prices and does not enable automatic tax or promotion codes. Pass verification still checks the exact total.", "These features require implementation changes; do not promise dashboard settings alone will update the route.", "Current limitation"],
+  ]},
+  { title: "Pro access, renewals and subscription states", reference: "verification", rows: [
+    ["Subscribe monthly", "Checkout creates a recurring £19 GBP monthly subscription. An eligible active or trialing subscription grants further trip creation.", "Verify the returned subscription and its account/product identifiers."],
+    ["Subscribe yearly", "Checkout creates a recurring £179 GBP yearly subscription with the same creation-access check.", "Confirm interval=year and the Stripe price amount."],
+    ["Pro user returns with a completed subscription checkout", "The checker retrieves that subscription directly and grants Pro access if eligible, even if Free is unused.", "Finalise records access_kind=subscription."],
+    ["Pro user has used Free and no checkout session is supplied", "The checker searches customers by authenticated account email and their subscriptions for an eligible Pro subscription.", "Check the account email and product/account metadata in Stripe."],
+    ["Pro user still has Free and no subscription session is supplied", "The email-based Pro lookup is skipped. Finalise may use the free allowance first.", "Do not assume a Pro badge means every trip records subscription access.", "Current limitation"],
+    ["A valid pass is supplied while the user also has Pro", "A verified pass skips the email subscription lookup. That pass can be consumed even when a Pro subscription exists elsewhere in Stripe.", "Check the supplied session and resulting ledger entry.", "Current limitation"],
+    ["A subscription is trialing", "It is eligible for creation if it meets the Pro identity checks. The checkout route itself does not create a trial.", "Confirm how the trial was configured outside this checkout flow."],
+    ["Subscription is active", "An eligible Pro subscription grants creation, including while cancellation is scheduled for the period end.", "Verify product and ownership, not status alone."],
+    ["Subscription is past_due or unpaid", "It does not grant new Pro trip creation. A separate unused free allowance or valid pass may still grant access.", "Check Stripe status and payment recovery; there is no app-defined grace period."],
+    ["Subscription is incomplete, incomplete_expired, canceled or paused", "None of these statuses is accepted for Pro creation. A separate free allowance or pass may still apply.", "Check current Stripe status rather than cached plan labels."],
+    ["Stripe collection is paused but subscription status remains active", "The checker reads status, not pause_collection, so an otherwise eligible active subscription still passes.", "Distinguish paused collection from a subscription with status paused.", "Current limitation"],
+    ["Renewal charge succeeds", "Access continues while the subscription remains eligible. There is no billing-webhook reconciliation of the app’s metadata.", "Confirm the current Stripe state; backoffice is not an invoice feed."],
+    ["Renewal charge fails", "The app’s decision follows the status Stripe returns. It blocks Pro creation if that status leaves active/trialing; it has no independent invoice-failure rule.", "Retry timing, dunning and resulting status depend on Stripe configuration.", "Stripe configuration"],
+    ["A failed renewal is recovered", "A later creation check recognises an eligible active/trialing subscription again when it is looked up.", "Refresh the status and distinguish the current Stripe state from cached UI metadata."],
+    ["An unrelated subscription is found for the email", "The newer creation checker requires Pro identity. The older subscription-status screen may still label any active/trialing subscription as Pro.", "Compare the product and both endpoint results.", "Current limitation"],
+    ["Account email changes or multiple Stripe customers share an email", "Creation fallback searches all matching customers, but only for the current account email. The status screen searches up to ten; the portal selects the first.", "A returned, account-bound subscription session may still work; email lookup results can differ across screens.", "Current limitation"],
+    ["Subscription metadata belongs to another user", "The newer Pro checker rejects conflicting user_id metadata even if the email matches.", "Check ownership identifiers; do not rewrite metadata without investigating."],
+    ["Subscribe again while already subscribed", "Checkout does not check for an existing subscription or provide purchase idempotency; a second subscription can be created.", "Check for multiple subscriptions and charges before further checkout.", "Current limitation"],
+  ]},
+  { title: "Cancellation, plan changes, refunds and invoices", reference: "subscriptions", rows: [
+    ["Cancel before the renewal date", "The route sets cancel_at_period_end=true; it does not immediately cancel or refund. Eligible active/trialing access continues until Stripe’s status changes.", "Check the period end and cancellation flag."],
+    ["Undo a scheduled cancellation", "Reactivate sets cancel_at_period_end=false. This removes scheduled cancellation while Stripe allows the update.", "Confirm Stripe’s returned status and flag."],
+    ["Try to reactivate an already ended subscription", "The route only updates the cancellation flag; it does not create a replacement subscription and may return a Stripe error.", "An ended subscription needs an appropriate new purchase flow, not a promise that the flag revives it."],
+    ["Subscription ends after trips were created", "Those trips are not deleted by the cancellation flow. Further creation needs another valid allowance.", "Other UI features can still show stale Pro metadata; this is not a complete downgrade workflow.", "Current limitation"],
+    ["Switch monthly to yearly or yearly to monthly", "There is no dedicated interval-change or proration endpoint. Starting another checkout is a new subscription flow.", "Portal capabilities depend on Stripe setup; avoid accidentally creating duplicate subscriptions.", "Current limitation"],
+    ["Request a refund for a pass or subscription", "There is no in-app refund flow, automatic refund policy or refund reconciliation in this implementation.", "Review the Stripe transaction and business policy; do not promise automatic reimbursement.", "Current limitation"],
+    ["An unused Trip Pass has been refunded", "The verifier does not inspect refunds beyond Checkout Session fields, so a refunded pass may still appear eligible.", "Review the refund and access manually; no automatic revocation is implemented.", "Current limitation"],
+    ["A used pass or subscription payment is refunded or disputed", "No handler automatically removes trips, restores allowances or adjusts access in response to refunds/disputes.", "Review the payment, current subscription state and ledger separately.", "Current limitation"],
+    ["Open payment methods and invoices", "The app requests a Stripe portal session for the first customer found by email.", "Available actions and invoice/payment-method screens depend on the portal configuration.", "Stripe configuration"],
+    ["No Stripe customer exists for the email", "The billing portal route returns 404. It does not create a customer or invoice history.", "Check email and Stripe environment."],
+    ["Invoice email, receipt, tax calculation or payment retry is expected", "This code does not define a complete Stripe email, tax or retry policy. The Make notification webhook is not a billing-event handler.", "Inspect Stripe settings and any external automation before confirming behaviour.", "Stripe configuration"],
+  ]},
+  { title: "Saving, concurrency, publishing and invites", reference: "ledger", rows: [
+    ["Two requests try to consume the free allowance together", "The database unique index permits one free ledger entry; the other request is rejected rather than issuing a second free trip.", "Check the successful trip before retrying."],
+    ["Two requests use the same pass together", "The unique Checkout Session entry permits only one pass-backed creation.", "Find the trip attached to that session."],
+    ["A Pro save is submitted twice", "There is no per-draft idempotency key. Both requests can create trips because subscription access has no single-use constraint.", "Check for duplicates before retrying after an uncertain response.", "Current limitation"],
+    ["Trip insertion fails inside the database function", "The trip and grant insert are atomic; the failed transaction does not consume that grant.", "Correct the error before retrying. This does not refund the Stripe purchase."],
+    ["Saving planning records or invites fails after trip creation", "Handled failures call rollback_trip_creation to remove the new trip and its grant.", "Verify cleanup succeeded before assuming the allowance is available again."],
+    ["Cleanup fails or the server stops mid-save", "Cleanup failure can return the existing trip ID. Unexpected interruption can leave partial work; there is no background reconciliation job in this flow.", "Inspect trips, related records and ledger before retrying.", "Current limitation"],
+    ["The browser loses the successful save response", "The trip and ledger may already exist even though the user saw an error or timeout.", "Check My Trips and the ledger before another save; a used pass/free allowance is not proof of a failed payment."],
+    ["Publish a saved draft with another active trip", "The older publish endpoint uses profile plan metadata and active-trip count. A non-Pro-labelled user with another active trip is blocked, even if the draft was pass-backed.", "Publishing and creating do not yet share one access rule.", "Current limitation"],
+    ["Reopen or edit an existing trip", "Editing the same trip does not create a new allowance ledger entry. The publish transition has the separate rule described above.", "Confirm the operation updates an existing trip rather than creating a copy."],
+    ["Add a sixth traveller on Free", "The creation form offers an upgrade after five invites; verified pass/Pro state lifts that form cap.", "The finalise API does not enforce the invite cap itself.", "Current limitation"],
+    ["User edits their plan label or an admin changes it", "This does not authorise paid creation in the newer checker or change Stripe charges. Older UI and publishing checks still use metadata.", "Treat a display label separately from verified billing access.", "Current limitation"],
+  ]},
+  { title: "Operations, failures and records", reference: "records", rows: [
+    ["Stripe or the allowance database is unavailable", "Access verification fails closed. Finalise returns 503 for verification failures; it does not grant access by default.", "Restore service and retry after checking whether earlier work succeeded."],
+    ["Stripe keys are missing or test/live environments differ", "Checkout or verification can fail, or the requested Stripe session/customer cannot be found in that environment.", "Check the deployed publishable and secret key environments without exposing key values."],
+    ["A non-admin tries to open this guide", "The guide checks the backoffice summary endpoint and displays an access-required message if the session is absent or the check fails.", "This is a documentation UI check; it does not secure the separate Stripe endpoints."],
+    ["Someone calls the older subscription-management endpoints directly", "Status, cancellation/reactivation and portal routes currently lack authenticated ownership checks.", "This is an existing access-control gap requiring implementation work, not supported delegation.", "Current limitation"],
+    ["Backoffice shows Pro but creation is blocked", "Stored metadata can be stale. The newer checker may correctly reject the current Stripe status or product.", "Compare Stripe, the ledger, account email and supplied session."],
+    ["Backoffice Payments does not show a Stripe purchase", "The Payments view reads database rows, not a live Stripe charge list. No billing webhook populates a full charge/invoice mirror here.", "Find the transaction in Stripe; absence from this list does not prove no charge occurred.", "Current limitation"],
+    ["Mark a trip expense payment as paid", "This updates recorded trip payment state; it does not itself charge a card, subscribe the user or purchase a Trip Pass.", "Identify whether the support query concerns trip expenses or Journi billing."],
+    ["Edit a backoffice payment amount or status", "Database edits do not modify the original Stripe charge, invoice or subscription.", "Reconcile the separate records before reporting a refund or billing change."],
+    ["Code has changed but the live site behaves differently", "This guide describes the reviewed local implementation. Production depends on the deployed code, migration and Stripe settings.", "Confirm deployment and migration versions before treating the guide as a live account audit."],
+  ]},
+];
+
+export const billingScenarioGroups = groups.map((group, groupIndex) => ({
+  title: group.title,
+  reference: group.reference,
+  id: `scenario-group-${groupIndex + 1}`,
+  scenarios: group.rows.map(([title, outcome, check, status = "Implemented"], index) => ({
+    id: `B${groupIndex + 1}.${String(index + 1).padStart(2, "0")}`,
+    title, outcome, check, status,
+  })),
+}));
+export const billingScenarioCount = billingScenarioGroups.reduce((sum, group) => sum + group.scenarios.length, 0);
